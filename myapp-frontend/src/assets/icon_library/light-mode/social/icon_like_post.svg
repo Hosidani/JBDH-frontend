@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="icon_like_post.svg">
+  <g stroke="currentColor" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M256 384 L216 344 C140 268 120 228 120 184 A84 84 0 0 1 220 120 L256 152 L292 120 A84 84 0 0 1 392 184 C392 228 372 268 296 344 Z" />
+  </g>
+</svg>

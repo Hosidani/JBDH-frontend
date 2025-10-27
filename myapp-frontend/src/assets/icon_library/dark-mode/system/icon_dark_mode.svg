@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="icon_dark_mode.svg">
+  <g stroke="currentColor" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M320 128 A144 144 0 1 1 200 384 A96 96 0 0 0 320 128 Z" />
+  </g>
+</svg>

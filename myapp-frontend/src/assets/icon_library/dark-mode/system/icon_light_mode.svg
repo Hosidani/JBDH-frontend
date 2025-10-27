@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="icon_light_mode.svg">
+  <g stroke="currentColor" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="256" r="96" /><path d="M256 80 V32 M256 480 V432 M432 256 H480 M32 256 H80 M370 142 L408 104 M104 408 L142 370 M370 370 L408 408 M104 104 L142 142" />
+  </g>
+</svg>

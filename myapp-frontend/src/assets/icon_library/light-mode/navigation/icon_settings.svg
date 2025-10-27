@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="icon_settings.svg">
+  <g stroke="currentColor" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="256" r="64" /><path d="M256 136 L256 88 M256 424 L256 376 M376 256 L424 256 M88 256 L136 256 M353 353 L392 392 M119 119 L80 80 M353 159 L392 120 M119 393 L80 432" />
+  </g>
+</svg>
