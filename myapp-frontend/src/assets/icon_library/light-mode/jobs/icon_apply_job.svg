@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="icon_apply_job.svg">
+  <g stroke="currentColor" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="120" y="96" width="272" height="320" rx="20" /><path d="M176 240 H336" /><path d="M256 176 V336" />
+  </g>
+</svg>
