@@ -1,38 +1,46 @@
-import { HomePage } from './pages/Home';
-import './App.css';
 
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { HomePage } from './pages/Home';
+import LoginPage from './pages/LoginPage';
+import './App.css';
 
 function App() {
   const isAuthenticated = false; // Set to true to simulate logged-in state
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1 className="app-title">JBDH - Job Database Handler</h1>
-      </header>
-      <nav className="app-navbar">
-        <ul className="app-navbar-list">
-          <li><a href="/" className="app-navbar-link">Home</a></li>
-          <li><a href="/search" className="app-navbar-link">Search</a></li>
-          <li><a href="/register" className="app-navbar-link">Register</a></li>
-          {!isAuthenticated && (
-            <li><a href="/login" className="app-navbar-link">Login</a></li>
-          )}
-          {isAuthenticated && (
-            <>
-              <li><a href="/profile" className="app-navbar-link">Profile</a></li>
-              <li><a href="/boards" className="app-navbar-link">Boards</a></li>
-              <li><a href="/inbox" className="app-navbar-link">Inbox</a></li>
-              <li><a href="/settings" className="app-navbar-link">Settings</a></li>
-              <li><a href="/login" className="app-navbar-link">Logout</a></li>
-            </>
-          )}
-        </ul>
-      </nav>
-      <main className="main-content">
-        <HomePage />
-      </main>
-    </div>
+    <Router>
+      <div className="app-container">
+        <header className="app-header">
+          <h1 className="app-title">JBDH - Job Database Handler</h1>
+        </header>
+        <nav className="app-navbar">
+          <ul className="app-navbar-list">
+            <li><Link to="/" className="app-navbar-link">Home</Link></li>
+            <li><Link to="/search" className="app-navbar-link">Search</Link></li>
+            <li><Link to="/register" className="app-navbar-link">Register</Link></li>
+            {!isAuthenticated && (
+              <li><Link to="/login" className="app-navbar-link">Login</Link></li>
+            )}
+            {isAuthenticated && (
+              <>
+                <li><Link to="/profile" className="app-navbar-link">Profile</Link></li>
+                <li><Link to="/boards" className="app-navbar-link">Boards</Link></li>
+                <li><Link to="/inbox" className="app-navbar-link">Inbox</Link></li>
+                <li><Link to="/settings" className="app-navbar-link">Settings</Link></li>
+                <li><Link to="/login" className="app-navbar-link">Logout</Link></li>
+              </>
+            )}
+          </ul>
+        </nav>
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            {/* Add more routes as needed */}
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 
