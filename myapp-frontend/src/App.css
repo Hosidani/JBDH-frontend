@@ -1,3 +1,37 @@
+/* Navigation Bar Styling */
+.app-navbar {
+  width: 100%;
+  background: #f1f5f9;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.04);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin-bottom: 2rem;
+}
+
+.app-navbar-list {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 0;
+}
+
+.app-navbar-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+.app-navbar-link:hover, .app-navbar-link:focus {
+  background: #2563eb;
+  color: #fff;
+}
 html, body {
   overflow-x: hidden;
 }
