@@ -1,15 +1,17 @@
-import './App.css'
-import { HomePage } from './pages/Home'
+import { HomePage } from './pages/Home';
+import './App.css';
 
 function App() {
   return (
-    <>
-      <h1>JBDH - Job Database Handler</h1>
-      
-      {/* Main DataFlow Application */}
-      <HomePage />
-    </>
-  )
+    <div className="app-container">
+      <header className="app-header">
+        <h1 className="app-title">JBDH - Job Database Handler</h1>
+      </header>
+      <main className="main-content">
+        <HomePage />
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
