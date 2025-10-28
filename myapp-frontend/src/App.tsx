@@ -1,5 +1,6 @@
 
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage } from './pages/Home';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -7,7 +8,8 @@ import SearchJobsPage from './pages/SearchJobsPage';
 import './App.css';
 
 function App() {
-  const isAuthenticated = false; // Set to true to simulate logged-in state
+  // Use the AuthContext to get the user and logout function
+  const { user, logout } = useAuth();
 
   return (
     <Router>
@@ -19,17 +21,15 @@ function App() {
           <ul className="app-navbar-list">
             <li><Link to="/" className="app-navbar-link">Home</Link></li>
             <li><Link to="/search" className="app-navbar-link">Search</Link></li>
-            <li><Link to="/register" className="app-navbar-link">Register</Link></li>
-            {!isAuthenticated && (
-              <li><Link to="/login" className="app-navbar-link">Login</Link></li>
-            )}
-            {isAuthenticated && (
+            {!user && <li><Link to="/register" className="app-navbar-link">Register</Link></li>}
+            {!user && <li><Link to="/login" className="app-navbar-link">Login</Link></li>}
+            {user && (
               <>
                 <li><Link to="/profile" className="app-navbar-link">Profile</Link></li>
                 <li><Link to="/boards" className="app-navbar-link">Boards</Link></li>
                 <li><Link to="/inbox" className="app-navbar-link">Inbox</Link></li>
                 <li><Link to="/settings" className="app-navbar-link">Settings</Link></li>
-                <li><Link to="/login" className="app-navbar-link">Logout</Link></li>
+                <li><button onClick={logout} className="app-navbar-link bg-transparent border-none cursor-pointer">Logout</button></li>
               </>
             )}
           </ul>
@@ -48,4 +48,11 @@ function App() {
   );
 }
 
-export default App;
+// Wrap the app in AuthProvider
+export default function AppWithProvider() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+}
