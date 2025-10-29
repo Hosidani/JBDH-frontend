@@ -36,12 +36,14 @@ function App() {
                 Search
               </Link>
             </li>
-            <li className="inline-flex">
-              <Link to="/register" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm flex items-center">
-                <IconUserRegister className="inline-block mr-2 w-6 h-6 text-blue-700" />
-                Register
-              </Link>
-            </li>
+            {!user && (
+              <li className="inline-flex">
+                <Link to="/register" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm flex items-center">
+                  <IconUserRegister className="inline-block mr-2 w-6 h-6 text-blue-700" />
+                  Register
+                </Link>
+              </li>
+            )}
             {!user && (
               <li className="inline-flex">
                 <Link to="/login" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm flex items-center">
