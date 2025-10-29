@@ -176,6 +176,7 @@ const CvJobAdComparison: React.FC = () => {
               placeholder="Paste the complete job advertisement here..."
               required
               rows={8}
+              className="input-dark"
               style={{
                 width: '100%',
                 padding: '12px',
@@ -207,13 +208,12 @@ const CvJobAdComparison: React.FC = () => {
               onChange={(e) => setCvFile(e.target.files?.[0] || null)}
               required
               accept=".pdf,.doc,.docx"
+              className="input-dark"
               style={{
                 width: '100%',
                 padding: '12px',
                 borderRadius: '8px',
                 border: '2px solid #e5e7eb',
-                color: '#1f2937',
-                backgroundColor: '#f8fafc',
                 fontSize: '14px'
               }}
             />
