@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,11 +23,12 @@ const LoginPage: React.FC = () => {
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-      if (response.redirected) {
-        window.location.href = response.url;
-        return;
-      }
-      if (!response.ok) {
+      if (response.ok) {
+        // Optionally parse user info from response if backend returns it
+        // For now, just store email
+        login({ email });
+        navigate('/');
+      } else {
         setError('Invalid email or password.');
       }
     } catch (err) {

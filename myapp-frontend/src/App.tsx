@@ -1,5 +1,6 @@
 
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import IconHome from './components/icon_library/IconHome';
 import IconSearchJobs from './components/icon_library/IconSearchJobs';
 import IconUserLogin from './components/icon_library/IconUserLogin';
@@ -11,7 +12,8 @@ import SearchJobsPage from './features/search/SearchJobsPage';
 import './App.css';
 
 function App() {
-  const isAuthenticated = false; // Set to true to simulate logged-in state
+  // Use the AuthContext to get the user and logout function
+  const { user, logout } = useAuth();
 
   return (
     <Router>
@@ -53,7 +55,7 @@ function App() {
                 <li className="inline-flex"><Link to="/boards" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm">Boards</Link></li>
                 <li className="inline-flex"><Link to="/inbox" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm">Inbox</Link></li>
                 <li className="inline-flex"><Link to="/settings" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm">Settings</Link></li>
-                <li className="inline-flex"><Link to="/login" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm">Logout</Link></li>
+                <li className="inline-flex"><button onClick={logout} className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm bg-transparent border-none cursor-pointer">Logout</button></li>
               </>
             )}
           </ul>
@@ -72,4 +74,11 @@ function App() {
   );
 }
 
-export default App;
+// Wrap the app in AuthProvider
+export default function AppWithProvider() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+}
