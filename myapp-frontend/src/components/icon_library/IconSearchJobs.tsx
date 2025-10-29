@@ -1,4 +1,4 @@
-import React from "react";
+
 
 const IconSearchJobs = ({ className = "w-6 h-6" }: { className?: string }) => (
   <svg

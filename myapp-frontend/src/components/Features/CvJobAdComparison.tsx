@@ -6,6 +6,15 @@ const CvJobAdComparison: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
+  // Helper to parse AI response (fallback: return null if not JSON)
+  function parseAiResponse(resultText: string): any {
+    try {
+      return JSON.parse(resultText);
+    } catch {
+      return null;
+    }
+  }
+
   // Function to render formatted comparison result
   const renderFormattedResult = (resultText: string) => {
     const parsedData = parseAiResponse(resultText);

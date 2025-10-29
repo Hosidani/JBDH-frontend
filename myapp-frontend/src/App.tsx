@@ -11,6 +11,7 @@ import RegisterPage from './features/auth/RegisterPage';
 import SearchJobsPage from './features/search/SearchJobsPage';
 import './App.css';
 
+
 function App() {
   // Use the AuthContext to get the user and logout function
   const { user, logout } = useAuth();
@@ -41,7 +42,7 @@ function App() {
                 Register
               </Link>
             </li>
-            {!isAuthenticated && (
+            {!user && (
               <li className="inline-flex">
                 <Link to="/login" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm flex items-center">
                   <IconUserLogin className="inline-block mr-2 w-6 h-6 text-blue-700" />
@@ -49,7 +50,7 @@ function App() {
                 </Link>
               </li>
             )}
-            {isAuthenticated && (
+            {user && (
               <>
                 <li className="inline-flex"><Link to="/profile" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm">Profile</Link></li>
                 <li className="inline-flex"><Link to="/boards" className="px-5 py-2 rounded-t-lg font-semibold text-blue-700 bg-white hover:bg-blue-100 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm">Boards</Link></li>
