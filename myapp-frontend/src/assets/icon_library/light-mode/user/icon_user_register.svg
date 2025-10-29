@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="icon_user_register.svg">
+  <g stroke="currentColor" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    
+<circle cx="176" cy="200" r="64" />
+<path d="M304 240 L480 240" />
+<path d="M392 160 L392 320" />
+<path d="M112 368 C144 304 320 304 352 368 Z" />
+
+  </g>
+</svg>

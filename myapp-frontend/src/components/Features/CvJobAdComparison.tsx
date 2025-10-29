@@ -6,228 +6,77 @@ const CvJobAdComparison: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  // Function to parse and format the AI response
-  const parseAiResponse = (responseText: string) => {
-    try {
-      // Parse the outer JSON
-      const parsed = JSON.parse(responseText);
-      const aiResponse = parsed.aiResponse;
-      
-      // Extract JSON from the markdown code block
-      const jsonMatch = aiResponse.match(/```json\n([\s\S]*?)\n```/);
-      if (jsonMatch) {
-        const jsonData = JSON.parse(jsonMatch[1]);
-        return jsonData;
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Error parsing AI response:', error);
-      return null;
-    }
-  };
-
   // Function to render formatted comparison result
   const renderFormattedResult = (resultText: string) => {
     const parsedData = parseAiResponse(resultText);
-    
     if (!parsedData) {
-      return <pre style={{ whiteSpace: 'pre-wrap', color: '#1f2937' }}>{resultText}</pre>;
+      return <pre className="whitespace-pre-wrap text-slate-800">{resultText}</pre>;
     }
-
     return (
-      <div style={{ color: '#1f2937' }}>
+      <div className="text-slate-800">
         {/* Fit Summary */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            marginBottom: '12px',
-            padding: '8px 0',
-            borderBottom: '2px solid #2563eb'
-          }}>
-            <span style={{ fontSize: '18px', marginRight: '8px' }}>📋</span>
-            <h5 style={{ 
-              color: '#2563eb', 
-              margin: '0',
-              fontSize: '16px',
-              fontWeight: '600'
-            }}>
-              Overall Fit Assessment
-            </h5>
+        <div className="mb-6">
+          <div className="flex items-center mb-3 pb-2 border-b-2 border-blue-600">
+            <span className="text-lg mr-2">📋</span>
+            <h5 className="text-blue-600 text-base font-semibold m-0">Overall Fit Assessment</h5>
           </div>
-          <div style={{ 
-            backgroundColor: '#f8fafc', 
-            padding: '16px', 
-            borderRadius: '8px',
-            borderLeft: '4px solid #2563eb',
-            color: '#1f2937',
-            lineHeight: '1.6'
-          }}>
+          <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-blue-600 leading-relaxed">
             {parsedData.FitSummary}
           </div>
         </div>
-
         {/* Matching Skills */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            marginBottom: '12px',
-            padding: '8px 0',
-            borderBottom: '2px solid #10b981'
-          }}>
-            <span style={{ fontSize: '18px', marginRight: '8px' }}>✅</span>
-            <h5 style={{ 
-              color: '#10b981', 
-              margin: '0',
-              fontSize: '16px',
-              fontWeight: '600'
-            }}>
-              Matching Skills & Technologies
-            </h5>
+        <div className="mb-6">
+          <div className="flex items-center mb-3 pb-2 border-b-2 border-emerald-500">
+            <span className="text-lg mr-2">✅</span>
+            <h5 className="text-emerald-500 text-base font-semibold m-0">Matching Skills & Technologies</h5>
           </div>
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '8px'
-          }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {parsedData.MatchingSkills?.map((skill: string, index: number) => (
-              <div key={index} style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                padding: '8px 12px',
-                backgroundColor: '#f0fdf4',
-                borderRadius: '6px',
-                border: '1px solid #bbf7d0',
-                color: '#166534'
-              }}>
-                <span style={{ 
-                  color: '#10b981', 
-                  marginRight: '8px',
-                  fontWeight: 'bold'
-                }}>
-                  ●
-                </span>
+              <div key={index} className="flex items-center p-2 bg-emerald-50 rounded-md border border-emerald-200 text-emerald-800">
+                <span className="text-emerald-500 mr-2 font-bold">●</span>
                 {skill}
               </div>
             ))}
           </div>
         </div>
-
         {/* Missing Requirements */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            marginBottom: '12px',
-            padding: '8px 0',
-            borderBottom: '2px solid #f59e0b'
-          }}>
-            <span style={{ fontSize: '18px', marginRight: '8px' }}>⚠️</span>
-            <h5 style={{ 
-              color: '#f59e0b', 
-              margin: '0',
-              fontSize: '16px',
-              fontWeight: '600'
-            }}>
-              Areas for Development
-            </h5>
+        <div className="mb-6">
+          <div className="flex items-center mb-3 pb-2 border-b-2 border-amber-400">
+            <span className="text-lg mr-2">⚠️</span>
+            <h5 className="text-amber-500 text-base font-semibold m-0">Areas for Development</h5>
           </div>
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '8px'
-          }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {parsedData.MissingRequirements?.map((req: string, index: number) => (
-              <div key={index} style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                padding: '8px 12px',
-                backgroundColor: '#fef3c7',
-                borderRadius: '6px',
-                border: '1px solid #fcd34d',
-                color: '#92400e'
-              }}>
-                <span style={{ 
-                  color: '#f59e0b', 
-                  marginRight: '8px',
-                  fontWeight: 'bold'
-                }}>
-                  ●
-                </span>
+              <div key={index} className="flex items-center p-2 bg-amber-100 rounded-md border border-amber-300 text-amber-900">
+                <span className="text-amber-500 mr-2 font-bold">●</span>
                 {req}
               </div>
             ))}
           </div>
         </div>
-
         {/* Relevant Experience */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            marginBottom: '12px',
-            padding: '8px 0',
-            borderBottom: '2px solid #2563eb'
-          }}>
-            <span style={{ fontSize: '18px', marginRight: '8px' }}>💼</span>
-            <h5 style={{ 
-              color: '#2563eb', 
-              margin: '0',
-              fontSize: '16px',
-              fontWeight: '600'
-            }}>
-              Professional Experience
-            </h5>
+        <div className="mb-6">
+          <div className="flex items-center mb-3 pb-2 border-b-2 border-blue-600">
+            <span className="text-lg mr-2">💼</span>
+            <h5 className="text-blue-600 text-base font-semibold m-0">Professional Experience</h5>
           </div>
-          <div style={{ color: '#1f2937' }}>
+          <div>
             {parsedData.RelevantExperiences?.map((exp: string, index: number) => (
-              <div key={index} style={{ 
-                padding: '12px',
-                marginBottom: '8px',
-                backgroundColor: '#f8fafc',
-                borderRadius: '6px',
-                borderLeft: '3px solid #2563eb',
-                color: '#1f2937',
-                lineHeight: '1.5'
-              }}>
+              <div key={index} className="p-3 mb-2 bg-slate-50 rounded-md border-l-4 border-blue-600 leading-relaxed">
                 {exp}
               </div>
             ))}
           </div>
         </div>
-
         {/* Education */}
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            marginBottom: '12px',
-            padding: '8px 0',
-            borderBottom: '2px solid #10b981'
-          }}>
-            <span style={{ fontSize: '18px', marginRight: '8px' }}>🎓</span>
-            <h5 style={{ 
-              color: '#10b981', 
-              margin: '0',
-              fontSize: '16px',
-              fontWeight: '600'
-            }}>
-              Education & Certifications
-            </h5>
+        <div className="mb-5">
+          <div className="flex items-center mb-3 pb-2 border-b-2 border-emerald-500">
+            <span className="text-lg mr-2">🎓</span>
+            <h5 className="text-emerald-500 text-base font-semibold m-0">Education & Certifications</h5>
           </div>
-          <div style={{ color: '#1f2937' }}>
+          <div>
             {parsedData.EducationAndCertifications?.map((edu: string, index: number) => (
-              <div key={index} style={{ 
-                padding: '12px',
-                marginBottom: '8px',
-                backgroundColor: '#f0fdf4',
-                borderRadius: '6px',
-                borderLeft: '3px solid #10b981',
-                color: '#1f2937',
-                lineHeight: '1.5'
-              }}>
+              <div key={index} className="p-3 mb-2 bg-emerald-50 rounded-md border-l-4 border-emerald-500 leading-relaxed">
                 {edu}
               </div>
             ))}
@@ -236,6 +85,7 @@ const CvJobAdComparison: React.FC = () => {
       </div>
     );
   };
+// ...existing code...
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -309,7 +159,7 @@ const CvJobAdComparison: React.FC = () => {
               fontSize: '16px',
               fontWeight: '600'
             }}>
-              📄 Job Advertisement Text:
+              Job Advertisement Text:
             </label>
             <textarea
               value={jobAdText}
@@ -341,7 +191,7 @@ const CvJobAdComparison: React.FC = () => {
               fontSize: '16px',
               fontWeight: '600'
             }}>
-              📎 Candidate CV File:
+              Candidate CV File:
             </label>
             <input
               type="file"
@@ -390,7 +240,7 @@ const CvJobAdComparison: React.FC = () => {
               }
             }}
           >
-            {loading ? '🔄 Analyzing CV...' : '🚀 Analyze CV Match'}
+            {loading ? 'Analyzing CV...' : 'Match CV to Job Ad'}
           </button>
         </form>
       )}
