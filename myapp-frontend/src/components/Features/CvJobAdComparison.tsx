@@ -6,91 +6,135 @@ const CvJobAdComparison: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  // Helper to parse AI response (fallback: return null if not JSON)
+  // Helper to parse AI response (handles different response formats)
   function parseAiResponse(resultText: string): any {
     try {
+      // First try to parse as direct JSON
       return JSON.parse(resultText);
     } catch {
-      return null;
+      try {
+        // If that fails, look for JSON within markdown code blocks
+        const jsonMatch = resultText.match(/```json\s*([\s\S]*?)\s*```/);
+        if (jsonMatch && jsonMatch[1]) {
+          return JSON.parse(jsonMatch[1]);
+        }
+        
+        // Also try to find JSON between triple backticks without json language specifier
+        const codeMatch = resultText.match(/```\s*([\s\S]*?)\s*```/);
+        if (codeMatch && codeMatch[1]) {
+          return JSON.parse(codeMatch[1]);
+        }
+        
+        return null;
+      } catch {
+        return null;
+      }
     }
   }
 
   // Function to render formatted comparison result
   const renderFormattedResult = (resultText: string) => {
+    console.log('Rendering result:', resultText); // Debug log
+    
     const parsedData = parseAiResponse(resultText);
+    console.log('Parsed data:', parsedData); // Debug log
+    
     if (!parsedData) {
-      return <pre className="whitespace-pre-wrap text-slate-800">{resultText}</pre>;
+      return (
+        <div>
+          <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded text-yellow-800">
+            <strong>Debug Info:</strong> Could not parse as JSON. Showing raw response:
+          </div>
+          <pre className="whitespace-pre-wrap text-slate-800 bg-gray-100 p-4 rounded border overflow-x-auto">
+            {resultText}
+          </pre>
+        </div>
+      );
     }
     return (
       <div className="text-slate-800">
         {/* Fit Summary */}
-        <div className="mb-6">
-          <div className="flex items-center mb-3 pb-2 border-b-2 border-blue-600">
-            <span className="text-lg mr-2">📋</span>
-            <h5 className="text-blue-600 text-base font-semibold m-0">Overall Fit Assessment</h5>
+        {parsedData.FitSummary && (
+          <div className="mb-6">
+            <div className="flex items-center mb-3 pb-2 border-b-2 border-blue-600">
+              <span className="text-lg mr-2">📋</span>
+              <h5 className="text-blue-600 text-base font-semibold m-0">Overall Fit Assessment</h5>
+            </div>
+            <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-blue-600 leading-relaxed">
+              {parsedData.FitSummary}
+            </div>
           </div>
-          <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-blue-600 leading-relaxed">
-            {parsedData.FitSummary}
-          </div>
-        </div>
+        )}
+        
         {/* Matching Skills */}
-        <div className="mb-6">
-          <div className="flex items-center mb-3 pb-2 border-b-2 border-emerald-500">
-            <span className="text-lg mr-2">✅</span>
-            <h5 className="text-emerald-500 text-base font-semibold m-0">Matching Skills & Technologies</h5>
+        {parsedData.MatchingSkills && parsedData.MatchingSkills.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center mb-3 pb-2 border-b-2 border-emerald-500">
+              <span className="text-lg mr-2">✅</span>
+              <h5 className="text-emerald-500 text-base font-semibold m-0">Matching Skills & Technologies</h5>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {parsedData.MatchingSkills.map((skill: string, index: number) => (
+                <div key={index} className="flex items-center p-2 bg-emerald-50 rounded-md border border-emerald-200 text-emerald-800">
+                  <span className="text-emerald-500 mr-2 font-bold">●</span>
+                  {skill}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {parsedData.MatchingSkills?.map((skill: string, index: number) => (
-              <div key={index} className="flex items-center p-2 bg-emerald-50 rounded-md border border-emerald-200 text-emerald-800">
-                <span className="text-emerald-500 mr-2 font-bold">●</span>
-                {skill}
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
+        
         {/* Missing Requirements */}
-        <div className="mb-6">
-          <div className="flex items-center mb-3 pb-2 border-b-2 border-amber-400">
-            <span className="text-lg mr-2">⚠️</span>
-            <h5 className="text-amber-500 text-base font-semibold m-0">Areas for Development</h5>
+        {parsedData.MissingRequirements && parsedData.MissingRequirements.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center mb-3 pb-2 border-b-2 border-amber-400">
+              <span className="text-lg mr-2">⚠️</span>
+              <h5 className="text-amber-500 text-base font-semibold m-0">Areas for Development</h5>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {parsedData.MissingRequirements.map((req: string, index: number) => (
+                <div key={index} className="flex items-center p-2 bg-amber-100 rounded-md border border-amber-300 text-amber-900">
+                  <span className="text-amber-500 mr-2 font-bold">●</span>
+                  {req}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {parsedData.MissingRequirements?.map((req: string, index: number) => (
-              <div key={index} className="flex items-center p-2 bg-amber-100 rounded-md border border-amber-300 text-amber-900">
-                <span className="text-amber-500 mr-2 font-bold">●</span>
-                {req}
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
+        
         {/* Relevant Experience */}
-        <div className="mb-6">
-          <div className="flex items-center mb-3 pb-2 border-b-2 border-blue-600">
-            <span className="text-lg mr-2">💼</span>
-            <h5 className="text-blue-600 text-base font-semibold m-0">Professional Experience</h5>
+        {parsedData.RelevantExperiences && parsedData.RelevantExperiences.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center mb-3 pb-2 border-b-2 border-blue-600">
+              <span className="text-lg mr-2">💼</span>
+              <h5 className="text-blue-600 text-base font-semibold m-0">Professional Experience</h5>
+            </div>
+            <div>
+              {parsedData.RelevantExperiences.map((exp: string, index: number) => (
+                <div key={index} className="p-3 mb-2 bg-slate-50 rounded-md border-l-4 border-blue-600 leading-relaxed">
+                  {exp}
+                </div>
+              ))}
+            </div>
           </div>
-          <div>
-            {parsedData.RelevantExperiences?.map((exp: string, index: number) => (
-              <div key={index} className="p-3 mb-2 bg-slate-50 rounded-md border-l-4 border-blue-600 leading-relaxed">
-                {exp}
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
+        
         {/* Education */}
-        <div className="mb-5">
-          <div className="flex items-center mb-3 pb-2 border-b-2 border-emerald-500">
-            <span className="text-lg mr-2">🎓</span>
-            <h5 className="text-emerald-500 text-base font-semibold m-0">Education & Certifications</h5>
+        {parsedData.EducationAndCertifications && parsedData.EducationAndCertifications.length > 0 && (
+          <div className="mb-5">
+            <div className="flex items-center mb-3 pb-2 border-b-2 border-emerald-500">
+              <span className="text-lg mr-2">🎓</span>
+              <h5 className="text-emerald-500 text-base font-semibold m-0">Education & Certifications</h5>
+            </div>
+            <div>
+              {parsedData.EducationAndCertifications.map((edu: string, index: number) => (
+                <div key={index} className="p-3 mb-2 bg-emerald-50 rounded-md border-l-4 border-emerald-500 leading-relaxed">
+                  {edu}
+                </div>
+              ))}
+            </div>
           </div>
-          <div>
-            {parsedData.EducationAndCertifications?.map((edu: string, index: number) => (
-              <div key={index} className="p-3 mb-2 bg-emerald-50 rounded-md border-l-4 border-emerald-500 leading-relaxed">
-                {edu}
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     );
   };
@@ -124,10 +168,16 @@ const CvJobAdComparison: React.FC = () => {
       });
 
       if (response.ok) {
-        const resultText = await response.text();
-        setResult(resultText);
+        const responseData = await response.json();
+        console.log('Backend response:', responseData); // Debug log
+        
+        // Backend returns { aiResponse: "JSON string" }
+        const aiResponse = responseData.aiResponse || responseData;
+        setResult(aiResponse);
       } else {
-        alert('Failed to compare CV to job ad');
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        alert('Failed to compare CV to job ad: ' + response.status);
       }
     } catch (error) {
       console.error('Error comparing CV to job ad:', error);
