@@ -51,6 +51,7 @@ const LoginPage: React.FC = () => {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
+              className="input-dark"
               style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #d1d5db' }}
             />
           </div>
@@ -62,6 +63,7 @@ const LoginPage: React.FC = () => {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
+              className="input-dark"
               style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #d1d5db' }}
             />
           </div>

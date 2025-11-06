@@ -1,3 +1,8 @@
+/* Dark input for visibility on dark backgrounds */
+.input-dark {
+  color: #fff !important;
+  background: #222 !important;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -50,11 +50,11 @@ const SearchJobsPage: React.FC = () => {
         <form onSubmit={handleSubmit} style={{ marginBottom: '1.5rem' }}>
           <div style={{ marginBottom: '1rem' }}>
             <label>Description</label>
-            <input type="text" value={description} onChange={e => setDescription(e.target.value)} style={{ width: '100%' }} />
+            <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-dark" style={{ width: '100%' }} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
             <label>Location</label>
-            <input type="text" value={location} onChange={e => setLocation(e.target.value)} style={{ width: '100%' }} />
+            <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="input-dark" style={{ width: '100%' }} />
           </div>
           {error && <div style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ width: '100%', background: '#2563eb', color: 'white', padding: 10, borderRadius: 4, fontWeight: 600 }}>

@@ -68,19 +68,19 @@ const RegisterPage: React.FC = () => {
         <form onSubmit={handleSubmit} encType="multipart/form-data">
           <div style={{ marginBottom: '1rem' }}>
             <label>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%' }} />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="input-dark" style={{ width: '100%' }} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
             <label>Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%' }} />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="input-dark" style={{ width: '100%' }} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
             <label>Confirm Password</label>
-            <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required style={{ width: '100%' }} />
+            <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="input-dark" style={{ width: '100%' }} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
             <label>Location</label>
-            <input type="text" value={location} onChange={e => setLocation(e.target.value)} style={{ width: '100%' }} />
+            <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="input-dark" style={{ width: '100%' }} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
             <label>CV File</label>
@@ -100,6 +100,7 @@ const RegisterPage: React.FC = () => {
                     type="checkbox"
                     checked={selectedRoles.includes(role)}
                     onChange={() => handleRoleChange(role)}
+                    style={{ accentColor: '#2563eb' }}
                   />{' '}
                   {role}
                 </label>
