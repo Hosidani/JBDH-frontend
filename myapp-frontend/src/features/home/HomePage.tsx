@@ -1,240 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import type { ListDataFlowViewModel } from '../../types/DataFlow';
-import { DataFlowPost, CreateFlowForm, CvJobAdComparison } from '../../components';
+
+import React from 'react';
+
+const features = [
+  {
+    title: 'Matcha ditt CV mot annonser',
+    desc: 'Hitta jobbannonser som matchar din profil med ett enkelt klick!',
+  },
+  {
+    title: 'Redigera din profil',
+    desc: 'Se till att din profil och CV är up-to-date eller skapa en ny',
+  },
+  {
+    title: 'Matcha annons mot CV:n',
+    desc: 'Hitta kandidater som matchar din eller dina annonser',
+  },
+  {
+    title: 'Lägg upp en annons',
+    desc: 'Lägg upp en annons så den blir sökbar',
+  },
+];
 
 const HomePage: React.FC = () => {
-  const [viewModel, setViewModel] = useState<ListDataFlowViewModel | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-
-  const fetchDataFlows = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch('http://localhost:5071/api/home', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Received data:', data);
-      
-      // Transform the data to match our expected structure
-      const transformedData: ListDataFlowViewModel = {
-        dataFlows: data.dataFlows || []
-      };
-      
-      setViewModel(transformedData);
-    } catch (err) {
-      console.error('Error fetching data flows:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDataFlows();
-  }, []);
-
-  const handlePostCreated = () => {
-    setMessage('Post created successfully!');
-    fetchDataFlows(); // Refresh the list
-    setTimeout(() => setMessage(null), 3000); // Clear message after 3 seconds
-  };
-
-  const handlePostDeleted = () => {
-    setMessage('Post deleted successfully!');
-    fetchDataFlows(); // Refresh the list
-    setTimeout(() => setMessage(null), 3000);
-  };
-
-  if (loading) {
-    return (
-      <div className="card p-8" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ color: '#2563eb', fontSize: '1.2rem', fontWeight: '500' }}>
-          Loading posts...
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="card p-8" style={{ 
-        maxWidth: '600px', 
-        margin: '0 auto', 
-        textAlign: 'center',
-        backgroundColor: '#fef2f2',
-        borderColor: '#fecaca'
-      }}>
-        <div style={{ color: '#dc2626', fontSize: '1.2rem', fontWeight: '500' }}>
-          Error: {error}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        width: '100vw',
-        background: '#f7fafd',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {/* Success Message */}
-      {message && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          zIndex: 1000,
-          padding: '16px 24px',
-          backgroundColor: '#10b981',
-          color: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-          fontWeight: '500',
-        }}>
-          {message}
-        </div>
-      )}
+    <div className="min-h-screen w-full bg-[#f7fafd] flex flex-col items-center">
+      {/* Hero Section */}
 
-      {/* Centered Content Container */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          padding: '24px 0',
-        }}
-      >
-        {/* Create Post Section - Compact */}
-        <div
-          className="card"
-          style={{
-            padding: '20px',
-            marginBottom: '24px',
-            backgroundColor: '#ffffff',
-            width: '100%',
-            maxWidth: '600px',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2
-              style={{
-                color: '#2563eb',
-                margin: '0',
-                fontSize: '1.25rem',
-                fontWeight: '600',
-              }}
-            >
-              Share Your Experience
-            </h2>
-            <CreateFlowForm onPostCreated={handlePostCreated} />
-          </div>
-        </div>
+      <section className="w-full flex flex-col items-center justify-center py-10">
+        <img
+          src="/landing_page_big_image.png"
+          alt="Team planning at whiteboard"
+          className="w-full max-w-2xl rounded-lg object-cover mb-8 shadow"
+          style={{ height: 260 }}
+        />
+      </section>
 
-        {/* Posts Section - Only show if there are posts */}
-        {viewModel?.dataFlows && viewModel.dataFlows.length > 0 && (
-          <div
-            className="card"
-            style={{
-              padding: '24px',
-              marginBottom: '24px',
-              backgroundColor: '#ffffff',
-              width: '100%',
-              maxWidth: '600px',
-            }}
-          >
-            <h2
-              style={{
-                color: '#2563eb',
-                marginBottom: '20px',
-                fontSize: '1.25rem',
-                fontWeight: '600',
-                borderBottom: '2px solid #e5e7eb',
-                paddingBottom: '8px',
-              }}
-            >
-              Recent Posts ({viewModel.dataFlows.length})
-            </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {viewModel.dataFlows.map((post) => (
-                <DataFlowPost
-                  key={post.id}
-                  post={post}
-                  onPostDeleted={handlePostDeleted}
-                  onCommentAdded={fetchDataFlows}
-                />
-              ))}
+      {/* Feature Grid */}
+      <section className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-6 px-4 pb-12 mx-auto">
+        {features.map((f, i) => (
+          <div key={i} className="bg-slate-100 rounded-lg p-5 flex flex-col h-44 shadow-sm border border-slate-200">
+            <div className="flex-1 flex items-center justify-center text-2xl text-slate-300 font-bold mb-2">
+              {/* Placeholder for icon/image */}
+              <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="4" strokeDasharray="4 2" />
+              </svg>
             </div>
+            <div className="font-semibold text-base mb-1 text-slate-800">{f.title}</div>
+            <div className="text-slate-500 text-sm">{f.desc}</div>
           </div>
-        )}
-
-        {/* No Posts Message - Only show if no posts exist */}
-        {(!viewModel?.dataFlows || viewModel.dataFlows.length === 0) && !loading && (
-          <div
-            className="card"
-            style={{
-              padding: '60px 40px',
-              marginBottom: '24px',
-              backgroundColor: '#ffffff',
-              textAlign: 'center',
-              width: '100%',
-              maxWidth: '600px',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '3rem',
-                marginBottom: '16px',
-              }}
-            >
-              📝
-            </div>
-            <h3
-              style={{
-                color: '#374151',
-                marginBottom: '8px',
-                fontSize: '1.25rem',
-                fontWeight: '600',
-              }}
-            >
-              No Posts Yet
-            </h3>
-            <p
-              style={{
-                color: '#6b7280',
-                margin: '0',
-                fontSize: '1rem',
-              }}
-            >
-              Be the first to share your job experience or opportunity!
-            </p>
-          </div>
-        )}
-
-        {/* CV Analysis Tool */}
-        <div style={{ width: '100%', maxWidth: '600px' }}>
-          <CvJobAdComparison />
-        </div>
-      </div>
+        ))}
+      </section>
     </div>
   );
 };
