@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const availableRoles = ["Manager", "Recruiter"];
 
@@ -12,6 +13,7 @@ const RegisterPage: React.FC = () => {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const handleRoleChange = (role: string) => {
@@ -43,16 +45,30 @@ const RegisterPage: React.FC = () => {
       selectedRoles.forEach(role => formData.append('SelectedRoles', role));
       if (cvFile) formData.append('CVFile', cvFile);
 
+      // Debug: log all FormData keys and values
+      for (let [key, value] of formData.entries()) {
+        console.log('FormData:', key, value);
+      }
+
       const response = await fetch('http://localhost:5071/Register/RegisterUser', {
         method: 'POST',
         credentials: 'include',
         body: formData,
       });
       if (response.ok) {
-        setSuccess('Registration successful! Please check your email.');
+        // Redirect to login page with success message
+        navigate('/login', { state: { success: 'Registration successful! Please check your email.' } });
       } else {
-        const text = await response.text();
-        setError(text || 'Registration failed.');
+        // Try to parse error as JSON, fallback to text
+        let errorMsg = 'Registration failed.';
+        try {
+          const data = await response.json();
+          errorMsg = data.error || data.message || errorMsg;
+        } catch {
+          const text = await response.text();
+          if (text) errorMsg = text;
+        }
+        setError(errorMsg);
       }
     } catch (err) {
       setError('An error occurred.');
@@ -108,7 +124,6 @@ const RegisterPage: React.FC = () => {
             </div>
           </div>
           {error && <div style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</div>}
-          {success && <div style={{ color: '#10b981', marginBottom: '1rem' }}>{success}</div>}
           <button type="submit" disabled={loading} style={{ width: '100%', background: '#2563eb', color: 'white', padding: 10, borderRadius: 4, fontWeight: 600 }}>
             {loading ? 'Registering...' : 'Register'}
           </button>

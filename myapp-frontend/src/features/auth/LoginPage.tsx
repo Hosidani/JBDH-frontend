@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginPage: React.FC = () => {
@@ -9,6 +9,8 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state && location.state.success;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +25,17 @@ const LoginPage: React.FC = () => {
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-      if (response.ok) {
-        // Optionally parse user info from response if backend returns it
-        // For now, just store email
-        login({ email });
-        navigate('/');
-      } else {
-        setError('Invalid email or password.');
+       if (response.ok) {
+         // Parse user info from backend response
+         const data = await response.json();
+         if (data && data.email) {
+           login({ email: data.email, roles: data.roles });
+           navigate('/');
+         } else {
+           setError('Inloggningen misslyckades. Ingen användardata.');
+         }
+       } else {
+         setError('Invalid email or password.');
       }
     } catch (err) {
       setError('An error occurred.');
@@ -42,6 +48,9 @@ const LoginPage: React.FC = () => {
     <div className="main-content">
       <div className="card">
         <h2 style={{ textAlign: 'center', color: '#2563eb', marginBottom: '1.5rem' }}>Login</h2>
+        {successMessage && (
+          <div style={{ color: '#10b981', marginBottom: '1rem', textAlign: 'center' }}>{successMessage}</div>
+        )}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1rem' }}>
             <label htmlFor="email" style={{ display: 'block', marginBottom: 4 }}>Email</label>
