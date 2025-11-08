@@ -1,22 +1,33 @@
 
 import React from 'react';
 
+import { Link } from 'react-router-dom';
+
 const features = [
+  {
+    title: 'Matcha CV mot jobbannons',
+    desc: 'Låt AI analysera hur väl ditt CV matchar en specifik jobbannons.',
+    to: '/compare-cv-jobad',
+  },
   {
     title: 'Matcha ditt CV mot annonser',
     desc: 'Hitta jobbannonser som matchar din profil med ett enkelt klick!',
+    to: '/search',
   },
   {
     title: 'Redigera din profil',
     desc: 'Se till att din profil och CV är up-to-date eller skapa en ny',
+    to: '/profile',
   },
   {
     title: 'Matcha annons mot CV:n',
     desc: 'Hitta kandidater som matchar din eller dina annonser',
+    to: '/search',
   },
   {
     title: 'Lägg upp en annons',
     desc: 'Lägg upp en annons så den blir sökbar',
+    to: '/boards',
   },
 ];
 
@@ -37,7 +48,7 @@ const HomePage: React.FC = () => {
       {/* Feature Grid */}
       <section className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-6 px-4 pb-12 mx-auto">
         {features.map((f, i) => (
-          <div key={i} className="bg-slate-100 rounded-lg p-5 flex flex-col h-44 shadow-sm border border-slate-200">
+          <Link to={f.to} key={i} className="bg-slate-100 rounded-lg p-5 flex flex-col h-44 shadow-sm border border-slate-200 hover:bg-blue-50 transition cursor-pointer">
             <div className="flex-1 flex items-center justify-center text-2xl text-slate-300 font-bold mb-2">
               {/* Placeholder for icon/image */}
               <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -46,7 +57,7 @@ const HomePage: React.FC = () => {
             </div>
             <div className="font-semibold text-base mb-1 text-slate-800">{f.title}</div>
             <div className="text-slate-500 text-sm">{f.desc}</div>
-          </div>
+          </Link>
         ))}
       </section>
     </div>
