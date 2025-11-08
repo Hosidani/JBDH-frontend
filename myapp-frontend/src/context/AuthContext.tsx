@@ -20,30 +20,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount, check session with backend
+  // Restore user from localStorage on mount
   useEffect(() => {
-    const checkSession = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch('http://localhost:5071/api/profile', {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUser({ email: data.email, roles: data.roles });
-          localStorage.setItem("authUser", JSON.stringify({ email: data.email, roles: data.roles }));
-        } else {
-          setUser(null);
-          localStorage.removeItem("authUser");
-        }
-      } catch {
-        setUser(null);
-        localStorage.removeItem("authUser");
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkSession();
+    const stored = localStorage.getItem("authUser");
+    if (stored) {
+      setUser(JSON.parse(stored));
+    }
+    setLoading(false);
   }, []);
 
   // Save user to localStorage when changed (except during initial session check)
