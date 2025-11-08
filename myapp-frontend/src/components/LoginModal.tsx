@@ -23,11 +23,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-      if (response.ok) {
-        login({ email });
-        onClose();
-      } else {
-        setError('Fel e-post eller lösenord.');
+       if (response.ok) {
+         const data = await response.json();
+         if (data && data.email) {
+           login({ email: data.email, roles: data.roles });
+           onClose();
+         } else {
+           setError('Inloggningen misslyckades. Ingen användardata.');
+         }
+       } else {
+         setError('Fel e-post eller lösenord.');
       }
     } catch (err) {
       setError('Ett fel uppstod.');

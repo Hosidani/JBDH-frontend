@@ -15,26 +15,60 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
+  // On mount, check session with backend
   useEffect(() => {
-    const stored = localStorage.getItem("authUser");
-    if (stored) setUser(JSON.parse(stored));
+    const checkSession = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('http://localhost:5071/api/profile', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUser({ email: data.email, roles: data.roles });
+          localStorage.setItem("authUser", JSON.stringify({ email: data.email, roles: data.roles }));
+        } else {
+          setUser(null);
+          localStorage.removeItem("authUser");
+        }
+      } catch {
+        setUser(null);
+        localStorage.removeItem("authUser");
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkSession();
   }, []);
 
-  // Save user to localStorage when changed
+  // Save user to localStorage when changed (except during initial session check)
   useEffect(() => {
-    if (user) {
-      localStorage.setItem("authUser", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("authUser");
+    if (!loading) {
+      if (user) {
+        localStorage.setItem("authUser", JSON.stringify(user));
+      } else {
+        localStorage.removeItem("authUser");
+      }
     }
-  }, [user]);
+  }, [user, loading]);
 
-  const login = (user: AuthUser) => setUser(user);
-  const logout = () => setUser(null);
+  const login = (user: AuthUser) => {
+    setUser(user);
+    localStorage.setItem("authUser", JSON.stringify(user));
+  };
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("authUser");
+  };
+
+  if (loading) {
+    return <div>Laddar...</div>;
+  }
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
