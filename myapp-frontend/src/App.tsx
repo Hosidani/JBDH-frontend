@@ -22,7 +22,9 @@ function App() {
         {/* Header with hamburger */}
   <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <img src="/logo192.png" alt="SMATCH logo" style={{ width: 40, height: 40 }} />
+            <Link to="/">
+              <img src="/SMATCH_64X64.png" alt="SMATCH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
+            </Link>
             <span className="font-bold text-xl tracking-tight">SMATCH</span>
             <span className="text-slate-500 text-sm ml-2">Onödigt enkelt</span>
           </div>
