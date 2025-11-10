@@ -79,4 +79,36 @@ export class ApiService {
 
     return await response.text();
   }
+
+  // Upload CV for AI analysis
+  static async uploadCVForAnalysis(cvFile: File): Promise<{ success: boolean; message: string }> {
+    const formData = new FormData();
+    formData.append('cvFile', cvFile);
+    const response = await fetch(`${API_BASE_URL}/Profile/AnalyzeCV`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || `HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  }
+
+  // Poll for latest AI user response
+  static async getLatestAIUserResponse(): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/Profile/LatestAIUserResponse`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+    if (response.status === 404) {
+      return null;
+    }
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || `HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  }
 }
