@@ -117,6 +117,7 @@ const ProfilePage: React.FC = () => {
     setPolling(false);
   };
 
+
   // Handle CV upload
   const handleCVUpload = async (file: File) => {
     setToast(null);
@@ -186,6 +187,7 @@ const ProfilePage: React.FC = () => {
   }
 
   const user = profile.user;
+
 
 
   let safeAnalysis = null;
@@ -304,7 +306,7 @@ const ProfilePage: React.FC = () => {
           label="Dra och släpp ditt personliga brev här"
           description="PDF:er som laddas upp visas ej på din listan med sparade dokument. Endast du och ditt meddelande får tillgång till filen. Du kan även klicka för att välja en PDF."
           accept=".pdf"
-          onFileSelected={file => { /* handle cover letter upload */ }}
+          onFileSelected={() => { /* handle cover letter upload */ }}
         />
       </div>
       {/* Action buttons */}
@@ -337,6 +339,6 @@ const ProfilePage: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default ProfilePage;
