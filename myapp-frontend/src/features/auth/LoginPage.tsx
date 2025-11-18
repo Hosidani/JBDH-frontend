@@ -1,3 +1,4 @@
+const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -17,7 +18,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:5071/Login', {
+      const response = await fetch(`${API_URL}/Login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

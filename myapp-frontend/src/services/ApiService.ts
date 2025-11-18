@@ -1,6 +1,6 @@
 import type { ListDataFlowViewModel, CreateFlowRequest, CommentRequest, ReportRequest } from '../types/DataFlow';
 
-const API_BASE_URL = 'http://localhost:5071/api';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 export class ApiService {
   private static async fetchWithAuth(url: string, options: RequestInit = {}) {

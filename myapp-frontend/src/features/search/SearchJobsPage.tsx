@@ -1,3 +1,4 @@
+const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 
 interface JobResult {
@@ -25,7 +26,7 @@ const SearchJobsPage: React.FC = () => {
       const params = new URLSearchParams();
       if (description) params.append('description', description);
       if (location) params.append('location', location);
-      const response = await fetch(`http://localhost:5071/Search/SearchForJobs?${params.toString()}`, {
+      const response = await fetch(`${API_URL}/Search/SearchForJobs?${params.toString()}`, {
         method: 'GET',
         credentials: 'include',
       });
