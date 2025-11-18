@@ -1,3 +1,4 @@
+const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import type { CreateFlowRequest } from '../../types/DataFlow';
 
@@ -26,7 +27,7 @@ const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
     };
 
     try {
-      const response = await fetch('http://localhost:5071/api/home/CreateFlow', {
+      const response = await fetch(`${API_URL}/api/home/CreateFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

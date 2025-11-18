@@ -1,3 +1,4 @@
+const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import type { DataFlow, CommentRequest } from '../../types/DataFlow';
 
@@ -23,7 +24,7 @@ const DataFlowThread: React.FC<DataFlowThreadProps> = ({ dataFlow, onCommentAdde
     };
 
     try {
-      const response = await fetch('http://localhost:5071/api/home/CommentOnDataFlow', {
+      const response = await fetch(`${API_URL}/api/home/CommentOnDataFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ const DataFlowThread: React.FC<DataFlowThreadProps> = ({ dataFlow, onCommentAdde
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
-        const response = await fetch(`http://localhost:5071/api/home/Delete/${dataFlow.id}`, {
+        const response = await fetch(`${API_URL}/api/home/Delete/${dataFlow.id}`, {
           method: 'DELETE',
           credentials: 'include',
         });

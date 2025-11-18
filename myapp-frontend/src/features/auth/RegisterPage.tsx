@@ -1,3 +1,4 @@
+const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -48,7 +49,7 @@ const RegisterPage: React.FC = () => {
         console.log('FormData:', key, value);
       }
 
-      const response = await fetch('http://localhost:5071/Register/RegisterUser', {
+      const response = await fetch(`${API_URL}/Register/RegisterUser`, {
         method: 'POST',
         credentials: 'include',
         body: formData,

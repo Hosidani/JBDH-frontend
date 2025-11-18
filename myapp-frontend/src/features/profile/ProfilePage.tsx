@@ -1,3 +1,4 @@
+const API_URL = import.meta.env.VITE_API_URL;
 // Normalize analysis keys from PascalCase to camelCase
 function normalizeAnalysisKeys(analysis: any) {
   if (!analysis) return null;
@@ -137,7 +138,7 @@ const ProfilePage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('http://localhost:5071/api/profile', {
+        const response = await fetch(`${API_URL}/api/profile`, {
           credentials: 'include',
         });
         if (!response.ok) throw new Error('Failed to fetch profile');
