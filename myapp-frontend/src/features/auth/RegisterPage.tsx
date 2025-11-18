@@ -12,7 +12,6 @@ const RegisterPage: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +32,6 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
     setLoading(true);
     try {
       const formData = new FormData();

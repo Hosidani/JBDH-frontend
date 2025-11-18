@@ -12,6 +12,31 @@ dist
 dist-ssr
 *.local
 
+# Ignore build and output folders
+build/
+coverage/
+
+# Ignore environment and config files
+.env*
+
+# Ignore test and story files
+src/**/*.test.*
+src/**/*.spec.*
+src/**/*.stories.*
+src/**/*.mdx
+
+# Ignore markdown and docs
+*.md
+README.md
+
+# Ignore backup and temp files
+*.tmp
+*.bak
+*.old
+
+# Ignore local dev assets not for repo
+src/assets/dev/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

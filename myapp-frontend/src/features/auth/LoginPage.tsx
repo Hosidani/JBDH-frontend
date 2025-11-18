@@ -25,17 +25,12 @@ const LoginPage: React.FC = () => {
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-       if (response.ok) {
-         // Parse user info from backend response
-         const data = await response.json();
-         if (data && data.email) {
-           login({ email: data.email, roles: data.roles });
-           navigate('/');
-         } else {
-           setError('Inloggningen misslyckades. Ingen användardata.');
-         }
-       } else {
-         setError('Invalid email or password.');
+      if (response.ok) {
+        // Backend does not return user info, treat any 2xx as success
+        login({ email });
+        navigate('/');
+      } else {
+        setError('Invalid email or password.');
       }
     } catch (err) {
       setError('An error occurred.');

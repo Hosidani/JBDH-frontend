@@ -1,0 +1,32 @@
+# Ignore node modules and system files
+node_modules/
+.vscode/
+.DS_Store
+*.log
+*.tmp
+
+
+# Ignore test coverage (not needed in deployment)
+coverage/
+
+# Ignore environment and config files
+.env*
+
+# Ignore test and story files
+src/**/*.test.*
+src/**/*.spec.*
+src/**/*.stories.*
+src/**/*.mdx
+
+# Ignore markdown and docs
+*.md
+README.md
+
+# Ignore other common unnecessary files
+*.swp
+*.swo
+*.bak
+*.old
+
+# Ignore local assets not needed in production
+src/assets/dev/

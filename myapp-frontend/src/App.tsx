@@ -2,7 +2,7 @@ import { useState } from 'react';
 import LoginModal from './components/LoginModal';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { HomePage } from './features/home';
+import { HomePage, CompareCvToJobAdPage } from './features/home';
 import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
 import SearchJobsPage from './features/search/SearchJobsPage';
@@ -22,7 +22,9 @@ function App() {
         {/* Header with hamburger */}
   <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <img src="/logo192.png" alt="SMATCH logo" style={{ width: 40, height: 40 }} />
+            <Link to="/">
+              <img src="/SMATCH_64X64.png" alt="SMATCH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
+            </Link>
             <span className="font-bold text-xl tracking-tight">SMATCH</span>
             <span className="text-slate-500 text-sm ml-2">Onödigt enkelt</span>
           </div>
@@ -42,11 +44,15 @@ function App() {
                 <button onClick={() => setMenuOpen(false)} className="text-2xl leading-none">&times;</button>
               </div>
               <nav className="flex flex-col gap-3">
-                {!user && <button className="text-left hover:underline" onClick={() => { setMenuOpen(false); setLoginModalOpen(true); }}>Logga in</button>}
-                {user && <Link to="/profile" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Min Profil</Link>}
+                {!user && (
+                  <button className="text-left hover:underline" onClick={() => { setMenuOpen(false); setLoginModalOpen(true); }}>Logga in</button>
+                )}
+                {user && (
+                  <Link to="/profile" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Min Profil</Link>
+                )}
+                <Link to="/search" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Matcha ditt CV mot annonser</Link>
                 <Link to="/boards" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Lägg in annons</Link>
-                <Link to="/search" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Matcha CV mot annonser</Link>
-                <Link to="/search" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Matcha annonser mot CV</Link>
+                <Link to="/compare-cv-jobad" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Matcha CV mot jobbannons</Link>
                 <Link to="/about" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Hur funkar det?</Link>
                 {user && (
                   <button className="text-left text-red-600 mt-2 flex items-center gap-2 hover:underline" onClick={() => { logout(); setMenuOpen(false); }}>
@@ -71,6 +77,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/search" element={<SearchJobsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
             {/* Add more routes as needed */}
           </Routes>
         </main>
