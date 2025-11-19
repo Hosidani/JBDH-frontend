@@ -16,9 +16,6 @@ dist-ssr
 build/
 coverage/
 
-# Ignore environment and config files
-.env*
-
 # Ignore test and story files
 src/**/*.test.*
 src/**/*.spec.*
