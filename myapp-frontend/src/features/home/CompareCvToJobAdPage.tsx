@@ -81,3 +81,4 @@ const CompareCvToJobAdPage: React.FC = () => {
 };
 
 export default CompareCvToJobAdPage;
+
