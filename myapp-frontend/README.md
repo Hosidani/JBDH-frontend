@@ -233,5 +233,5 @@ For technical questions or support:
 - Verify API integration in `/src/services`
 
 ---
-
+ 
 **Built with ❤️ for professional job management**
