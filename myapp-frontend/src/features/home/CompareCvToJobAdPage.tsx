@@ -31,21 +31,23 @@ const CompareCvToJobAdPage: React.FC = () => {
         body: formData,
       });
       const data = await response.json();
-      if (response.ok && data.aiResponse) {
-        // Clean and parse the AI response
-        let aiText = data.aiResponse;
-        // Remove markdown code block markers if present
-        if (aiText.startsWith('```json')) {
-          aiText = aiText.replace(/^```json\s*/, '').replace(/```\s*$/, '');
-        } else if (aiText.startsWith('```')) {
-          aiText = aiText.replace(/^```\s*/, '').replace(/```\s*$/, '');
-        }
-        let parsed = null;
-        try {
-          parsed = JSON.parse(aiText);
-        } catch {
-          // fallback to raw string if parsing fails
-          parsed = aiText;
+      let parsed = null;
+      if (response.ok) {
+        if (data.analysis) {
+          parsed = data.analysis;
+        } else if (data.aiResponse) {
+          let aiText = data.aiResponse;
+          const match = aiText.match(/```json\n([\s\S]*?)```/);
+          if (match) {
+            aiText = match[1];
+          } else if (aiText.startsWith('```json')) {
+            aiText = aiText.replace(/^```json\s*/, '').replace(/```\s*$/, '');
+          }
+          try {
+            parsed = JSON.parse(aiText);
+          } catch {
+            parsed = aiText;
+          }
         }
         setResult(parsed);
       } else {
@@ -88,38 +90,163 @@ const CompareCvToJobAdPage: React.FC = () => {
       {result && typeof result === 'object' ? (
         <div className="mt-6 p-4 bg-slate-100 rounded flex flex-col gap-4">
           <h3 className="font-bold mb-2">AI-analys:</h3>
-          {result.FitSummary && (
-            <div>
-              <span className="font-semibold">Sammanfattning:</span>
-              <div className="text-slate-700 mt-1">{result.FitSummary}</div>
-            </div>
+          {typeof result.matchScore !== 'undefined' && (
+            <div className="mb-2 text-lg font-bold">Match Score: {result.matchScore}%</div>
           )}
-          {result.MissingRequirements && result.MissingRequirements.length > 0 && (
-            <div>
-              <span className="font-semibold">Saknade krav:</span>
-              <ul className="list-disc ml-6 mt-1 text-slate-700">
-                {result.MissingRequirements.map((req: string, idx: number) => (
-                  <li key={idx}>{req}</li>
-                ))}
-              </ul>
-            </div>
+          {result.fitAssessment && (
+            <>
+              <div>
+                <span className="font-semibold">Sammanfattning:</span>
+                <div className="text-slate-700 mt-1">{result.fitAssessment.overall}</div>
+              </div>
+              {result.fitAssessment.strengths && result.fitAssessment.strengths.length > 0 && (
+                <div>
+                  <span className="font-semibold">Styrkor:</span>
+                  <ul className="list-disc ml-6 mt-1 text-slate-700">
+                    {result.fitAssessment.strengths.map((s: string, idx: number) => (
+                      <li key={idx}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {result.fitAssessment.concerns && result.fitAssessment.concerns.length > 0 && (
+                <div>
+                  <span className="font-semibold">Orosmoment:</span>
+                  <ul className="list-disc ml-6 mt-1 text-slate-700">
+                    {result.fitAssessment.concerns.map((c: string, idx: number) => (
+                      <li key={idx}>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
           )}
-          {result.MatchedExperiences && result.MatchedExperiences.length > 0 && (
-            <div>
-              <span className="font-semibold">Matchande erfarenheter:</span>
-              <ul className="list-disc ml-6 mt-1 text-slate-700">
-                {result.MatchedExperiences.map((exp: string, idx: number) => (
-                  <li key={idx}>{exp}</li>
-                ))}
-              </ul>
-            </div>
+          {result.detailedAnalysis && (
+            <>
+              <div className="font-bold mt-4 mb-2">Detaljerad analys</div>
+              {result.detailedAnalysis.technicalSkills && (
+                <>
+                  <div className="font-semibold">Tekniska färdigheter (nivå): {result.detailedAnalysis.technicalSkills.matchLevel}</div>
+                  {result.detailedAnalysis.technicalSkills.matches && (
+                    <div>
+                      <span className="font-semibold">Matchande tekniska färdigheter:</span>
+                      <ul className="list-disc ml-6 mt-1 text-slate-700">
+                        {result.detailedAnalysis.technicalSkills.matches.map((m: string, idx: number) => (
+                          <li key={idx}>{m}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {result.detailedAnalysis.technicalSkills.gaps && (
+                    <div>
+                      <span className="font-semibold">Tekniska gap:</span>
+                      <ul className="list-disc ml-6 mt-1 text-slate-700">
+                        {result.detailedAnalysis.technicalSkills.gaps.map((g: string, idx: number) => (
+                          <li key={idx}>{g}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+              {result.detailedAnalysis.experience && (
+                <>
+                  <div className="font-semibold">Erfarenhet (nivå): {result.detailedAnalysis.experience.matchLevel}</div>
+                  {result.detailedAnalysis.experience.matches && (
+                    <div>
+                      <span className="font-semibold">Matchande erfarenhet:</span>
+                      <ul className="list-disc ml-6 mt-1 text-slate-700">
+                        {result.detailedAnalysis.experience.matches.map((m: string, idx: number) => (
+                          <li key={idx}>{m}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {result.detailedAnalysis.experience.gaps && (
+                    <div>
+                      <span className="font-semibold">Erfarenhets-gap:</span>
+                      <ul className="list-disc ml-6 mt-1 text-slate-700">
+                        {result.detailedAnalysis.experience.gaps.map((g: string, idx: number) => (
+                          <li key={idx}>{g}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+              {result.detailedAnalysis.education && (
+                <>
+                  <div className="font-semibold">Utbildning (nivå): {result.detailedAnalysis.education.matchLevel}</div>
+                  {result.detailedAnalysis.education.details && (
+                    <div>
+                      <span className="font-semibold">Utbildningsdetaljer:</span>
+                      <ul className="list-disc ml-6 mt-1 text-slate-700">
+                        {result.detailedAnalysis.education.details.map((d: string, idx: number) => (
+                          <li key={idx}>{d}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+              {result.detailedAnalysis.softSkills && (
+                <>
+                  <div className="font-semibold">Mjuka färdigheter (nivå): {result.detailedAnalysis.softSkills.matchLevel}</div>
+                  {result.detailedAnalysis.softSkills.evidence && (
+                    <div>
+                      <span className="font-semibold">Bevis på mjuka färdigheter:</span>
+                      <ul className="list-disc ml-6 mt-1 text-slate-700">
+                        {result.detailedAnalysis.softSkills.evidence.map((e: string, idx: number) => (
+                          <li key={idx}>{e}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
           )}
-          {result.EducationAndCertifications && result.EducationAndCertifications.length > 0 && (
+          {result.actionableRecommendations && (
+            <>
+              <div className="font-bold mt-4 mb-2">Rekommendationer</div>
+              {result.actionableRecommendations.cvImprovements && (
+                <div>
+                  <span className="font-semibold">CV-förbättringar:</span>
+                  <ul className="list-disc ml-6 mt-1 text-slate-700">
+                    {result.actionableRecommendations.cvImprovements.map((c: string, idx: number) => (
+                      <li key={idx}>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {result.actionableRecommendations.skillDevelopment && (
+                <div>
+                  <span className="font-semibold">Kompetensutveckling:</span>
+                  <ul className="list-disc ml-6 mt-1 text-slate-700">
+                    {result.actionableRecommendations.skillDevelopment.map((s: string, idx: number) => (
+                      <li key={idx}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {result.actionableRecommendations.interviewPreparation && (
+                <div>
+                  <span className="font-semibold">Intervjuförberedelser:</span>
+                  <ul className="list-disc ml-6 mt-1 text-slate-700">
+                    {result.actionableRecommendations.interviewPreparation.map((i: string, idx: number) => (
+                      <li key={idx}>{i}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+          {result.nextSteps && result.nextSteps.length > 0 && (
             <div>
-              <span className="font-semibold">Utbildning & certifieringar:</span>
+              <span className="font-semibold">Nästa steg:</span>
               <ul className="list-disc ml-6 mt-1 text-slate-700">
-                {result.EducationAndCertifications.map((ed: string, idx: number) => (
-                  <li key={idx}>{ed}</li>
+                {result.nextSteps.map((n: string, idx: number) => (
+                  <li key={idx}>{n}</li>
                 ))}
               </ul>
             </div>
