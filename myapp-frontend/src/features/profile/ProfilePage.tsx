@@ -134,36 +134,69 @@ const ProfilePage: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileAndAI = async () => {
       setLoading(true);
       setError(null);
       try {
+        // Fetch profile info
         const response = await fetch(`${API_URL}/api/profile`, {
           credentials: 'include',
         });
         if (!response.ok) throw new Error('Failed to fetch profile');
         const data = await response.json();
         setProfile(data);
-        // Robustly set analysis result from CVAnalysis or CVAnalysisJson
-        let analysis = null;
-        if (data && data.CVAnalysis) {
-          analysis = data.CVAnalysis;
-        } else if (data && data.CVAnalysisJson) {
-          try {
-            analysis = JSON.parse(data.CVAnalysisJson);
-            // Handle double-encoded JSON
-            if (typeof analysis === 'string') {
+
+        // Fetch latest AI user response
+        let aiAnalysis = null;
+        try {
+          const aiResponse = await ApiService.getLatestAIUserResponse();
+          if (aiResponse) {
+            if (aiResponse.analysis) {
+              aiAnalysis = aiResponse.analysis;
+            } else if (aiResponse.analysisResult) {
+              aiAnalysis = aiResponse.analysisResult;
+            } else if (aiResponse.responseText) {
               try {
-                analysis = JSON.parse(analysis);
-              } catch {
-                analysis = null;
-              }
+                aiAnalysis = JSON.parse(aiResponse.responseText);
+                if (typeof aiAnalysis === 'string') {
+                  try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
+                }
+              } catch { aiAnalysis = null; }
             }
-          } catch {
-            analysis = null;
+          }
+        } catch {
+          // Ignore errors, fallback to profile fields
+        }
+
+        // Fallback to profile fields if no AI response
+        if (!aiAnalysis && data) {
+          if (data.CVAnalysis) {
+            aiAnalysis = data.CVAnalysis;
+          } else if (data.CVAnalysisJson) {
+            try {
+              aiAnalysis = JSON.parse(data.CVAnalysisJson);
+              if (typeof aiAnalysis === 'string') {
+                try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
+              }
+            } catch { aiAnalysis = null; }
+          } else if (data.cvAnalysisResult) {
+            aiAnalysis = data.cvAnalysisResult;
+          } else if (data.userAIResponse && (data.userAIResponse.analysis || data.userAIResponse.analysisResult || data.userAIResponse.responseText)) {
+            if (data.userAIResponse.analysis) {
+              aiAnalysis = data.userAIResponse.analysis;
+            } else if (data.userAIResponse.analysisResult) {
+              aiAnalysis = data.userAIResponse.analysisResult;
+            } else if (data.userAIResponse.responseText) {
+              try {
+                aiAnalysis = JSON.parse(data.userAIResponse.responseText);
+                if (typeof aiAnalysis === 'string') {
+                  try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
+                }
+              } catch { aiAnalysis = null; }
+            }
           }
         }
-        setAnalysisResult(analysis);
+        setAnalysisResult(aiAnalysis);
       } catch (err: any) {
         setError(err.message || 'Något gick fel.');
         setAnalysisResult(null);
@@ -171,7 +204,7 @@ const ProfilePage: React.FC = () => {
         setLoading(false);
       }
     };
-    fetchProfile();
+    fetchProfileAndAI();
   }, []);
 
   if (loading) return <div className="card">Laddar profil...</div>;
