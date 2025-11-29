@@ -27,13 +27,13 @@ const features = (t: (key: string) => string) => [
   {
     title: t('home_feature_match_ad_cv_title'),
     desc: t('home_feature_match_ad_cv_desc'),
-    to: '/search',
+    to: '/match-ad-cvs',
     img: '/match_CV.png',
   },
   {
     title: t('home_feature_add_ad_title'),
     desc: t('home_feature_add_ad_desc'),
-    to: '/boards',
+    to: '/add-job-ad',
     img: '/add_job.png',
   },
 ];
