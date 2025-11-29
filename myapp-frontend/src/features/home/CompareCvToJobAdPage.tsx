@@ -61,9 +61,24 @@ const CompareCvToJobAdPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-8 card">
-      <h2 className="text-2xl font-bold mb-4">Matcha CV mot jobbannons</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <div className="relative min-h-screen flex items-center justify-center bg-transparent">
+      {/* Background image overlay */}
+      <div
+        aria-hidden="true"
+        className="fixed left-0 right-0 bottom-0 z-0 bg-cover bg-center w-full"
+        style={{
+          top: '100px', // match header height
+          height: 'calc(100vh - 100px)',
+          position: 'fixed',
+          backgroundImage: 'url(/match_CV_against_job.png)',
+          opacity: 0.18,
+          filter: 'blur(1px)',
+          objectFit: 'cover',
+        }}
+      />
+      <div className="relative z-10 max-w-xl w-full mx-auto mt-8 card">
+        <h2 className="text-2xl font-bold mb-4">Matcha CV mot jobbannons</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="block mb-1 font-semibold">CV-fil</label>
           <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} required />
@@ -86,8 +101,8 @@ const CompareCvToJobAdPage: React.FC = () => {
         >
           {loading ? 'Jämför...' : 'Jämför CV mot annons'}
         </button>
-      </form>
-      {result && typeof result === 'object' ? (
+        </form>
+        {result && typeof result === 'object' ? (
         <div className="mt-6 p-4 bg-slate-100 rounded flex flex-col gap-4">
           <h3 className="font-bold mb-2">AI-analys:</h3>
           {typeof result.matchScore !== 'undefined' && (
@@ -252,12 +267,13 @@ const CompareCvToJobAdPage: React.FC = () => {
             </div>
           )}
         </div>
-      ) : result ? (
-        <div className="mt-6 p-4 bg-slate-100 rounded">
-          <h3 className="font-bold mb-2">AI-analys:</h3>
-          <pre className="whitespace-pre-wrap text-sm">{result}</pre>
-        </div>
-      ) : null}
+        ) : result ? (
+          <div className="mt-6 p-4 bg-slate-100 rounded">
+            <h3 className="font-bold mb-2">AI-analys:</h3>
+            <pre className="whitespace-pre-wrap text-sm">{result}</pre>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 };
