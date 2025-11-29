@@ -24,11 +24,13 @@ const features = [
     title: 'Matcha annons mot CV:n',
     desc: 'Hitta kandidater som matchar din eller dina annonser',
     to: '/search',
+    img: '/match_CV.png',
   },
   {
     title: 'Lägg upp en annons',
     desc: 'Lägg upp en annons så den blir sökbar',
     to: '/boards',
+    img: '/add_job.png',
   },
 ];
 

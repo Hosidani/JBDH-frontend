@@ -7,6 +7,7 @@ import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
 import SearchJobsPage from './features/search/SearchJobsPage';
 import ProfilePage from './features/profile/ProfilePage';
+import SettingsPage from './features/profile/SettingsPage';
 import './App.css';
 
 
@@ -48,7 +49,10 @@ function App() {
                   <button className="text-left hover:underline" onClick={() => { setMenuOpen(false); setLoginModalOpen(true); }}>Logga in</button>
                 )}
                 {user && (
-                  <Link to="/profile" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Min Profil</Link>
+                  <>
+                    <Link to="/profile" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Min Profil</Link>
+                    <Link to="/settings" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Inställningar</Link>
+                  </>
                 )}
                 <Link to="/search" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Matcha ditt CV mot annonser</Link>
                 <Link to="/boards" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Lägg in annons</Link>
@@ -78,7 +82,7 @@ function App() {
             <Route path="/search" element={<SearchJobsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
-            {/* Add more routes as needed */}
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>
       </div>

@@ -1,84 +1,115 @@
-const API_URL = import.meta.env.VITE_API_URL;
-// Normalize analysis keys from PascalCase to camelCase
-function normalizeAnalysisKeys(analysis: any) {
-  if (!analysis) return null;
-  return {
-    bestJobTitlesForUser: analysis.BestJobTitlesForUser || analysis.bestJobTitlesForUser || [],
-    reasoningBehindJobTitles: analysis.ReasoningBehindJobTitles || analysis.reasoningBehindJobTitles || '',
-    hardSkills: analysis.HardSkills || analysis.hardSkills || [],
-    softSkills: analysis.SoftSkills || analysis.softSkills || [],
-    experiences: analysis.Experiences || analysis.experiences || [],
-    educationAndCertifications: analysis.EducationAndCertifications || analysis.educationAndCertifications || [],
-  };
-}
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ApiService } from '../../services/ApiService';
-// Simple toast component
-const Toast: React.FC<{ message: string; type?: 'success' | 'error'; onClose: () => void }> = ({ message, type = 'success', onClose }) => (
-  <div className={`fixed top-6 right-6 z-50 px-4 py-2 rounded shadow-lg text-white ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`}
-       onClick={onClose} style={{ cursor: 'pointer' }}>
-    {message}
-  </div>
-);
 import ProfileInfoCard from '../../components/ProfileInfoCard';
 import FileDropZone from '../../components/FileDropZone';
 import SavedJobCard from '../../components/SavedJobCard';
+//import Toast from '../../components/Toast';
 
-// Match backend ProfileViewModel
-export interface ProfileData {
-  user: {
-    id: number;
-    name: string;
-    registrationDate: string;
-    title: string;
-    employmentType: string;
-    location: string;
-    region: string;
-    phone: string;
-    email: string;
-    tags: string[];
-    aboutMe?: string;
-    // Add more fields as needed
-  };
-  isFriend: boolean;
-  organisation?: {
-    id: number;
-    name: string;
-    // ...other org fields
-  };
-  userAIResponse?: any;
-  cvAnalysisResult?: any;
-  friends: Array<any>;
-  pendingFriendRequests: Array<any>;
-  jobApplications: Array<{
-    applicationId: number;
-    jobId: number;
-    jobTitle: string;
-    jobUrl: string;
-    jobDescription: string;
-    notes?: string;
-    appliedAt: string;
-  }>;
-  courseProposals?: any;
-}
+const API_URL = import.meta.env.VITE_API_URL;
 
-
-const ProfilePage: React.FC = () => {
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [loading, setLoading] = useState(true);
+function ProfilePage() {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
-  const [polling, setPolling] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
-  // Poll for latest AI analysis result
+  const [polling, setPolling] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
+
+  // Normalize analysis keys from PascalCase to camelCase
+  function normalizeAnalysisKeys(analysis: any) {
+    // ...existing code...
+    return analysis;
+  }
+
+  // Fetch profile and AI analysis
+  const fetchProfileAndAI = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch profile info
+      const response = await fetch(`${API_URL}/api/profile`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch profile');
+      const data = await response.json();
+      setProfile(data);
+
+      // Fetch latest AI user response
+      let aiAnalysis = null;
+      try {
+        const aiResponse = await ApiService.getLatestAIUserResponse();
+        if (aiResponse) {
+          if (aiResponse.analysis) {
+            aiAnalysis = aiResponse.analysis;
+          } else if (aiResponse.analysisResult) {
+            aiAnalysis = aiResponse.analysisResult;
+          } else if (aiResponse.responseText) {
+            try {
+              aiAnalysis = JSON.parse(aiResponse.responseText);
+              if (typeof aiAnalysis === 'string') {
+                try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
+              }
+            } catch { aiAnalysis = null; }
+          }
+        }
+      } catch {
+        // Ignore errors, fallback to profile fields
+      }
+
+      // Fallback to profile fields if no AI response
+      if (!aiAnalysis && data) {
+        if (data.CVAnalysis) {
+          aiAnalysis = data.CVAnalysis;
+        } else if (data.CVAnalysisJson) {
+          try {
+            aiAnalysis = JSON.parse(data.CVAnalysisJson);
+            if (typeof aiAnalysis === 'string') {
+              try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
+            }
+          } catch { aiAnalysis = null; }
+        } else if (data.cvAnalysisResult) {
+          aiAnalysis = data.cvAnalysisResult;
+        } else if (data.userAIResponse && (data.userAIResponse.analysis || data.userAIResponse.analysisResult || data.userAIResponse.responseText)) {
+          if (data.userAIResponse.analysis) {
+            aiAnalysis = data.userAIResponse.analysis;
+          } else if (data.userAIResponse.analysisResult) {
+            aiAnalysis = data.userAIResponse.analysisResult;
+          } else if (data.userAIResponse.responseText) {
+            try {
+              aiAnalysis = JSON.parse(data.userAIResponse.responseText);
+              if (typeof aiAnalysis === 'string') {
+                try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
+              }
+            } catch { aiAnalysis = null; }
+          }
+        }
+      }
+      setAnalysisResult(aiAnalysis);
+    } catch (err) {
+      const errorMsg = (err as any)?.message || 'Något gick fel.';
+      setError(errorMsg);
+      setAnalysisResult(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Poll for latest AI analysis result, but only stop when a new/different response is detected
   const pollForAIAnalysis = async (maxAttempts = 20, interval = 3000) => {
-    setPolling(true);
     let attempts = 0;
+    // Get the current/latest AI response before upload
+    let previousId = null;
+    try {
+      const prev = await ApiService.getLatestAIUserResponse();
+      // Try to use a unique property (id, createdAt, updatedAt, etc.)
+      previousId = prev?.id || prev?.createdAt || prev?.updatedAt || JSON.stringify(prev);
+    } catch {}
+
     while (attempts < maxAttempts) {
       try {
         const aiResponse = await ApiService.getLatestAIUserResponse();
         let parsed = null;
+        let currentId = null;
         if (aiResponse) {
           if (aiResponse.analysis) {
             parsed = aiResponse.analysis;
@@ -87,7 +118,6 @@ const ProfilePage: React.FC = () => {
           } else if (aiResponse.responseText) {
             try {
               parsed = JSON.parse(aiResponse.responseText);
-              // Handle double-encoded JSON
               if (typeof parsed === 'string') {
                 try {
                   parsed = JSON.parse(parsed);
@@ -99,15 +129,20 @@ const ProfilePage: React.FC = () => {
               // ignore parse error
             }
           }
+          // Use a unique property to detect change
+          currentId = aiResponse?.id || aiResponse?.createdAt || aiResponse?.updatedAt || JSON.stringify(aiResponse);
         }
-        if (parsed) {
+        // Only stop polling if the response is new/different
+        if (parsed && currentId && currentId !== previousId) {
           setAnalysisResult(parsed);
           setToast({ message: 'CV-analys klar!', type: 'success' });
           setPolling(false);
+          await fetchProfileAndAI();
           return;
         }
-      } catch (err: any) {
-        setToast({ message: err.message || 'Fel vid hämtning av AI-analys.', type: 'error' });
+      } catch (err) {
+        const errorMsg = (err as any)?.message || 'Fel vid hämtning av AI-analys.';
+        setToast({ message: errorMsg, type: 'error' });
         setPolling(false);
         return;
       }
@@ -118,6 +153,9 @@ const ProfilePage: React.FC = () => {
     setPolling(false);
   };
 
+  useEffect(() => {
+    fetchProfileAndAI();
+  }, []);
 
   // Handle CV upload
   const handleCVUpload = async (file: File) => {
@@ -127,85 +165,13 @@ const ProfilePage: React.FC = () => {
       setToast({ message: 'CV laddas upp och analyseras...', type: 'success' });
       await ApiService.uploadCVForAnalysis(file);
       setToast({ message: 'CV uppladdad! Startar analys...', type: 'success' });
+      setPolling(true);
       pollForAIAnalysis();
     } catch (err: any) {
       setToast({ message: err.message || 'Fel vid uppladdning av CV.', type: 'error' });
     }
   };
 
-  useEffect(() => {
-    const fetchProfileAndAI = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Fetch profile info
-        const response = await fetch(`${API_URL}/api/profile`, {
-          credentials: 'include',
-        });
-        if (!response.ok) throw new Error('Failed to fetch profile');
-        const data = await response.json();
-        setProfile(data);
-
-        // Fetch latest AI user response
-        let aiAnalysis = null;
-        try {
-          const aiResponse = await ApiService.getLatestAIUserResponse();
-          if (aiResponse) {
-            if (aiResponse.analysis) {
-              aiAnalysis = aiResponse.analysis;
-            } else if (aiResponse.analysisResult) {
-              aiAnalysis = aiResponse.analysisResult;
-            } else if (aiResponse.responseText) {
-              try {
-                aiAnalysis = JSON.parse(aiResponse.responseText);
-                if (typeof aiAnalysis === 'string') {
-                  try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
-                }
-              } catch { aiAnalysis = null; }
-            }
-          }
-        } catch {
-          // Ignore errors, fallback to profile fields
-        }
-
-        // Fallback to profile fields if no AI response
-        if (!aiAnalysis && data) {
-          if (data.CVAnalysis) {
-            aiAnalysis = data.CVAnalysis;
-          } else if (data.CVAnalysisJson) {
-            try {
-              aiAnalysis = JSON.parse(data.CVAnalysisJson);
-              if (typeof aiAnalysis === 'string') {
-                try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
-              }
-            } catch { aiAnalysis = null; }
-          } else if (data.cvAnalysisResult) {
-            aiAnalysis = data.cvAnalysisResult;
-          } else if (data.userAIResponse && (data.userAIResponse.analysis || data.userAIResponse.analysisResult || data.userAIResponse.responseText)) {
-            if (data.userAIResponse.analysis) {
-              aiAnalysis = data.userAIResponse.analysis;
-            } else if (data.userAIResponse.analysisResult) {
-              aiAnalysis = data.userAIResponse.analysisResult;
-            } else if (data.userAIResponse.responseText) {
-              try {
-                aiAnalysis = JSON.parse(data.userAIResponse.responseText);
-                if (typeof aiAnalysis === 'string') {
-                  try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
-                }
-              } catch { aiAnalysis = null; }
-            }
-          }
-        }
-        setAnalysisResult(aiAnalysis);
-      } catch (err: any) {
-        setError(err.message || 'Något gick fel.');
-        setAnalysisResult(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfileAndAI();
-  }, []);
 
   if (loading) return <div className="card">Laddar profil...</div>;
   if (error) return <div className="card text-red-600">Fel: {error}</div>;
@@ -221,8 +187,6 @@ const ProfilePage: React.FC = () => {
   }
 
   const user = profile.user;
-
-
 
   let safeAnalysis = null;
   if (analysisResult && typeof analysisResult === 'object' && !Array.isArray(analysisResult)) {
@@ -250,77 +214,87 @@ const ProfilePage: React.FC = () => {
         }
       />
       {/* AI analysis card (moved up) */}
-      {safeAnalysis && (
-        <div className="bg-white border border-blue-200 rounded-xl shadow p-6 mt-4 max-w-2xl mx-auto flex flex-col gap-6">
-          <h3 className="font-bold text-lg mb-2 text-blue-700">AI-analys av din CV</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Best job titles */}
-            <div>
-              <div className="font-semibold mb-1 text-slate-700">Bästa jobbtitlar för dig</div>
-              <div className="flex flex-wrap gap-2">
-                {safeAnalysis.bestJobTitlesForUser?.map((title: string) => (
-                  <span key={title} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold shadow-sm border border-green-200">{title}</span>
-                ))}
-              </div>
-            </div>
-            {/* Reasoning */}
-            <div>
-              <div className="font-semibold mb-1 text-slate-700">AI:s motivering</div>
-              <div className="text-slate-700 text-sm bg-slate-50 rounded p-3 border border-slate-100 min-h-[60px]">{safeAnalysis.reasoningBehindJobTitles}</div>
-            </div>
+      <div className="bg-white border border-blue-200 rounded-xl shadow p-6 mt-4 max-w-2xl mx-auto flex flex-col gap-6 min-h-[200px]">
+        <h3 className="font-bold text-lg mb-2 text-blue-700">AI-analys av din CV</h3>
+        {polling ? (
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="text-blue-600 text-lg font-semibold mb-2">Analyserar CV, vänligen vänta...</div>
+            <div className="animate-spin text-4xl">🔄</div>
+            <div className="text-slate-500 text-sm mt-4">Detta kan ta upp till en minut.</div>
           </div>
-          <hr className="my-2 border-slate-200" />
-          {/* Skills */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="font-semibold mb-1 text-slate-700">Tekniska kompetenser</div>
-              <div className="flex flex-wrap gap-2">
-                {safeAnalysis.hardSkills?.map((skill: string) => (
-                  <span key={skill} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold border border-blue-200">{skill}</span>
-                ))}
+        ) : safeAnalysis ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Best job titles */}
+              <div>
+                <div className="font-semibold mb-1 text-slate-700">Bästa jobbtitlar för dig</div>
+                <div className="flex flex-wrap gap-2">
+                  {safeAnalysis.bestJobTitlesForUser?.map((title: string) => (
+                    <span key={title} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold shadow-sm border border-green-200">{title}</span>
+                  ))}
+                </div>
+              </div>
+              {/* Reasoning */}
+              <div>
+                <div className="font-semibold mb-1 text-slate-700">AI:s motivering</div>
+                <div className="text-slate-700 text-sm bg-slate-50 rounded p-3 border border-slate-100 min-h-[60px]">{safeAnalysis.reasoningBehindJobTitles}</div>
               </div>
             </div>
-            <div>
-              <div className="font-semibold mb-1 text-slate-700">Mjuka kompetenser</div>
-              <div className="flex flex-wrap gap-2">
-                {safeAnalysis.softSkills?.map((skill: string) => (
-                  <span key={skill} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold border border-purple-200">{skill}</span>
-                ))}
+            <hr className="my-2 border-slate-200" />
+            {/* Skills */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="font-semibold mb-1 text-slate-700">Tekniska kompetenser</div>
+                <div className="flex flex-wrap gap-2">
+                  {safeAnalysis.hardSkills?.map((skill: string) => (
+                    <span key={skill} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold border border-blue-200">{skill}</span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="font-semibold mb-1 text-slate-700">Mjuka kompetenser</div>
+                <div className="flex flex-wrap gap-2">
+                  {safeAnalysis.softSkills?.map((skill: string) => (
+                    <span key={skill} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold border border-purple-200">{skill}</span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-          <hr className="my-2 border-slate-200" />
-          {/* Experiences */}
-          {safeAnalysis.experiences && safeAnalysis.experiences.length > 0 && (
-            <div>
-              <div className="font-semibold mb-1 text-slate-700">Erfarenheter</div>
-              <ul className="space-y-1 mt-1">
-                {safeAnalysis.experiences.map((exp: any, idx: number) => (
-                  <li key={idx} className="text-slate-700 text-sm flex items-center">
-                    <span className="inline-block w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
-                    <span>{exp.title}</span>
-                    <span className="text-slate-400 ml-2">({exp.duration})</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {/* Education and Certifications */}
-          {safeAnalysis.educationAndCertifications && safeAnalysis.educationAndCertifications.length > 0 && (
-            <div>
-              <div className="font-semibold mb-1 text-slate-700">Utbildning & certifieringar</div>
-              <ul className="space-y-1 mt-1">
-                {safeAnalysis.educationAndCertifications.map((ed: string, idx: number) => (
-                  <li key={idx} className="text-slate-700 text-sm flex items-center">
-                    <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                    <span>{ed}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
+            <hr className="my-2 border-slate-200" />
+            {/* Experiences */}
+            {safeAnalysis.experiences && safeAnalysis.experiences.length > 0 && (
+              <div>
+                <div className="font-semibold mb-1 text-slate-700">Erfarenheter</div>
+                <ul className="space-y-1 mt-1">
+                  {safeAnalysis.experiences.map((exp: any, idx: number) => (
+                    <li key={idx} className="text-slate-700 text-sm flex items-center">
+                      <span className="inline-block w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                      <span>{exp.title}</span>
+                      <span className="text-slate-400 ml-2">({exp.duration})</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {/* Education and Certifications */}
+            {safeAnalysis.educationAndCertifications && safeAnalysis.educationAndCertifications.length > 0 && (
+              <div>
+                <div className="font-semibold mb-1 text-slate-700">Utbildning & certifieringar</div>
+                <ul className="space-y-1 mt-1">
+                  {safeAnalysis.educationAndCertifications.map((ed: string, idx: number) => (
+                    <li key={idx} className="text-slate-700 text-sm flex items-center">
+                      <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                      <span>{ed}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-slate-500 text-sm">Ingen AI-analys hittades.</div>
+        )}
+      </div>
 
       {/* Upload zones */}
       <div className="flex flex-col md:flex-row gap-6 w-full justify-center">
@@ -328,19 +302,15 @@ const ProfilePage: React.FC = () => {
           label="Dra och släpp din CV här"
           description="PDF:er som laddas upp visas ej på din listan med sparade dokument. Endast du och ditt meddelande får tillgång till filen. Du kan även klicka för att välja en PDF."
           accept=".pdf"
-          onFileSelected={handleCVUpload}
+          onFileSelected={polling ? undefined : handleCVUpload}
+          disabled={polling}
         />
-        {/* Inline loader for polling */}
-        {polling && (
-          <div className="flex justify-center items-center mt-2 text-blue-600">Analyserar CV... <span className="ml-2 animate-spin">🔄</span></div>
-        )}
-        {/* Toast notification */}
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         <FileDropZone
           label="Dra och släpp ditt personliga brev här"
           description="PDF:er som laddas upp visas ej på din listan med sparade dokument. Endast du och ditt meddelande får tillgång till filen. Du kan även klicka för att välja en PDF."
           accept=".pdf"
           onFileSelected={() => { /* handle cover letter upload */ }}
+          disabled={polling}
         />
       </div>
       {/* Action buttons */}
@@ -354,7 +324,7 @@ const ProfilePage: React.FC = () => {
         {profile.jobApplications.length === 0 ? (
           <div className="text-slate-500 text-sm">Du har inga sparade jobbannonser ännu.</div>
         ) : (
-          profile.jobApplications.map(app => (
+          profile.jobApplications.map((app: any) => (
             <SavedJobCard
               key={app.applicationId}
               jobTitle={app.jobTitle}
