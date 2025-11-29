@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 import FeatureCard from '../../components/FeatureCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 
@@ -40,6 +41,7 @@ const features = (t: (key: string) => string) => [
 
 const HomePage: React.FC = () => {
   const { tSync } = useTranslation();
+  const { user } = useAuth();
   return (
     <div className="min-h-screen w-full bg-[#f7fafd] flex flex-col items-center">
       {/* Hero Section */}
@@ -56,6 +58,14 @@ const HomePage: React.FC = () => {
         {features(tSync).map((f, i) => (
           <FeatureCard key={i} to={f.to} img={f.img} title={f.title} desc={f.desc} />
         ))}
+        {user && (
+          <FeatureCard
+            to="/settings"
+            img="/edit_profile.png"
+            title={tSync('home_feature_settings_title') || 'Settings'}
+            desc={tSync('home_feature_settings_desc') || 'Manage your account settings'}
+          />
+        )}
       </section>
     </div>
   );

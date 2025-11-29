@@ -63,7 +63,9 @@
   "home_feature_match_ad_cv_title": "Matcha annons mot CV:n",
   "home_feature_match_ad_cv_desc": "Hitta kandidater som matchar din eller dina annonser",
   "home_feature_add_ad_title": "Lägg upp en annons",
-  "home_feature_add_ad_desc": "Lägg upp en annons så den blir sökbar"
+  "home_feature_add_ad_desc": "Lägg upp en annons så den blir sökbar",
+  "home_feature_settings_title": "Inställningar",
+  "home_feature_settings_desc": "Hantera dina kontoinställningar"
 }
 
   

@@ -63,6 +63,8 @@
   "home_feature_match_ad_cv_title": "Match ad to CVs",
   "home_feature_match_ad_cv_desc": "Find candidates that match your ad(s)",
   "home_feature_add_ad_title": "Post a job ad",
-  "home_feature_add_ad_desc": "Post a job ad to make it searchable"
+  "home_feature_add_ad_desc": "Post a job ad to make it searchable",
+  "home_feature_settings_title": "Settings",
+  "home_feature_settings_desc": "Manage your account settings"
 
 }
