@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from '../../hooks/TranslationProvider';
 import PageWrapper from '../../components/PageWrapper';
 import PageBackground from '../../components/PageBackground';
 
