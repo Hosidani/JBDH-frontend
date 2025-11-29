@@ -45,8 +45,22 @@ const SearchJobsPage: React.FC = () => {
   };
 
   return (
-    <div className="main-content">
-      <div className="card">
+    <div className="relative min-h-screen bg-transparent">
+      {/* Background image overlay */}
+      <div
+        aria-hidden="true"
+        className="fixed left-0 right-0 bottom-0 z-0 bg-cover bg-center w-full"
+        style={{
+          top: '100px', // match header height
+          height: 'calc(100vh - 100px)',
+          position: 'fixed',
+          backgroundImage: 'url(/searchJobsPage.png)',
+          opacity: 0.18,
+          filter: 'blur(1px)',
+          objectFit: 'cover',
+        }}
+      />
+      <div className="relative z-10 max-w-xl w-full mx-auto mt-8 card">
         <h2 style={{ color: '#2563eb', textAlign: 'center' }}>Search for Jobs</h2>
         <form onSubmit={handleSubmit} style={{ marginBottom: '1.5rem' }}>
           <div style={{ marginBottom: '1rem' }}>

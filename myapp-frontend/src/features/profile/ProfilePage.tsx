@@ -187,8 +187,23 @@ function ProfilePage() {
     safeAnalysis = normalizeAnalysisKeys(analysisResult);
   }
 
-  return (
-    <div className="max-w-2xl mx-auto mt-8 flex flex-col gap-8">
+    return (
+      <div className="relative min-h-screen flex items-center justify-center bg-transparent">
+        {/* Background image overlay */}
+        <div
+          aria-hidden="true"
+          className="fixed left-0 right-0 bottom-0 z-0 bg-cover bg-center w-full"
+          style={{
+            top: '100px', // match header height
+            height: 'calc(100vh - 100px)',
+            position: 'fixed',
+            backgroundImage: 'url(/edit_profile.png)',
+            opacity: 0.18,
+            filter: 'blur(1px)',
+            objectFit: 'cover',
+          }}
+        />
+        <div className="relative z-10 max-w-2xl w-full mx-auto mt-8 flex flex-col gap-8">
       <ProfileInfoCard
         name={user.name || tSync('profilePage_name_missing')}
         registrationDate={user.registrationDate || '2025-12-24'}
@@ -341,6 +356,7 @@ function ProfilePage() {
             />
           ))
         )}
+      </div>
       </div>
     </div>
   );

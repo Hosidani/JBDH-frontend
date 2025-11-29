@@ -15,7 +15,7 @@ const features = (t: (key: string) => string) => [
     title: t('home_feature_match_cv_ads_title'),
     desc: t('home_feature_match_cv_ads_desc'),
     to: '/search',
-    img: '/search_for_job.png',
+    img: '/searchJobsPage.png',
   },
   {
     title: t('home_feature_edit_profile_title'),

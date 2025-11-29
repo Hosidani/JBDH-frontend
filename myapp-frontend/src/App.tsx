@@ -23,7 +23,7 @@ function App() {
     <Router>
       <div className="min-h-screen flex flex-col bg-slate-50">
         {/* Header with hamburger and language switcher */}
-        <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200">
+        <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20">
           <div className="flex items-center gap-3">
             <Link to="/">
               <img src="/SMATCH_64X64.png" alt="SMATCH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
