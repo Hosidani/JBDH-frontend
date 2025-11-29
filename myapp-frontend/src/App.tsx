@@ -4,6 +4,7 @@ import LoginModal from './components/LoginModal';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage, CompareCvToJobAdPage } from './features/home';
+import SavedJobsPage from './features/home/SavedJobsPage';
 import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
 import SearchJobsPage from './features/search/SearchJobsPage';
@@ -101,6 +102,7 @@ function App() {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
             <Route path="/add-job-ad" element={<AddJobAdPage />} />
+            <Route path="/saved-jobs" element={<SavedJobsPage />} />
           </Routes>
         </main>
       </div>

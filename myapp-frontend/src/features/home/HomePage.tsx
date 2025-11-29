@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import FeatureCard from '../../components/FeatureCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import PageWrapper from '../../components/PageWrapper';
 
 
 const features = (t: (key: string) => string) => [
@@ -43,7 +43,7 @@ const HomePage: React.FC = () => {
   const { tSync } = useTranslation();
   const { user } = useAuth();
   return (
-    <div className="min-h-screen w-full bg-[#f7fafd] flex flex-col items-center">
+    <PageWrapper>
       {/* Hero Section */}
       <section className="w-full flex flex-col items-center justify-center py-10">
         <img
@@ -52,6 +52,7 @@ const HomePage: React.FC = () => {
           className="w-full max-w-2xl rounded-lg object-cover mb-8 shadow"
           style={{ height: 260 }}
         />
+
       </section>
       {/* Feature Grid */}
       <section className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-6 px-4 pb-12 mx-auto">
@@ -67,7 +68,7 @@ const HomePage: React.FC = () => {
           />
         )}
       </section>
-    </div>
+    </PageWrapper>
   );
 };
 
