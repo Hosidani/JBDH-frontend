@@ -1,12 +1,17 @@
 import { useState } from 'react';
+import { useTranslation } from './hooks/TranslationProvider';
 import LoginModal from './components/LoginModal';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage, CompareCvToJobAdPage } from './features/home';
+import SavedJobsPage from './features/home/SavedJobsPage';
 import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
 import SearchJobsPage from './features/search/SearchJobsPage';
 import ProfilePage from './features/profile/ProfilePage';
+import SettingsPage from './features/profile/SettingsPage';
+import MatchAdToCvsPage from './features/search/MatchAdToCvsPage';
+import AddJobAdPage from './features/boards/AddJobAdPage';
 import './App.css';
 
 
@@ -15,12 +20,13 @@ function App() {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const { language, changeLanguage } = useTranslation();
 
   return (
     <Router>
       <div className="min-h-screen flex flex-col bg-slate-50">
-        {/* Header with hamburger */}
-  <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200">
+        {/* Header with hamburger and language switcher */}
+        <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20">
           <div className="flex items-center gap-3">
             <Link to="/">
               <img src="/SMATCH_64X64.png" alt="SMATCH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
@@ -28,11 +34,24 @@ function App() {
             <span className="font-bold text-xl tracking-tight">SMATCH</span>
             <span className="text-slate-500 text-sm ml-2">Onödigt enkelt</span>
           </div>
-          <button className="p-2 rounded hover:bg-slate-100 focus:outline-none" onClick={() => setMenuOpen(true)}>
-            <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-4">
+            {/* Language Switcher */}
+            <select
+              className="border border-slate-300 rounded px-3 py-1 text-sm bg-white text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-colors duration-150"
+              value={language}
+              onChange={e => changeLanguage(e.target.value)}
+              style={{ minWidth: 60 }}
+              aria-label="Välj språk"
+            >
+              <option value="sv">SV</option>
+              <option value="en">EN</option>
+            </select>
+            <button className="p-2 rounded hover:bg-slate-100 focus:outline-none" onClick={() => setMenuOpen(true)}>
+              <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </header>
 
         {/* Hamburger Menu Modal */}
@@ -48,7 +67,10 @@ function App() {
                   <button className="text-left hover:underline" onClick={() => { setMenuOpen(false); setLoginModalOpen(true); }}>Logga in</button>
                 )}
                 {user && (
-                  <Link to="/profile" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Min Profil</Link>
+                  <>
+                    <Link to="/profile" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Min Profil</Link>
+                    <Link to="/settings" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Inställningar</Link>
+                  </>
                 )}
                 <Link to="/search" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Matcha ditt CV mot annonser</Link>
                 <Link to="/boards" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Lägg in annons</Link>
@@ -69,7 +91,6 @@ function App() {
           <LoginModal onClose={() => setLoginModalOpen(false)} />
         )}
 
-
         <main className="flex-1 flex flex-col items-center justify-start py-8">
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -78,20 +99,28 @@ function App() {
             <Route path="/search" element={<SearchJobsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
-            {/* Add more routes as needed */}
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
+            <Route path="/add-job-ad" element={<AddJobAdPage />} />
+            <Route path="/saved-jobs" element={<SavedJobsPage />} />
           </Routes>
         </main>
       </div>
     </Router>
+
   );
 }
 
 // Wrap the app in AuthProvider
 
+import { TranslationProvider } from './hooks/TranslationProvider';
+
 export default function AppWithProvider() {
   return (
     <AuthProvider>
-      <App />
+      <TranslationProvider>
+        <App />
+      </TranslationProvider>
     </AuthProvider>
   );
 }

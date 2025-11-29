@@ -1,5 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
+import PageWrapper from '../../components/PageWrapper';
 
 interface JobResult {
   // Adjust fields as needed based on your backend response
@@ -45,7 +46,7 @@ const SearchJobsPage: React.FC = () => {
   };
 
   return (
-    <div className="main-content">
+    <PageWrapper>
       <div className="card">
         <h2 style={{ color: '#2563eb', textAlign: 'center' }}>Search for Jobs</h2>
         <form onSubmit={handleSubmit} style={{ marginBottom: '1.5rem' }}>
@@ -81,7 +82,7 @@ const SearchJobsPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 };
 
