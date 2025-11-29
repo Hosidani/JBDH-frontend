@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../../hooks/TranslationProvider';
 
 const SettingsPage: React.FC = () => {
   // Profile info state
@@ -88,5 +89,6 @@ const SettingsPage: React.FC = () => {
     </div>
   );
 };
+
 
 export default SettingsPage;

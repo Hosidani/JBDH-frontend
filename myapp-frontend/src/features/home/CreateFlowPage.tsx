@@ -1,31 +1,31 @@
-const API_URL = import.meta.env.VITE_API_URL;
+
 import React, { useState } from 'react';
 import type { CreateFlowRequest } from '../../types/DataFlow';
+import { useTranslation } from '../../hooks/TranslationProvider';
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface CreateFlowPageProps {
   onNavigateBack?: () => void;
 }
 
 const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
+
+  const { tSync } = useTranslation();
   const [content, setContent] = useState('');
   const [contentType, setContentType] = useState<'text' | 'image' | 'video' | 'link'>('text');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!content.trim()) {
-      alert('Please enter some content');
+      alert(tSync('createFlowPage_alert_enter_content'));
       return;
     }
-
     setLoading(true);
-    
     const flowData: CreateFlowRequest = {
       content: content.trim(),
       contentType: contentType
     };
-
     try {
       const response = await fetch(`${API_URL}/api/home/CreateFlow`, {
         method: 'POST',
@@ -35,21 +35,18 @@ const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
         credentials: 'include',
         body: JSON.stringify(flowData)
       });
-
       if (response.ok) {
-        // Navigate back to home page after successful creation
         if (onNavigateBack) {
           onNavigateBack();
         } else {
-          // Fallback: reload the page
           window.location.href = '/';
         }
       } else {
-        alert('Failed to create post');
+        alert(tSync('createFlowPage_alert_failed_create'));
       }
     } catch (error) {
       console.error('Error creating post:', error);
-      alert('Error creating post');
+      alert(tSync('createFlowPage_alert_error_create'));
     } finally {
       setLoading(false);
     }
@@ -66,11 +63,10 @@ const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-      <h2>Create new post</h2>
-      
+      <h2>{tSync('createFlowPage_title')}</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Typ:</label>
+          <label style={{ display: 'block', marginBottom: '5px' }}>{tSync('createFlowPage_type_label')}</label>
           <select
             value={contentType}
             onChange={(e) => setContentType(e.target.value as 'text' | 'image' | 'video' | 'link')}
@@ -81,19 +77,18 @@ const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
               width: '200px'
             }}
           >
-            <option value="text">Text</option>
-            <option value="image">Picture</option>
-            <option value="video">Video</option>
-            <option value="link">Link</option>
+            <option value="text">{tSync('createFlowPage_type_text')}</option>
+            <option value="image">{tSync('createFlowPage_type_image')}</option>
+            <option value="video">{tSync('createFlowPage_type_video')}</option>
+            <option value="link">{tSync('createFlowPage_type_link')}</option>
           </select>
         </div>
-
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Innehåll:</label>
+          <label style={{ display: 'block', marginBottom: '5px' }}>{tSync('createFlowPage_content_label')}</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Enter your post content..."
+            placeholder={tSync('createFlowPage_content_placeholder')}
             style={{
               width: '100%',
               minHeight: '150px',
@@ -105,7 +100,6 @@ const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
             required
           />
         </div>
-
         <div>
           <button 
             type="submit" 
@@ -120,9 +114,8 @@ const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
               marginRight: '10px'
             }}
           >
-            {loading ? 'Submitting...' : 'Submit'}
+            {loading ? tSync('createFlowPage_submitting') : tSync('createFlowPage_submit')}
           </button>
-          
           <button 
             type="button"
             onClick={handleCancel}
@@ -135,7 +128,7 @@ const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
               cursor: 'pointer'
             }}
           >
-            Cancel
+            {tSync('createFlowPage_cancel')}
           </button>
         </div>
       </form>
