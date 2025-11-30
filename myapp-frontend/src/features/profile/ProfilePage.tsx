@@ -87,7 +87,7 @@ function ProfilePage() {
 
   return (
     <>
-      <PageBackground imageUrl="/edit_profile.png" />
+      <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
       <PageWrapper>
         <div className="relative z-10 max-w-2xl w-full mx-auto mt-8 flex flex-col gap-8">
           <ProfileInfoCard

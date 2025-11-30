@@ -69,7 +69,21 @@
   "home_feature_add_ad_title": "Lägg upp en annons",
   "home_feature_add_ad_desc": "Lägg upp en annons så den blir sökbar",
   "home_feature_settings_title": "Inställningar",
-  "home_feature_settings_desc": "Hantera dina kontoinställningar"
+  "home_feature_settings_desc": "Hantera dina kontoinställningar",
+  "settingsPage_title": "Inställningar",
+  "settingsPage_profile_section_title": "Profilinformation",
+  "settingsPage_name_label": "Namn",
+  "settingsPage_email_label": "E-post",
+  "settingsPage_phone_label": "Telefon",
+  "settingsPage_save_button": "Spara ändringar",
+  "settingsPage_profile_updated": "Profil uppdaterad!",
+  "settingsPage_password_section_title": "Byt lösenord",
+  "settingsPage_current_password_label": "Nuvarande lösenord",
+  "settingsPage_new_password_label": "Nytt lösenord",
+  "settingsPage_confirm_password_label": "Bekräfta nytt lösenord",
+  "settingsPage_change_password_button": "Byt lösenord",
+  "settingsPage_passwords_no_match": "Lösenorden matchar inte.",
+  "settingsPage_password_updated": "Lösenord uppdaterat!"  
 }
 
   

@@ -69,6 +69,20 @@
   "home_feature_add_ad_title": "Post a job ad",
   "home_feature_add_ad_desc": "Post a job ad to make it searchable",
   "home_feature_settings_title": "Settings",
-  "home_feature_settings_desc": "Manage your account settings"
+  "home_feature_settings_desc": "Manage your account settings",
+  "settingsPage_title": "Settings",
+  "settingsPage_profile_section_title": "Profile information",
+  "settingsPage_name_label": "Name",
+  "settingsPage_email_label": "Email",
+  "settingsPage_phone_label": "Phone",
+  "settingsPage_save_button": "Save changes",
+  "settingsPage_profile_updated": "Profile updated!",
+  "settingsPage_password_section_title": "Change password",
+  "settingsPage_current_password_label": "Current password",
+  "settingsPage_new_password_label": "New password",
+  "settingsPage_confirm_password_label": "Confirm new password",
+  "settingsPage_change_password_button": "Change password",
+  "settingsPage_passwords_no_match": "Passwords do not match.",
+  "settingsPage_password_updated": "Password updated!"
 
 }

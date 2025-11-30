@@ -64,9 +64,9 @@ const CompareCvToJobAdPage: React.FC = () => {
 
   return (
     <>
-      <PageBackground imageUrl="/match_CV_against_job.png" />
+      <PageBackground imageUrl="/match_CV_against_job.png" opacity={1} blur={0} />
       <PageWrapper>
-        <div className="card">
+        <div className="card relative z-10">
           <h2 className="text-2xl font-bold mb-4">Matcha CV mot jobbannons</h2>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
