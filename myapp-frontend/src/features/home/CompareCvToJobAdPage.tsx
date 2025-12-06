@@ -1,14 +1,27 @@
 const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import PageWrapper from '../../components/PageWrapper';
 import PageBackground from '../../components/PageBackground';
+import FileDropZone from '../../components/FileDropZone';
+import { useTranslation } from '../../hooks/TranslationProvider';
 
 const CompareCvToJobAdPage: React.FC = () => {
+  const { user } = useAuth();
+  const { tSync } = useTranslation();
+  const navigate = useNavigate();
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [jobAdText, setJobAdText] = useState('');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -67,11 +80,29 @@ const CompareCvToJobAdPage: React.FC = () => {
       <PageBackground imageUrl="/match_CV_against_job.png" opacity={1} blur={0} />
       <PageWrapper>
         <div className="card relative z-10">
-          <h2 className="text-2xl font-bold mb-4">Matcha CV mot jobbannons</h2>
+          <h2 className="text-2xl font-bold mb-4">{tSync('compareCvToJobAdPage_title') || 'Matcha CV mot jobbannons'}</h2>
+          <section className="mb-6">
+            <h3 className="font-semibold mb-2">{tSync('compareCvToJobAdPage_howto_title')}</h3>
+            <ol className="list-decimal ml-6 text-slate-700 space-y-1">
+              <li>{tSync('compareCvToJobAdPage_step1')}</li>
+              <li>{tSync('compareCvToJobAdPage_step2')}</li>
+              <li>{tSync('compareCvToJobAdPage_step3')}</li>
+              <li>{tSync('compareCvToJobAdPage_step4')}</li>
+            </ol>
+          </section>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <label className="block mb-1 font-semibold">CV-fil</label>
-              <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} required />
+              <FileDropZone
+                accept=".pdf,.doc,.docx"
+                onFileSelected={file => setCvFile(file)}
+                className="w-full p-4 mb-2"
+              >
+                <div className="flex flex-col items-center justify-center text-slate-500">
+                  <span className="mb-2">{tSync('compareCvToJobAdPage_dropzone_label')}</span>
+                  {cvFile && <span className="text-blue-600 font-semibold">{cvFile.name}</span>}
+                </div>
+              </FileDropZone>
             </div>
             <div>
               <label className="block mb-1 font-semibold">Jobbannons (text)</label>
@@ -79,7 +110,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                 value={jobAdText}
                 onChange={e => setJobAdText(e.target.value)}
                 rows={6}
-                className="input-dark w-full border border-slate-200 rounded-md px-3 py-2"
+                className="w-full border border-slate-200 rounded-md px-3 py-2"
                 required
               />
             </div>

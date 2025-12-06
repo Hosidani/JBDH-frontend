@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 export interface AuthUser {
   email: string;
+  name?: string;
   roles?: string[];
   // Add more fields as needed
 }
@@ -16,6 +17,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
+export { AuthContext };
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);

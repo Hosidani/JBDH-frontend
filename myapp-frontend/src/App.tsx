@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from './hooks/TranslationProvider';
 import LoginModal from './components/LoginModal';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage, CompareCvToJobAdPage } from './features/home';
+import { AboutPage } from './features/about';
 import SavedJobsPage from './features/home/SavedJobsPage';
 import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
@@ -13,101 +14,113 @@ import SettingsPage from './features/profile/SettingsPage';
 import MatchAdToCvsPage from './features/search/MatchAdToCvsPage';
 import AddJobAdPage from './features/boards/AddJobAdPage';
 import './App.css';
+import UserIndicator from './components/UserIndicator';
+import { useEffect } from 'react';
 
-
+type LogoutRedirectProps = { user: any; setMenuOpen: (v: boolean) => void };
+function LogoutRedirect(props: LogoutRedirectProps) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!props.user) {
+      props.setMenuOpen(false);
+      navigate('/');
+    }
+  }, [props.user, navigate, props.setMenuOpen]);
+  return null;
+}
 
 function App() {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const { tSync } = useTranslation();
   const { language, changeLanguage } = useTranslation();
+  const navigate = useNavigate();
 
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        {/* Header with hamburger and language switcher */}
-        <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20">
-          <div className="flex items-center gap-3">
-            <Link to="/">
-              <img src="/SMATCH_64X64.png" alt="SMATCH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
-            </Link>
-            <span className="font-bold text-xl tracking-tight">SMATCH</span>
-            <span className="text-slate-500 text-sm ml-2">Onödigt enkelt</span>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Language Switcher */}
-            <select
-              className="border border-slate-300 rounded px-3 py-1 text-sm bg-white text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-colors duration-150"
-              value={language}
-              onChange={e => changeLanguage(e.target.value)}
-              style={{ minWidth: 60 }}
-              aria-label="Välj språk"
-            >
-              <option value="sv">SV</option>
-              <option value="en">EN</option>
-            </select>
-            <button className="p-2 rounded hover:bg-slate-100 focus:outline-none" onClick={() => setMenuOpen(true)}>
-              <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </header>
-
-        {/* Hamburger Menu Modal */}
-        {menuOpen && (
-          <div className="fixed inset-0 z-50 flex items-start justify-end bg-black bg-opacity-30" onClick={() => setMenuOpen(false)}>
-            <div className="bg-white rounded-lg shadow-lg mt-8 mr-8 p-6 w-64 relative" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-4">
-                <span className="font-semibold text-lg">Meny</span>
-                <button onClick={() => setMenuOpen(false)} className="text-2xl leading-none">&times;</button>
-              </div>
-              <nav className="flex flex-col gap-3">
-                {!user && (
-                  <button className="text-left hover:underline" onClick={() => { setMenuOpen(false); setLoginModalOpen(true); }}>Logga in</button>
-                )}
-                {user && (
-                  <>
-                    <Link to="/profile" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Min Profil</Link>
-                    <Link to="/settings" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Inställningar</Link>
-                  </>
-                )}
-                <Link to="/search" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Matcha ditt CV mot annonser</Link>
-                <Link to="/boards" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Lägg in annons</Link>
-                <Link to="/compare-cv-jobad" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Matcha CV mot jobbannons</Link>
-                <Link to="/about" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>Hur funkar det?</Link>
-                {user && (
-                  <button className="text-left text-red-600 mt-2 flex items-center gap-2 hover:underline" onClick={() => { logout(); setMenuOpen(false); }}>
-                    Logga ut <span style={{ fontSize: 18 }}>&#8594;</span>
-                  </button>
-                )}
-              </nav>
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      {/* Header with hamburger and language switcher */}
+      <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20">
+        <div className="flex items-center gap-3">
+          <Link to="/">
+            <img src="/SMATCH_64X64.png" alt="SMATCH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
+          </Link>
+          <span className="font-bold text-xl tracking-tight">SMATCH</span>
+          <span className="text-slate-500 text-sm ml-2">Onödigt enkelt</span>
+        </div>
+        <div className="flex items-center gap-4">
+          {user && <UserIndicator />}
+          {/* Language Switcher */}
+          <select
+            className="border border-slate-300 rounded px-3 py-1 text-sm bg-white text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-colors duration-150"
+            value={language}
+            onChange={e => changeLanguage(e.target.value)}
+            style={{ minWidth: 60 }}
+            aria-label="Välj språk"
+          >
+            <option value="sv">SV</option>
+            <option value="en">EN</option>
+          </select>
+          <button className="p-2 rounded hover:bg-slate-100 focus:outline-none" onClick={() => setMenuOpen(true)}>
+            <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </header>
+      {/* Hamburger Menu Modal */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-end bg-black bg-opacity-30" onClick={() => setMenuOpen(false)}>
+          <div className="bg-white rounded-lg shadow-lg mt-8 mr-8 p-6 w-64 relative" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <span className="font-semibold text-lg">{tSync('menu_title')}</span>
+              <button onClick={() => setMenuOpen(false)} className="text-2xl leading-none">&times;</button>
             </div>
+            <nav className="flex flex-col gap-3">
+              {!user && (
+                <button className="text-left hover:underline" onClick={() => { setMenuOpen(false); setLoginModalOpen(true); }}>{tSync('menu_login')}</button>
+              )}
+              {user && (
+                <>
+                  <Link to="/profile" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_profile')}</Link>
+                  <Link to="/settings" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_settings')}</Link>
+                </>
+              )}
+              <Link to="/search" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_match_cv_ads')}</Link>
+              <Link to="/boards" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_post_ad')}</Link>
+              <Link to="/compare-cv-jobad" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_match_cv_jobad')}</Link>
+              <Link to="/about" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_how_it_works')}</Link>
+              {user && (
+                <button className="text-left text-red-600 mt-2 flex items-center gap-2 hover:underline" onClick={() => { logout(); navigate('/'); }}>
+                  {tSync('menu_logout')} <span style={{ fontSize: 18 }}>&#8594;</span>
+                </button>
+              )}
+            </nav>
           </div>
-        )}
-
-        {/* Login Modal */}
-        {loginModalOpen && (
-          <LoginModal onClose={() => setLoginModalOpen(false)} />
-        )}
-
-        <main className="flex-1 flex flex-col items-center justify-start py-8">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/search" element={<SearchJobsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
-            <Route path="/add-job-ad" element={<AddJobAdPage />} />
-            <Route path="/saved-jobs" element={<SavedJobsPage />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
-
+        </div>
+      )}
+      {/* Login Modal */}
+      {loginModalOpen && (
+        <LoginModal onClose={() => setLoginModalOpen(false)} />
+      )}
+      <main className="flex-1 flex flex-col items-center justify-start py-8">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/search" element={<SearchJobsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
+          <Route path="/add-job-ad" element={<AddJobAdPage />} />
+          <Route path="/saved-jobs" element={<SavedJobsPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          {/* Add a route for logout redirect */}
+          <Route path="*" element={<LogoutRedirect user={user} setMenuOpen={setMenuOpen} />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
 
@@ -115,11 +128,15 @@ function App() {
 
 import { TranslationProvider } from './hooks/TranslationProvider';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 export default function AppWithProvider() {
   return (
     <AuthProvider>
       <TranslationProvider>
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </TranslationProvider>
     </AuthProvider>
   );

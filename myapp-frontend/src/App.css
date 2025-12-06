@@ -1,7 +1,5 @@
 /* Dark input for visibility on dark backgrounds */
 .input-dark {
-  color: #fff !important;
-  background: #222 !important;
 }
 @tailwind base;
 @tailwind components;
@@ -179,6 +177,8 @@ input, textarea, select {
   padding: 12px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   outline: none;
+  background: #fff;
+  color: #222;
 }
 
 input:focus, textarea:focus, select:focus {

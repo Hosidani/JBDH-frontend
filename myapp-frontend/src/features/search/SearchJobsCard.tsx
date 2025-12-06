@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../../hooks/TranslationProvider';
 
 interface JobResult {
   jobId: number;
@@ -13,6 +14,7 @@ interface SearchJobsCardProps {
 }
 
 const SearchJobsCard: React.FC<SearchJobsCardProps> = ({ apiUrl }) => {
+    const { tSync } = useTranslation();
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [results, setResults] = useState<JobResult[] | null>(null);
@@ -48,26 +50,31 @@ const SearchJobsCard: React.FC<SearchJobsCardProps> = ({ apiUrl }) => {
 
   return (
     <div className="card relative z-10">
-      <h2 style={{ color: '#2563eb', textAlign: 'center' }}>Search for Jobs</h2>
+      <h2 style={{ color: '#2563eb', textAlign: 'center' }}>{tSync('searchJobs_title')}</h2>
+      <div style={{ marginBottom: '1rem', color: '#374151', fontSize: '1rem' }}>
+        {tSync('searchJobs_instructions')}
+      </div>
       <form onSubmit={handleSubmit} style={{ marginBottom: '1.5rem' }}>
         <div style={{ marginBottom: '1rem' }}>
-          <label>Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-dark" style={{ width: '100%' }} />
+          <label htmlFor="description">{tSync('searchJobs_description_label')}</label>
+          <input id="description" type="text" value={description} onChange={e => setDescription(e.target.value)} style={{ width: '100%' }} />
+          <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>{tSync('searchJobs_description_help')}</div>
         </div>
         <div style={{ marginBottom: '1rem' }}>
-          <label>Location</label>
-          <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="input-dark" style={{ width: '100%' }} />
+          <label htmlFor="location">{tSync('searchJobs_location_label')}</label>
+          <input id="location" type="text" value={location} onChange={e => setLocation(e.target.value)} style={{ width: '100%' }} />
+          <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>{tSync('searchJobs_location_help')}</div>
         </div>
         {error && <div style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</div>}
         <button type="submit" disabled={loading} style={{ width: '100%', background: '#2563eb', color: 'white', padding: 10, borderRadius: 4, fontWeight: 600 }}>
-          {loading ? 'Searching...' : 'Search'}
+          {loading ? tSync('searchJobs_searching') : tSync('searchJobs_search_button')}
         </button>
       </form>
       {results && (
         <div>
-          <h3>Results</h3>
+          <h3>{tSync('searchJobs_results_title')}</h3>
           {results.length === 0 ? (
-            <div>No jobs found.</div>
+            <div>{tSync('searchJobs_no_results')}</div>
           ) : (
             <ul style={{ padding: 0, listStyle: 'none' }}>
               {results.map(job => (

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
 import ProfileInfoCard from '../../components/ProfileInfoCard';
 import PageWrapper from '../../components/PageWrapper';
@@ -8,9 +10,10 @@ import FileDropZoneCard from '../../components/profile/FileDropZoneCard';
 import ButtonsCard from '../../components/profile/ButtonsCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 
-const API_URL = import.meta.env.VITE_API_URL;
 
 function ProfilePage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -19,34 +22,20 @@ function ProfilePage() {
   const { tSync, ready } = useTranslation();
 
   useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_URL}/api/profile`, { credentials: 'include' });
-        if (!response.ok) throw new Error('Failed to fetch profile');
-        const data = await response.json();
+        // Only use getMyProfile for all profile and AI response data
+        const data = await ApiService.getMyProfile();
         setProfile(data);
-
-        let aiAnalysis = null;
-        try {
-          const aiResponse = await ApiService.getLatestAIUserResponse();
-          if (aiResponse) {
-            if (aiResponse.analysis) {
-              aiAnalysis = aiResponse.analysis;
-            } else if (aiResponse.analysisResult) {
-              aiAnalysis = aiResponse.analysisResult;
-            } else if (aiResponse.responseText) {
-              try {
-                aiAnalysis = JSON.parse(aiResponse.responseText);
-                if (typeof aiAnalysis === 'string') {
-                  try { aiAnalysis = JSON.parse(aiAnalysis); } catch { aiAnalysis = null; }
-                }
-              } catch { aiAnalysis = null; }
-            }
-          }
-        } catch { aiAnalysis = null; }
-        setAnalysisResult(aiAnalysis);
+        // If you need to extract AI analysis, do it from data.aiResponses in render
       } catch (err) {
         setError((err as any)?.message || 'Något gick fel.');
         setAnalysisResult(null);
@@ -57,6 +46,35 @@ function ProfilePage() {
     fetchData();
     // eslint-disable-next-line
   }, []);
+  /*
+  // Example: Update user settings (stub, connect to your form/UI as needed)
+  const handleUpdateUserSettings = async (updatedDto: any) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const updatedProfile = await ApiService.updateUserSettings(updatedDto);
+      setProfile(updatedProfile);
+    } catch (err: any) {
+      setError(err.message || 'Kunde inte uppdatera inställningar.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Example: Delete user (stub, connect to your UI as needed)
+  const handleDeleteMyUser = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await ApiService.deleteMyUser();
+      setProfile(null);
+    } catch (err: any) {
+      setError(err.message || 'Kunde inte radera användare.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  */
 
   // Handle CV upload
   const handleCVUpload = async (file: File) => {
@@ -73,53 +91,67 @@ function ProfilePage() {
   if (error) return <div className="card text-red-600">{tSync('profilePage_error_prefix')}{error}</div>;
   if (!profile) return <div className="card">{tSync('profilePage_no_profile_found')}</div>;
 
-  if (!profile.user) {
-    return (
-      <div className="card text-yellow-700 bg-yellow-50 border border-yellow-200">
-        {tSync('profilePage_no_user_info')}
-      </div>
+  // Unpack user data from backend response
+  const profileData = profile;
+
+  // Map fields for ProfileInfoCard
+  const profileCardProps = {
+    name: profileData.name || tSync('profilePage_name_missing'),
+    registrationDate: profileData.registrationDate || '2025-12-24',
+    title: profileData.desiredEmploymentType || tSync('profilePage_default_title'),
+    employmentType: profileData.desiredEmploymentType || tSync('profilePage_default_employmentType'),
+    location: profileData.location || tSync('profilePage_default_location'),
+    region: profileData.desiredCity || tSync('profilePage_default_region'),
+    phone: profileData.phoneNumber || tSync('profilePage_default_phone'),
+    email: profileData.email,
+    tags:
+      analysisResult && (analysisResult.hardSkills || analysisResult.softSkills)
+        ? [
+            ...(analysisResult.hardSkills || []),
+            ...(analysisResult.softSkills || [])
+          ]
+        : profileData.competencies || [
+            tSync('profilePage_tag_reactNative'),
+            tSync('profilePage_tag_angular'),
+            tSync('profilePage_tag_php'),
+            tSync('profilePage_tag_csharp'),
+            tSync('profilePage_tag_typescript'),
+            tSync('profilePage_tag_ux'),
+            tSync('profilePage_tag_java'),
+            tSync('profilePage_tag_aiPrompting')
+          ]
+  };
+
+  // Extract and display the latest AIResponse (analysis) from aiResponses
+  let latestAIResponse: any = null;
+  let latestAIAnalysis: any = null;
+  if (Array.isArray(user.aiResponses) && user.aiResponses.length > 0) {
+    latestAIResponse = user.aiResponses.reduce(
+      (latest: any, curr: any) => {
+        if (!latest) return curr;
+        const latestDate = new Date(latest.createdAt || latest.CreatedAt || 0);
+        const currDate = new Date(curr.createdAt || curr.CreatedAt || 0);
+        return currDate > latestDate ? curr : latest;
+      },
+      null
     );
+    latestAIAnalysis = latestAIResponse?.analysis || null;
   }
-
-  const user = profile.user;
-
-  let safeAnalysis = analysisResult;
 
   return (
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
       <PageWrapper>
         <div className="relative z-10 max-w-2xl w-full mx-auto mt-8 flex flex-col gap-8">
-          <ProfileInfoCard
-            name={user.name || tSync('profilePage_name_missing')}
-            registrationDate={user.registrationDate || '2025-12-24'}
-            title={user.title || tSync('profilePage_default_title')}
-            employmentType={user.employmentType || tSync('profilePage_default_employmentType')}
-            location={user.location || tSync('profilePage_default_location')}
-            region={user.region || tSync('profilePage_default_region')}
-            phone={user.phone || tSync('profilePage_default_phone')}
-            email={user.email}
-            tags={
-              safeAnalysis && (safeAnalysis.hardSkills || safeAnalysis.softSkills)
-                ? [
-                    ...(safeAnalysis.hardSkills || []),
-                    ...(safeAnalysis.softSkills || [])
-                  ]
-                : user.tags || [
-                    tSync('profilePage_tag_reactNative'),
-                    tSync('profilePage_tag_angular'),
-                    tSync('profilePage_tag_php'),
-                    tSync('profilePage_tag_csharp'),
-                    tSync('profilePage_tag_typescript'),
-                    tSync('profilePage_tag_ux'),
-                    tSync('profilePage_tag_java'),
-                    tSync('profilePage_tag_aiPrompting')
-                  ]
-            }
+          <ProfileInfoCard {...profileCardProps} />
+          <AIAnalysisCard
+            polling={polling}
+            analysis={latestAIAnalysis}
+            aiResponse={latestAIResponse}
+            tSync={tSync}
           />
-          <AIAnalysisCard polling={polling} analysis={safeAnalysis} tSync={tSync} />
           <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
-          <ButtonsCard tSync={tSync} />
+          <ButtonsCard tSync={tSync}/>
         </div>
       </PageWrapper>
     </>
@@ -127,4 +159,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-
