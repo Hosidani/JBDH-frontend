@@ -122,21 +122,9 @@ function ProfilePage() {
           ]
   };
 
-  // Extract and display the latest AIResponse (analysis) from aiResponses
+  // aiResponses deprecated: No longer extracting AI analysis from user.aiResponses
   let latestAIResponse: any = null;
   let latestAIAnalysis: any = null;
-  if (user && Array.isArray(user.aiResponses) && user.aiResponses.length > 0) {
-    latestAIResponse = user.aiResponses.reduce(
-      (latest: any, curr: any) => {
-        if (!latest) return curr;
-        const latestDate = new Date(latest.createdAt || latest.CreatedAt || 0);
-        const currDate = new Date(curr.createdAt || curr.CreatedAt || 0);
-        return currDate > latestDate ? curr : latest;
-      },
-      null
-    );
-    latestAIAnalysis = latestAIResponse?.analysis || null;
-  }
 
   return (
     <>
