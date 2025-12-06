@@ -125,8 +125,8 @@ function ProfilePage() {
   // Extract and display the latest AIResponse (analysis) from aiResponses
   let latestAIResponse: any = null;
   let latestAIAnalysis: any = null;
-  if (Array.isArray(user.aiResponses) && user.aiResponses.length > 0) {
-    latestAIResponse = user.aiResponses.reduce(
+  if (user && Array.isArray((user as any).aiResponses) && (user as any).aiResponses.length > 0) {
+    latestAIResponse = (user as any).aiResponses.reduce(
       (latest: any, curr: any) => {
         if (!latest) return curr;
         const latestDate = new Date(latest.createdAt || latest.CreatedAt || 0);

@@ -1,4 +1,3 @@
-const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -23,13 +22,6 @@ const CompareCvToJobAdPage: React.FC = () => {
     }
   }, [user, navigate]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setCvFile(e.target.files[0]);
-    } else {
-      setCvFile(null);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +32,7 @@ const CompareCvToJobAdPage: React.FC = () => {
       const formData = new FormData();
       if (cvFile) formData.append('CvPath', cvFile);
       formData.append('JobAdText', jobAdText);
-      const response = await fetch(`${API_URL}/api/Home/CompareCvToJobAd`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/Home/CompareCvToJobAd`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
