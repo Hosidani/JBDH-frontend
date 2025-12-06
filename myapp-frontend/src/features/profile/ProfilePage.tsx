@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
 import ProfileInfoCard from '../../components/ProfileInfoCard';
 import PageWrapper from '../../components/PageWrapper';
@@ -10,12 +12,20 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 
 
 function ProfilePage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [polling, setPolling] = useState(false);
   const { tSync, ready } = useTranslation();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,25 +92,25 @@ function ProfilePage() {
   if (!profile) return <div className="card">{tSync('profilePage_no_profile_found')}</div>;
 
   // Unpack user data from backend response
-  const user = profile;
+  const profileData = profile;
 
   // Map fields for ProfileInfoCard
   const profileCardProps = {
-    name: user.name || tSync('profilePage_name_missing'),
-    registrationDate: user.registrationDate || '2025-12-24',
-    title: user.desiredEmploymentType || tSync('profilePage_default_title'),
-    employmentType: user.desiredEmploymentType || tSync('profilePage_default_employmentType'),
-    location: user.location || tSync('profilePage_default_location'),
-    region: user.desiredCity || tSync('profilePage_default_region'),
-    phone: user.phoneNumber || tSync('profilePage_default_phone'),
-    email: user.email,
+    name: profileData.name || tSync('profilePage_name_missing'),
+    registrationDate: profileData.registrationDate || '2025-12-24',
+    title: profileData.desiredEmploymentType || tSync('profilePage_default_title'),
+    employmentType: profileData.desiredEmploymentType || tSync('profilePage_default_employmentType'),
+    location: profileData.location || tSync('profilePage_default_location'),
+    region: profileData.desiredCity || tSync('profilePage_default_region'),
+    phone: profileData.phoneNumber || tSync('profilePage_default_phone'),
+    email: profileData.email,
     tags:
       analysisResult && (analysisResult.hardSkills || analysisResult.softSkills)
         ? [
             ...(analysisResult.hardSkills || []),
             ...(analysisResult.softSkills || [])
           ]
-        : user.competencies || [
+        : profileData.competencies || [
             tSync('profilePage_tag_reactNative'),
             tSync('profilePage_tag_angular'),
             tSync('profilePage_tag_php'),
@@ -149,4 +159,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-
