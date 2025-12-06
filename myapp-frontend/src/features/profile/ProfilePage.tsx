@@ -122,7 +122,7 @@ function ProfilePage() {
           ]
   };
 
-  // Extract and display the latest AIResponse (analysis) from aiResponses
+  // aiResponses deprecated: No longer extracting AI analysis from user.aiResponses
   let latestAIResponse: any = null;
   let latestAIAnalysis: any = null;
   if (user && Array.isArray((user as any).aiResponses) && (user as any).aiResponses.length > 0) {
