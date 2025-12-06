@@ -3,6 +3,42 @@ import type { ListDataFlowViewModel, CreateFlowRequest, CommentRequest, ReportRe
 const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 export class ApiService {
+    // Get another user's profile by userId
+    static async getProfile(userId: number): Promise<any> {
+      const response = await this.fetchWithAuth(`/Profile/getprofile/${userId}`, {
+        method: 'GET',
+      });
+      return await response.json();
+    }
+
+    // Get current user's profile
+    static async getMyProfile(): Promise<any> {
+      const response = await this.fetchWithAuth('/Profile/getmyprofile', {
+        method: 'GET',
+      });
+      return await response.json();
+    }
+
+    // Update current user's settings
+    static async updateUserSettings(dto: any): Promise<any> {
+      const response = await this.fetchWithAuth('/Settings/updateusersettings', {
+        method: 'PUT',
+        body: JSON.stringify(dto),
+      });
+      return await response.json();
+    }
+
+    // Delete current user
+    static async deleteMyUser(): Promise<any> {
+      const response = await this.fetchWithAuth('/Settings/deletemyuser', {
+        method: 'DELETE',
+      });
+      // Backend may redirect or return a message
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        return await response.json();
+      }
+      return await response.text();
+    }
   private static async fetchWithAuth(url: string, options: RequestInit = {}) {
     const response = await fetch(`${API_BASE_URL}${url}`, {
       ...options,
