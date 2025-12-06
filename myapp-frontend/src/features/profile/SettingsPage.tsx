@@ -58,15 +58,15 @@ const SettingsPage: React.FC = () => {
             <h3 className="font-semibold text-lg">{tSync('settingsPage_profile_section_title')}</h3>
             <label>
               {tSync('settingsPage_name_label')}
-              <input className="input-dark w-full" value={name} onChange={e => setName(e.target.value)} />
+              <input className="w-full" value={name} onChange={e => setName(e.target.value)} />
             </label>
             <label>
               {tSync('settingsPage_email_label')}
-              <input className="input-dark w-full" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+              <input className="w-full" type="email" value={email} onChange={e => setEmail(e.target.value)} />
             </label>
             <label>
               {tSync('settingsPage_phone_label')}
-              <input className="input-dark w-full" value={phone} onChange={e => setPhone(e.target.value)} />
+              <input className="w-full" value={phone} onChange={e => setPhone(e.target.value)} />
             </label>
             <button type="submit" className="bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition" disabled={loading}>
               {tSync('settingsPage_save_button')}
@@ -78,15 +78,15 @@ const SettingsPage: React.FC = () => {
             <h3 className="font-semibold text-lg">{tSync('settingsPage_password_section_title')}</h3>
             <label>
               {tSync('settingsPage_current_password_label')}
-              <input className="input-dark w-full" type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+              <input className="w-full" type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
             </label>
             <label>
               {tSync('settingsPage_new_password_label')}
-              <input className="input-dark w-full" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+              <input className="w-full" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
             </label>
             <label>
               {tSync('settingsPage_confirm_password_label')}
-              <input className="input-dark w-full" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+              <input className="w-full" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
             </label>
             <button type="submit" className="bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition" disabled={loading}>
               {tSync('settingsPage_change_password_button')}

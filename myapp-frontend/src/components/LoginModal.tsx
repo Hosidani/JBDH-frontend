@@ -15,8 +15,25 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+    // Manual validation
+    if (!email.trim() && !password.trim()) {
+      setError('Fyll i både e-post och lösenord.');
+      return;
+    }
+    if (!email.trim()) {
+      setError('Fyll i e-postadressen.');
+      return;
+    }
+    if (!password.trim()) {
+      setError('Fyll i lösenordet.');
+      return;
+    }
+    if (!email.includes('@')) {
+      setError('E-postadressen är felaktig.');
+      return;
+    }
+    setLoading(true);
     try {
       const response = await fetch(`${API_URL}/Login`, {
         method: 'POST',
@@ -25,7 +42,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
         body: JSON.stringify({ email, password }),
       });
       if (response.ok) {
-        // Backend does not return user info, treat any 2xx as success
         login({ email });
         onClose();
       } else {
@@ -49,7 +65,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             placeholder="Email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="input-dark border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             required
             autoFocus
           />
@@ -58,7 +74,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             placeholder="Lösenord"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="input-dark border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             required
           />
           {error && <div className="text-red-600 text-sm text-center">{error}</div>}
