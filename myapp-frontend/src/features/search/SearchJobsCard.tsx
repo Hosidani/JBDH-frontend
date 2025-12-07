@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
+import JobCard from '../../components/JobCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 
-interface JobResult {
+interface Job {
   jobId: number;
   title: string;
   company: string;
   location: string;
   description: string;
+  postedDate?: string;
+  webpageUrl?: string;
+}
+
+interface JobResult {
+  job: Job;
+  priority?: number;
+  hasApplied?: boolean;
+  latestAIResponse?: string | null;
+  cvMatchPercent?: number | null;
 }
 
 interface SearchJobsCardProps {
@@ -78,11 +89,7 @@ const SearchJobsCard: React.FC<SearchJobsCardProps> = ({ apiUrl }) => {
           ) : (
             <ul style={{ padding: 0, listStyle: 'none' }}>
               {results.map(job => (
-                <li key={job.jobId} style={{ marginBottom: '1.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
-                  <div style={{ fontWeight: 600 }}>{job.title}</div>
-                  <div>{job.company} - {job.location}</div>
-                  <div style={{ color: '#6b7280', fontSize: '0.95rem' }}>{job.description}</div>
-                </li>
+                <JobCard key={job.job.jobId} job={job.job} />
               ))}
             </ul>
           )}
