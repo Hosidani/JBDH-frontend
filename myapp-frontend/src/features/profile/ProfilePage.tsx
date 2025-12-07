@@ -77,12 +77,49 @@ function ProfilePage() {
   */
 
   // Handle CV upload
+  // Poll for latest AI response after CV upload
+  // Helper to get latest AI response id or timestamp
+  const getLatestAIResponseId = (aiResponses: any[]) => {
+    if (!Array.isArray(aiResponses) || aiResponses.length === 0) return null;
+    const latest = aiResponses.reduce((latest: any, curr: any) => {
+      if (!latest) return curr;
+      const latestDate = new Date(latest.createdAt || latest.CreatedAt || 0);
+      const currDate = new Date(curr.createdAt || curr.CreatedAt || 0);
+      return currDate > latestDate ? curr : latest;
+    }, null);
+    return latest?.id || latest?.ID || latest?.createdAt || latest?.CreatedAt || null;
+  };
+
+  const pollForLatestAIResponse = async (initialLatestId: any) => {
+    let attempts = 0;
+    const maxAttempts = 30; // e.g. poll for up to 60 seconds
+    while (attempts < maxAttempts) {
+      try {
+        const data = await ApiService.getMyProfile();
+        setProfile(data);
+        const newLatestId = getLatestAIResponseId(data.aiResponses);
+        if (newLatestId && newLatestId !== initialLatestId) {
+          // New AI response detected
+          setPolling(false);
+          return;
+        }
+      } catch {}
+      await new Promise(res => setTimeout(res, 2000)); // wait 2 seconds
+      attempts++;
+    }
+    setPolling(false);
+  };
+
   const handleCVUpload = async (file: File) => {
     setAnalysisResult(null);
     try {
+      // Get initial latest AI response id before upload
+      const initialLatestId = getLatestAIResponseId(profile?.aiResponses);
       await ApiService.uploadCVForAnalysis(file);
       setPolling(true);
+      pollForLatestAIResponse(initialLatestId);
     } catch (err: any) {
+      setPolling(false);
     }
   };
 
@@ -122,19 +159,13 @@ function ProfilePage() {
           ]
   };
 
-  // aiResponses deprecated: No longer extracting AI analysis from user.aiResponses
+  // Use aiResponses[0] as the latest response (list is sorted)
   let latestAIResponse: any = null;
   let latestAIAnalysis: any = null;
-  if (user && Array.isArray((user as any).aiResponses) && (user as any).aiResponses.length > 0) {
-    latestAIResponse = (user as any).aiResponses.reduce(
-      (latest: any, curr: any) => {
-        if (!latest) return curr;
-        const latestDate = new Date(latest.createdAt || latest.CreatedAt || 0);
-        const currDate = new Date(curr.createdAt || curr.CreatedAt || 0);
-        return currDate > latestDate ? curr : latest;
-      },
-      null
-    );
+  let aiResponses: any[] = [];
+  if (profileData && Array.isArray(profileData.aiResponses) && profileData.aiResponses.length > 0) {
+    aiResponses = profileData.aiResponses;
+    latestAIResponse = aiResponses[0];
     latestAIAnalysis = latestAIResponse?.analysis || null;
   }
 
@@ -144,10 +175,12 @@ function ProfilePage() {
       <PageWrapper>
         <div className="relative z-10 max-w-2xl w-full mx-auto mt-8 flex flex-col gap-8">
           <ProfileInfoCard {...profileCardProps} />
+          {/* Always render AIAnalysisCard, let it handle polling/animation and analysis/history display */}
           <AIAnalysisCard
             polling={polling}
             analysis={latestAIAnalysis}
             aiResponse={latestAIResponse}
+            aiResponses={aiResponses}
             tSync={tSync}
           />
           <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
