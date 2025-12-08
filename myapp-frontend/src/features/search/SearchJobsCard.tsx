@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
 
-interface JobResult {
+interface Job {
   jobId: number;
   title: string;
   company: string;
   location: string;
   description: string;
+  postedDate?: string;
+  webpageUrl?: string;
+}
+
+interface JobResult {
+  job: Job;
+  priority?: number;
+  hasApplied?: boolean;
+  latestAIResponse?: string | null;
+  cvMatchPercent?: number | null;
 }
 
 interface SearchJobsCardProps {
@@ -49,7 +59,7 @@ const SearchJobsCard: React.FC<SearchJobsCardProps> = ({ apiUrl }) => {
   };
 
   return (
-    <div className="card relative z-10">
+    <div className="card relative z-10" style={{ margin: '0 auto', width: '100%' }}>
       <h2 style={{ color: '#2563eb', textAlign: 'center' }}>{tSync('searchJobs_title')}</h2>
       <div style={{ marginBottom: '1rem', color: '#374151', fontSize: '1rem' }}>
         {tSync('searchJobs_instructions')}
@@ -76,15 +86,40 @@ const SearchJobsCard: React.FC<SearchJobsCardProps> = ({ apiUrl }) => {
           {results.length === 0 ? (
             <div>{tSync('searchJobs_no_results')}</div>
           ) : (
-            <ul style={{ padding: 0, listStyle: 'none' }}>
-              {results.map(job => (
-                <li key={job.jobId} style={{ marginBottom: '1.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
-                  <div style={{ fontWeight: 600 }}>{job.title}</div>
-                  <div>{job.company} - {job.location}</div>
-                  <div style={{ color: '#6b7280', fontSize: '0.95rem' }}>{job.description}</div>
-                </li>
-              ))}
-            </ul>
+            <div style={{ width: '100%', overflowX: 'auto' }}>
+              <table className="bg-white border border-gray-200 rounded" style={{ width: '100%' }}>
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="px-3 py-2 text-left" style={{ whiteSpace: 'nowrap' }}>Jobb/Uppdrag</th>
+                    <th className="px-3 py-2 text-left" style={{ whiteSpace: 'nowrap' }}>Kort beskrivning</th>
+                    <th className="px-3 py-2 text-left" style={{ whiteSpace: 'nowrap' }}>Publicerad</th>
+                    <th className="px-3 py-2 text-left" style={{ whiteSpace: 'nowrap' }}>Deadline</th>
+                    <th className="px-3 py-2 text-left" style={{ whiteSpace: 'nowrap' }}>Område</th>
+                    <th className="px-3 py-2 text-left" style={{ whiteSpace: 'nowrap' }}>Lön</th>
+                    <th className="px-3 py-2 text-left" style={{ whiteSpace: 'nowrap' }}>Åtgärder</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map(result => {
+                    const job = result.job;
+                    return (
+                      <tr key={job.jobId} className="border-b">
+                        <td className="px-3 py-2 font-semibold" style={{ wordBreak: 'break-word' }}>{job.title}</td>
+                        <td className="px-3 py-2 text-gray-700" style={{ wordBreak: 'break-word' }}>{job.description.length > 100 ? job.description.slice(0, 100) + "..." : job.description}</td>
+                        <td className="px-3 py-2 text-gray-500">{job.postedDate ? new Date(job.postedDate).toLocaleDateString() : '-'}</td>
+                        <td className="px-3 py-2 text-gray-500">-</td>
+                        <td className="px-3 py-2">{job.location || '-'}</td>
+                        <td className="px-3 py-2">-</td>
+                        <td className="px-3 py-2">
+                          <button title="Spara" className="mr-2 px-2 py-1 bg-blue-100 rounded hover:bg-blue-200">💾</button>
+                          <button title="Dölj" className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200">🚫</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
