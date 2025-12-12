@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Modal from 'react-modal';
+import { ApiService } from '../../services/ApiService';
 
 import PageWrapper from '../../components/PageWrapper';
 import PageBackground from '../../components/PageBackground';
@@ -12,6 +14,9 @@ const SettingsPage: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
+  const [pendingDto, setPendingDto] = useState<any | null>(null);
+  const [originalEmail, setOriginalEmail] = useState('');
 
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -20,16 +25,51 @@ const SettingsPage: React.FC = () => {
   const [pwMessage, setPwMessage] = useState<string | null>(null);
 
   // TODO: Fetch current user info and prefill fields
+  React.useEffect(() => {
+    // Fetch current user info and prefill fields
+    ApiService.getMyProfile().then(profile => {
+      setName(profile.Name || '');
+      setEmail(profile.Email || '');
+      setPhone(profile.PhoneNumber || '');
+      setOriginalEmail(profile.Email || '');
+    });
+  }, []);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setProfileMessage(null);
-    // TODO: Call API to update profile info
-    setTimeout(() => {
+    // Prepare DTO for API
+    const dto = {
+      Name: name,
+      Email: email,
+      PhoneNumber: phone
+      // Add other fields as needed
+    };
+    if (email !== originalEmail) {
+      setPendingDto(dto);
+      setShowEmailConfirm(true);
+      return;
+    }
+    await submitProfileUpdate(dto);
+  };
+
+  const submitProfileUpdate = async (dto: any) => {
+    setLoading(true);
+    try {
+      await ApiService.updateUserSettings(dto);
+      // If email was changed, log out and redirect to login
+      if (dto.Email !== originalEmail) {
+        // Optionally, call a logout API if needed
+        window.location.href = '/login';
+        return;
+      }
       setProfileMessage(tSync('settingsPage_profile_updated'));
+      window.location.href = '/profile';
+    } catch (error: any) {
+      setProfileMessage(error?.message || 'Error updating profile');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -73,6 +113,60 @@ const SettingsPage: React.FC = () => {
             </button>
             {profileMessage && <div className="text-green-600 text-sm">{profileMessage}</div>}
           </form>
+          {/* Email change confirmation modal */}
+          <Modal
+            isOpen={showEmailConfirm}
+            onRequestClose={() => setShowEmailConfirm(false)}
+            contentLabel="Email Change Confirmation"
+            ariaHideApp={false}
+            style={{
+              overlay: {
+                zIndex: 1000,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+              content: {
+                zIndex: 1001,
+                position: 'relative',
+                maxWidth: 400,
+                margin: 'auto',
+                padding: 24,
+                inset: 'unset',
+                borderRadius: 12,
+                boxShadow: '0 4px 32px rgba(0,0,0,0.2)',
+              },
+            }}
+          >
+            <h3 className="font-semibold mb-2">Confirm Email Change</h3>
+            <p>Are you sure your new email is: <span className="font-bold">{email}</span>?</p>
+            <p className="mt-2 text-sm text-red-600">You can't log in with the old one anymore.</p>
+            <div className="flex gap-4 mt-6">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700 transition"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setShowEmailConfirm(false);
+                  if (pendingDto) await submitProfileUpdate(pendingDto);
+                  setPendingDto(null);
+                }}
+              >Confirm</button>
+              <button
+                className="bg-gray-300 px-4 py-2 rounded font-semibold hover:bg-gray-400 transition"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowEmailConfirm(false);
+                  setPendingDto(null);
+                }}
+              >Cancel</button>
+            </div>
+          </Modal>
           {/* Password change form */}
           <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
             <h3 className="font-semibold text-lg">{tSync('settingsPage_password_section_title')}</h3>
