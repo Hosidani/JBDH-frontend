@@ -64,6 +64,7 @@ const SettingsPage: React.FC = () => {
         return;
       }
       setProfileMessage(tSync('settingsPage_profile_updated'));
+      window.location.href = '/profile';
     } catch (error: any) {
       setProfileMessage(error?.message || 'Error updating profile');
     } finally {

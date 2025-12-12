@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { ApiService } from '../services/ApiService';
 import { useNavigate } from 'react-router-dom';
 import IconSettings from './icon_library/IconSettings';
 import IconEditPen from './icon_library/IconEditPen';
@@ -65,6 +65,18 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   const [searchable, setSearchable] = useState(false);
   const [willingToTravel, setWillingToTravel] = useState(false);
   const [workplace, setWorkplace] = useState({ onSite: false, hybrid: false, remote: false });
+
+  React.useEffect(() => {
+    ApiService.getMyProfile().then(profile => {
+      setSearchable(!!profile.Searchable);
+      setWillingToTravel(!!profile.TravelAvailability);
+      setWorkplace({
+        onSite: profile.DesiredWorkMode === "På plats",
+        hybrid: profile.DesiredWorkMode === "Hybrid",
+        remote: profile.DesiredWorkMode === "Distans"
+      });
+    });
+  }, []);
   const navigate = useNavigate();
 
   return (
@@ -129,14 +141,58 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
       </div>
       {/* Toggles and workplace switches in a single row, with label above checkboxes only */}
       <div className="flex flex-row items-end gap-6 mt-4 w-full">
-        <ToggleSwitch checked={searchable} onChange={() => setSearchable(v => !v)} label="Sökbar" yesLabel="JA" noLabel="NEJ" />
-        <ToggleSwitch checked={willingToTravel} onChange={() => setWillingToTravel(v => !v)} label="Resbar" yesLabel="JA" noLabel="NEJ" />
+        <ToggleSwitch
+          checked={searchable}
+          onChange={async () => {
+            const newValue = !searchable;
+            setSearchable(newValue);
+            await ApiService.updateUserSettings({ Searchable: newValue });
+          }}
+          label="Sökbar"
+          yesLabel="JA"
+          noLabel="NEJ"
+        />
+        <ToggleSwitch
+          checked={willingToTravel}
+          onChange={async () => {
+            const newValue = !willingToTravel;
+            setWillingToTravel(newValue);
+            await ApiService.updateUserSettings({ TravelAvailability: newValue });
+          }}
+          label="Resbar"
+          yesLabel="JA"
+          noLabel="NEJ"
+        />
         <div className="relative flex flex-col items-center ml-8">
           <span className="text-xs text-slate-400 font-normal mb-1 text-center absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap">Önskad arbetsplats</span>
           <div className="flex flex-row items-end gap-2 min-h-[48px]">
-            <OutlinedCheckbox label="På plats" checked={workplace.onSite} onChange={() => setWorkplace(w => ({ ...w, onSite: !w.onSite }))} stacked={false} />
-            <OutlinedCheckbox label="Hybrid" checked={workplace.hybrid} onChange={() => setWorkplace(w => ({ ...w, hybrid: !w.hybrid }))} stacked={false} />
-            <OutlinedCheckbox label="Distans" checked={workplace.remote} onChange={() => setWorkplace(w => ({ ...w, remote: !w.remote }))} stacked={false} />
+            <OutlinedCheckbox
+              label="På plats"
+              checked={workplace.onSite}
+              onChange={async () => {
+                setWorkplace({ onSite: true, hybrid: false, remote: false });
+                await ApiService.updateUserSettings({ DesiredWorkMode: "På plats" });
+              }}
+              stacked={false}
+            />
+            <OutlinedCheckbox
+              label="Hybrid"
+              checked={workplace.hybrid}
+              onChange={async () => {
+                setWorkplace({ onSite: false, hybrid: true, remote: false });
+                await ApiService.updateUserSettings({ DesiredWorkMode: "Hybrid" });
+              }}
+              stacked={false}
+            />
+            <OutlinedCheckbox
+              label="Distans"
+              checked={workplace.remote}
+              onChange={async () => {
+                setWorkplace({ onSite: false, hybrid: false, remote: true });
+                await ApiService.updateUserSettings({ DesiredWorkMode: "Distans" });
+              }}
+              stacked={false}
+            />
           </div>
         </div>
       </div>
