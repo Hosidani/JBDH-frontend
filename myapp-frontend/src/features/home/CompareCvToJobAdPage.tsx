@@ -5,6 +5,7 @@ import PageWrapper from '../../components/PageWrapper';
 import PageBackground from '../../components/PageBackground';
 import FileDropZone from '../../components/FileDropZone';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import CvMatchingVisualization from '../../components/Features/CvMatchingVisualization';
 
 const CompareCvToJobAdPage: React.FC = () => {
   const { user } = useAuth();
@@ -25,16 +26,29 @@ const CompareCvToJobAdPage: React.FC = () => {
   }, [user, navigate]);
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, useV2 = false) => {
     e.preventDefault();
     setError(null);
     setResult(null);
+    
+    // Validate required fields
+    if (!cvFile) {
+      setError('Vänligen välj en CV-fil');
+      return;
+    }
+    
+    if (!jobAdText.trim()) {
+      setError('Vänligen ange jobbannonsens text');
+      return;
+    }
+    
     setLoading(true);
     try {
       const formData = new FormData();
-      if (cvFile) formData.append('CvPath', cvFile);
+      formData.append('CvPath', cvFile);
       formData.append('JobAdText', jobAdText);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/Home/CompareCvToJobAd`, {
+      const endpoint = useV2 ? '/api/Home/CompareCvToJobAdV2' : '/api/Home/CompareCvToJobAd';
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -42,7 +56,18 @@ const CompareCvToJobAdPage: React.FC = () => {
       const data = await response.json();
       let parsed = null;
       if (response.ok) {
-        if (data.analysis) {
+        // Check if this is V4 response format (with totalScore)
+        if (data.totalScore !== undefined) {
+          parsed = data;
+        }
+        // Check if this is V3 response format (with totalMatchPercentage)
+        else if (data.totalMatchPercentage !== undefined) {
+          parsed = data;
+        }
+        // Check if this is V2 response format (with matchPercentage)
+        else if (data.matchPercentage !== undefined) {
+          parsed = data;
+        } else if (data.analysis) {
           parsed = data.analysis;
         } else if (data.aiResponse) {
           let aiText = data.aiResponse;
@@ -86,11 +111,13 @@ const CompareCvToJobAdPage: React.FC = () => {
           </section>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="block mb-1 font-semibold">CV-fil</label>
+              <label className="block mb-1 font-semibold">
+                CV-fil
+              </label>
               <FileDropZone
                 accept=".pdf,.doc,.docx"
                 onFileSelected={file => setCvFile(file)}
-                className="w-full p-4 mb-2"
+                className="w-full p-4 mb-2 border-slate-200"
               >
                 <div className="flex flex-col items-center justify-center text-slate-500">
                   <span className="mb-2">{tSync('compareCvToJobAdPage_dropzone_label')}</span>
@@ -99,25 +126,56 @@ const CompareCvToJobAdPage: React.FC = () => {
               </FileDropZone>
             </div>
             <div>
-              <label className="block mb-1 font-semibold">Jobbannons (text)</label>
+              <label className="block mb-1 font-semibold">
+                Jobbannons (text)
+              </label>
               <textarea
                 value={jobAdText}
                 onChange={e => setJobAdText(e.target.value)}
                 rows={6}
                 className="w-full border border-slate-200 rounded-md px-3 py-2"
-                required
+                placeholder="Klistra in jobbannonsens text här..."
               />
             </div>
             {error && <div className="text-red-600 text-sm">{error}</div>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition"
-            >
-              {loading ? 'Jämför...' : 'Jämför CV mot annons'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={loading}
+                onClick={(e) => handleSubmit(e, false)}
+                className="flex-1 bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Jämför...' : 'Jämför CV mot annons (V1)'}
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={(e) => handleSubmit(e, true)}
+                className="flex-1 bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Jämför...' : 'Jämför CV mot annons (V2)'}
+              </button>
+            </div>
           </form>
-          {result && typeof result === 'object' ? (
+          {result && typeof result === 'object' && (result.matchPercentage !== undefined || result.totalMatchPercentage !== undefined || result.totalScore !== undefined) ? (
+            <div className="mt-6">
+              <CvMatchingVisualization
+                matchPercentage={result.matchPercentage}
+                totalMatchPercentage={result.totalMatchPercentage}
+                skillsMatchPercentage={result.skillsMatchPercentage}
+                professionMatch={result.professionMatch}
+                breakdown={result.breakdown}
+                totalScore={result.totalScore}
+                skillsScore={result.skillsScore}
+                professionScore={result.professionScore}
+                cvProfession={result.cvProfession}
+                jobProfession={result.jobProfession}
+                totalRequirements={result.totalRequirements}
+                matches={result.matches || []}
+                topGaps={result.topGaps || []}
+              />
+            </div>
+          ) : result && typeof result === 'object' ? (
             <div className="mt-6 p-4 bg-slate-100 rounded flex flex-col gap-4">
               <h3 className="font-bold mb-2">AI-analys:</h3>
               {typeof result.matchScore !== 'undefined' && (
