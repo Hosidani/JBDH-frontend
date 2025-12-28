@@ -53,7 +53,13 @@ const CompareCvToJobAdPage: React.FC = () => {
         credentials: 'include',
         body: formData,
       });
-      const data = await response.json();
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        setError('Ett fel uppstod vid jämförelsen.');
+        return;
+      }
       let parsed = null;
       if (response.ok) {
         // Check if this is V4 response format (with totalScore)
@@ -85,7 +91,20 @@ const CompareCvToJobAdPage: React.FC = () => {
         }
         setResult(parsed);
       } else {
-        setError(data.error || 'Något gick fel vid jämförelsen.');
+        // Check for quota/rate/embedding/limit errors in backend error message
+        const errorMsg = (data && data.error) ? data.error.toLowerCase() : '';
+        if (
+          errorMsg.includes('quota') ||
+          errorMsg.includes('rate limit') ||
+          errorMsg.includes('limit') ||
+          errorMsg.includes('embedding') ||
+          errorMsg.includes('exceeded') ||
+          errorMsg.includes('free tier')
+        ) {
+          setError('Tjänsten är överbelastad för idag. Försök igen imorgon.');
+        } else {
+          setError(data.error || 'Något gick fel vid jämförelsen.');
+        }
       }
     } catch (err) {
       setError('Ett fel uppstod vid jämförelsen.');
