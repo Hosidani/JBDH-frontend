@@ -111,7 +111,9 @@
   "settingsPage_confirm_password_label": "Bekräfta nytt lösenord",
   "settingsPage_change_password_button": "Byt lösenord",
   "settingsPage_passwords_no_match": "Lösenorden matchar inte.",
-  "settingsPage_password_updated": "Lösenord uppdaterat!"  
+  "settingsPage_password_updated": "Lösenord uppdaterat!",
+  "settingsPage_current_label": "Nuvarande:",
+  "settingsPage_not_set": "Ej angiven"
 }
 
   

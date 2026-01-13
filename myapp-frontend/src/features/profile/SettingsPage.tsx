@@ -27,12 +27,18 @@ const SettingsPage: React.FC = () => {
   // TODO: Fetch current user info and prefill fields
   React.useEffect(() => {
     // Fetch current user info and prefill fields
-    ApiService.getMyProfile().then(profile => {
-      setName(profile.Name || '');
-      setEmail(profile.Email || '');
-      setPhone(profile.PhoneNumber || '');
-      setOriginalEmail(profile.Email || '');
-    });
+    ApiService.getMyProfile()
+      .then(profile => {
+        console.log('Profile data received:', profile);
+        setName(profile.name || '');
+        setEmail(profile.email || '');
+        setPhone(profile.phoneNumber || '');
+        setOriginalEmail(profile.email || '');
+      })
+      .catch(error => {
+        console.error('Error fetching profile:', error);
+        setProfileMessage('Error loading profile data');
+      });
   }, []);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
@@ -105,14 +111,17 @@ const SettingsPage: React.FC = () => {
             <h3 className="font-semibold text-lg">{tSync('settingsPage_profile_section_title')}</h3>
             <label>
               {tSync('settingsPage_name_label')}
+              <span className="text-sm text-gray-500 ml-2">({tSync('settingsPage_current_label')} {name || tSync('settingsPage_not_set')})</span>
               <input className="w-full" value={name} onChange={e => setName(e.target.value)} />
             </label>
             <label>
               {tSync('settingsPage_email_label')}
+              <span className="text-sm text-gray-500 ml-2">({tSync('settingsPage_current_label')} {email || tSync('settingsPage_not_set')})</span>
               <input className="w-full" type="email" value={email} onChange={e => setEmail(e.target.value)} />
             </label>
             <label>
               {tSync('settingsPage_phone_label')}
+              <span className="text-sm text-gray-500 ml-2">({tSync('settingsPage_current_label')} {phone || tSync('settingsPage_not_set')})</span>
               <input className="w-full" value={phone} onChange={e => setPhone(e.target.value)} />
             </label>
             <button type="submit" className="bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition" disabled={loading}>

@@ -111,6 +111,8 @@
   "settingsPage_confirm_password_label": "Confirm new password",
   "settingsPage_change_password_button": "Change password",
   "settingsPage_passwords_no_match": "Passwords do not match.",
-  "settingsPage_password_updated": "Password updated!"
+  "settingsPage_password_updated": "Password updated!",
+  "settingsPage_current_label": "Current:",
+  "settingsPage_not_set": "Not set"
 
 }
