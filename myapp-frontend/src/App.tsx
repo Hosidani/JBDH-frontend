@@ -16,6 +16,7 @@ import AddJobAdPage from './features/boards/AddJobAdPage';
 import MatchingProfilePage from './features/matching/MatchingProfilePage';
 import './App.css';
 import UserIndicator from './components/UserIndicator';
+import HamburgerMenu from './components/HamburgerMenu';
 import { useEffect } from 'react';
 
 type LogoutRedirectProps = { user: any; setMenuOpen: (v: boolean) => void };
@@ -70,36 +71,11 @@ function App() {
         </div>
       </header>
       {/* Hamburger Menu Modal */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-end bg-black bg-opacity-30" onClick={() => setMenuOpen(false)}>
-          <div className="bg-white rounded-lg shadow-lg mt-8 mr-8 p-6 w-64 relative" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <span className="font-semibold text-lg">{tSync('menu_title')}</span>
-              <button onClick={() => setMenuOpen(false)} className="text-2xl leading-none">&times;</button>
-            </div>
-            <nav className="flex flex-col gap-3">
-              {!user && (
-                <button className="text-left hover:underline" onClick={() => { setMenuOpen(false); setLoginModalOpen(true); }}>{tSync('menu_login')}</button>
-              )}
-              {user && (
-                <>
-                  <Link to="/profile" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_profile')}</Link>
-                  <Link to="/settings" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_settings')}</Link>
-                </>
-              )}
-              <Link to="/search" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_match_cv_ads')}</Link>
-              <Link to="/boards" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_post_ad')}</Link>
-              <Link to="/compare-cv-jobad" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_match_cv_jobad')}</Link>
-              <Link to="/about" className="text-left hover:underline" onClick={() => setMenuOpen(false)}>{tSync('menu_how_it_works')}</Link>
-              {user && (
-                <button className="text-left text-red-600 mt-2 flex items-center gap-2 hover:underline" onClick={() => { logout(); navigate('/'); }}>
-                  {tSync('menu_logout')} <span style={{ fontSize: 18 }}>&#8594;</span>
-                </button>
-              )}
-            </nav>
-          </div>
-        </div>
-      )}
+      <HamburgerMenu 
+        isOpen={menuOpen} 
+        onClose={() => setMenuOpen(false)} 
+        onOpenLogin={() => setLoginModalOpen(true)} 
+      />
       {/* Login Modal */}
       {loginModalOpen && (
         <LoginModal onClose={() => setLoginModalOpen(false)} />
@@ -115,7 +91,7 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/matching" element={<MatchingProfilePage />} />
           <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
-          <Route path="/add-job-ad" element={<AddJobAdPage />} />
+          <Route path="/addjobad" element={<AddJobAdPage />} />
           <Route path="/saved-jobs" element={<SavedJobsPage />} />
           <Route path="/about" element={<AboutPage />} />
           {/* Add a route for logout redirect */}
