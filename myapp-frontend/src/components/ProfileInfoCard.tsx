@@ -68,16 +68,49 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
 
   React.useEffect(() => {
     ApiService.getMyProfile().then(profile => {
-      setSearchable(!!profile.Searchable);
-      setWillingToTravel(!!profile.TravelAvailability);
+      // Backend returns camelCase properties via System.Text.Json
+      setSearchable(!!profile.searchable);
+      setWillingToTravel(!!profile.travelAvailability);
+      const modes: string[] = Array.isArray(profile.desiredWorkModes)
+        ? profile.desiredWorkModes
+        : profile.desiredWorkModes
+        ? [profile.desiredWorkModes]
+        : [];
       setWorkplace({
-        onSite: profile.DesiredWorkMode === "På plats",
-        hybrid: profile.DesiredWorkMode === "Hybrid",
-        remote: profile.DesiredWorkMode === "Distans"
+        onSite: modes.includes("På plats"),
+        hybrid: modes.includes("Hybrid"),
+        remote: modes.includes("Distans"),
       });
+    }).catch(() => {
+      // Leave defaults if profile fetch fails
     });
   }, []);
   const navigate = useNavigate();
+
+  // Compute desiredWorkModes string from UI state
+  const currentDesiredWorkModes = (): string[] | undefined => {
+    // UI is mutually exclusive; send single-element array
+    if (workplace.onSite) return ["På plats"];
+    if (workplace.hybrid) return ["Hybrid"];
+    if (workplace.remote) return ["Distans"];
+    return undefined;
+  };
+
+  // Send a full settings payload expected by backend (not partial)
+  const saveSettings = async (overrides: Partial<{ searchable: boolean; travelAvailability: boolean; desiredWorkModes: string[] }>) => {
+    const payload = {
+      searchable,
+      travelAvailability: willingToTravel,
+      desiredWorkModes: currentDesiredWorkModes(),
+      ...overrides,
+    };
+    // Only send if we have a desiredWorkModes value (backend may require it)
+    if (!payload.desiredWorkModes || payload.desiredWorkModes.length === 0) {
+      // default to "På plats" if none selected to satisfy validation
+      payload.desiredWorkModes = ["På plats"];
+    }
+    await ApiService.updateUserSettings(payload);
+  };
 
   return (
     <section className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col gap-4 border border-slate-200 max-w-3xl mx-auto relative overflow-x-auto">
@@ -146,7 +179,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           onChange={async () => {
             const newValue = !searchable;
             setSearchable(newValue);
-            await ApiService.updateUserSettings({ Searchable: newValue });
+            await saveSettings({ searchable: newValue });
           }}
           label="Sökbar"
           yesLabel="JA"
@@ -157,7 +190,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           onChange={async () => {
             const newValue = !willingToTravel;
             setWillingToTravel(newValue);
-            await ApiService.updateUserSettings({ TravelAvailability: newValue });
+            await saveSettings({ travelAvailability: newValue });
           }}
           label="Resbar"
           yesLabel="JA"
@@ -171,7 +204,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               checked={workplace.onSite}
               onChange={async () => {
                 setWorkplace({ onSite: true, hybrid: false, remote: false });
-                await ApiService.updateUserSettings({ DesiredWorkMode: "På plats" });
+                await saveSettings({ desiredWorkModes: ["På plats"] });
               }}
               stacked={false}
             />
@@ -180,7 +213,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               checked={workplace.hybrid}
               onChange={async () => {
                 setWorkplace({ onSite: false, hybrid: true, remote: false });
-                await ApiService.updateUserSettings({ DesiredWorkMode: "Hybrid" });
+                await saveSettings({ desiredWorkModes: ["Hybrid"] });
               }}
               stacked={false}
             />
@@ -189,7 +222,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               checked={workplace.remote}
               onChange={async () => {
                 setWorkplace({ onSite: false, hybrid: false, remote: true });
-                await ApiService.updateUserSettings({ DesiredWorkMode: "Distans" });
+                await saveSettings({ desiredWorkModes: ["Distans"] });
               }}
               stacked={false}
             />
