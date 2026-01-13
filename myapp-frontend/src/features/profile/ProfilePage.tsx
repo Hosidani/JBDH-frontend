@@ -184,7 +184,10 @@ function ProfilePage() {
             tSync={tSync}
           />
           <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
-          <ButtonsCard tSync={tSync}/>
+          <ButtonsCard 
+            tSync={tSync} 
+            onManualSearchClick={() => navigate('/search')}
+          />
         </div>
       </PageWrapper>
     </>
