@@ -13,6 +13,7 @@ import ProfilePage from './features/profile/ProfilePage';
 import SettingsPage from './features/profile/SettingsPage';
 import MatchAdToCvsPage from './features/search/MatchAdToCvsPage';
 import AddJobAdPage from './features/boards/AddJobAdPage';
+import MatchingProfilePage from './features/matching/MatchingProfilePage';
 import './App.css';
 import UserIndicator from './components/UserIndicator';
 import { useEffect } from 'react';
@@ -112,6 +113,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/matching" element={<MatchingProfilePage />} />
           <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
           <Route path="/add-job-ad" element={<AddJobAdPage />} />
           <Route path="/saved-jobs" element={<SavedJobsPage />} />

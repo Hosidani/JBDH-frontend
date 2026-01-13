@@ -185,7 +185,8 @@ function ProfilePage() {
           />
           <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
           <ButtonsCard 
-            tSync={tSync} 
+            tSync={tSync}
+            onMatchNowClick={() => navigate('/matching')}
             onManualSearchClick={() => navigate('/search')}
           />
         </div>
