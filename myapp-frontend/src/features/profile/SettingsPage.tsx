@@ -80,11 +80,18 @@ const SettingsPage: React.FC = () => {
       return;
     }
     setLoading(true);
-    // TODO: Call API to change password
-    setTimeout(() => {
+    try {
+      await ApiService.changePassword(currentPassword, newPassword, confirmPassword);
       setPwMessage(tSync('settingsPage_password_updated'));
+      // Clear password fields after successful change
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      setPwMessage(error?.message || 'Error changing password');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

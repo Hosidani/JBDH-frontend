@@ -28,6 +28,15 @@ export class ApiService {
       return await response.json();
     }
 
+    // Change current user's password
+    static async changePassword(currentPassword: string, newPassword: string, confirmNewPassword: string): Promise<any> {
+      const response = await this.fetchWithAuth('/Settings/changepassword', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword, confirmNewPassword }),
+      });
+      return await response.json();
+    }
+
     // Delete current user
     static async deleteMyUser(): Promise<any> {
       const response = await this.fetchWithAuth('/Settings/deletemyuser', {
