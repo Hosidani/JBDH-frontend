@@ -9,6 +9,7 @@ import AIAnalysisCard from '../../components/profile/AIAnalysisCard';
 import FileDropZoneCard from '../../components/profile/FileDropZoneCard';
 import ButtonsCard from '../../components/profile/ButtonsCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { useAIResponsePolling } from '../../hooks/useAIResponsePolling';
 
 
 function ProfilePage() {
@@ -18,8 +19,8 @@ function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
-  const [polling, setPolling] = useState(false);
   const { tSync, language, ready } = useTranslation();
+  const { polling, setPolling, getLatestAIResponseId, pollForLatestAIResponse } = useAIResponsePolling();
 
   useEffect(() => {
     if (!user) {
@@ -32,10 +33,8 @@ function ProfilePage() {
       setLoading(true);
       setError(null);
       try {
-        // Only use getMyProfile for all profile and AI response data
         const data = await ApiService.getMyProfile();
         setProfile(data);
-        // If you need to extract AI analysis, do it from data.aiResponses in render
       } catch (err) {
         setError((err as any)?.message || 'Något gick fel.');
         setAnalysisResult(null);
@@ -44,80 +43,15 @@ function ProfilePage() {
       }
     };
     fetchData();
-    // eslint-disable-next-line
   }, []);
-  /*
-  // Example: Update user settings (stub, connect to your form/UI as needed)
-  const handleUpdateUserSettings = async (updatedDto: any) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const updatedProfile = await ApiService.updateUserSettings(updatedDto);
-      setProfile(updatedProfile);
-    } catch (err: any) {
-      setError(err.message || 'Kunde inte uppdatera inställningar.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Example: Delete user (stub, connect to your UI as needed)
-  const handleDeleteMyUser = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await ApiService.deleteMyUser();
-      setProfile(null);
-    } catch (err: any) {
-      setError(err.message || 'Kunde inte radera användare.');
-    } finally {
-      setLoading(false);
-    }
-  };
-  */
-
-  // Handle CV upload
-  // Poll for latest AI response after CV upload
-  // Helper to get latest AI response id or timestamp
-  const getLatestAIResponseId = (aiResponses: any[]) => {
-    if (!Array.isArray(aiResponses) || aiResponses.length === 0) return null;
-    const latest = aiResponses.reduce((latest: any, curr: any) => {
-      if (!latest) return curr;
-      const latestDate = new Date(latest.createdAt || latest.CreatedAt || 0);
-      const currDate = new Date(curr.createdAt || curr.CreatedAt || 0);
-      return currDate > latestDate ? curr : latest;
-    }, null);
-    return latest?.id || latest?.ID || latest?.createdAt || latest?.CreatedAt || null;
-  };
-
-  const pollForLatestAIResponse = async (initialLatestId: any) => {
-    let attempts = 0;
-    const maxAttempts = 30; // e.g. poll for up to 60 seconds
-    while (attempts < maxAttempts) {
-      try {
-        const data = await ApiService.getMyProfile();
-        setProfile(data);
-        const newLatestId = getLatestAIResponseId(data.aiResponses);
-        if (newLatestId && newLatestId !== initialLatestId) {
-          // New AI response detected
-          setPolling(false);
-          return;
-        }
-      } catch {}
-      await new Promise(res => setTimeout(res, 2000)); // wait 2 seconds
-      attempts++;
-    }
-    setPolling(false);
-  };
 
   const handleCVUpload = async (file: File) => {
     setAnalysisResult(null);
     try {
-      // Get initial latest AI response id before upload
       const initialLatestId = getLatestAIResponseId(profile?.aiResponses);
       await ApiService.uploadCVForAnalysis(file, language);
       setPolling(true);
-      pollForLatestAIResponse(initialLatestId);
+      pollForLatestAIResponse(initialLatestId, setProfile);
     } catch (err: any) {
       setPolling(false);
     }
@@ -128,10 +62,8 @@ function ProfilePage() {
   if (error) return <div className="card text-red-600">{tSync('profilePage_error_prefix')}{error}</div>;
   if (!profile) return <div className="card">{tSync('profilePage_no_profile_found')}</div>;
 
-  // Unpack user data from backend response
   const profileData = profile;
 
-  // Map fields for ProfileInfoCard
   const profileCardProps = {
     name: profileData.name || tSync('profilePage_name_missing'),
     createdAt: profileData.createdAt,
@@ -159,7 +91,6 @@ function ProfilePage() {
           ]
   };
 
-  // Use aiResponses[0] as the latest response (list is sorted)
   let latestAIResponse: any = null;
   let latestAIAnalysis: any = null;
   let aiResponses: any[] = [];
@@ -175,7 +106,6 @@ function ProfilePage() {
       <PageWrapper>
         <div className="relative z-10 max-w-2xl w-full mx-auto mt-8 flex flex-col gap-8">
           <ProfileInfoCard {...profileCardProps} />
-          {/* Always render AIAnalysisCard, let it handle polling/animation and analysis/history display */}
           <AIAnalysisCard
             polling={polling}
             analysis={latestAIAnalysis}
