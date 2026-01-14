@@ -10,7 +10,7 @@ import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
 import SearchJobsPage from './features/search/SearchJobsPage';
 import ProfilePage from './features/profile/ProfilePage';
-import SettingsPage from './features/profile/SettingsPage';
+import SettingsPage from './features/settings/SettingsPage';
 import MatchAdToCvsPage from './features/search/MatchAdToCvsPage';
 import AddJobAdPage from './features/boards/AddJobAdPage';
 import MatchingProfilePage from './features/matching/MatchingProfilePage';

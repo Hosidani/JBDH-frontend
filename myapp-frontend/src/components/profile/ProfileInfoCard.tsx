@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useTranslation } from '../hooks/TranslationProvider';
-import { ApiService } from '../services/ApiService';
+import { useTranslation } from '../../hooks/TranslationProvider';
+import { ApiService } from '../../services/ApiService';
 import { useNavigate } from 'react-router-dom';
-import IconSettings from './icon_library/IconSettings';
-import IconEditPen from './icon_library/IconEditPen';
+import IconSettings from '../icon_library/IconSettings';
+import IconEditPen from '../icon_library/IconEditPen';
 
 interface ProfileInfoCardProps {
   name: string;
