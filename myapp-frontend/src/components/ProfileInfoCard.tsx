@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../hooks/TranslationProvider';
 import { ApiService } from '../services/ApiService';
 import { useNavigate } from 'react-router-dom';
 import IconSettings from './icon_library/IconSettings';
@@ -6,7 +7,7 @@ import IconEditPen from './icon_library/IconEditPen';
 
 interface ProfileInfoCardProps {
   name: string;
-  registrationDate: string;
+  createdAt?: string;
   title: string;
   employmentType: string;
   location: string;
@@ -41,7 +42,7 @@ const OutlinedCheckbox = ({ label, checked, onChange, stacked = false }: { label
     style={{ boxShadow: checked ? '0 0 0 2px #64748b' : undefined }}
   >
     <span
-      className={`inline-block w-5 h-5 border-2 rounded-md flex items-center justify-center mb-1 mt-1 ${checked ? 'border-slate-700 bg-white' : 'border-slate-300 bg-white'}`}
+      className={`w-5 h-5 border-2 rounded-md flex items-center justify-center mb-1 mt-1 ${checked ? 'border-slate-700 bg-white' : 'border-slate-300 bg-white'}`}
       style={{ fontWeight: 700 }}
     >
       {checked && <span className="text-lg leading-none text-slate-700">&#10005;</span>}
@@ -53,7 +54,7 @@ const OutlinedCheckbox = ({ label, checked, onChange, stacked = false }: { label
 
 const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   name,
-  registrationDate,
+  createdAt,
   title,
   employmentType,
   location,
@@ -65,6 +66,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   const [searchable, setSearchable] = useState(false);
   const [willingToTravel, setWillingToTravel] = useState(false);
   const [workplace, setWorkplace] = useState({ onSite: false, hybrid: false, remote: false });
+  const { tSync } = useTranslation();
 
   React.useEffect(() => {
     ApiService.getMyProfile().then(profile => {
@@ -112,6 +114,14 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
     await ApiService.updateUserSettings(payload);
   };
 
+  // Format createdAt to a readable date (YYYY-MM-DD or localized)
+  let registrationDate = tSync('profilePage_registration_unknown');
+  if (createdAt && createdAt !== '0001-01-01 00:00:00') {
+    const date = new Date(createdAt.replace(' ', 'T'));
+    if (!isNaN(date.getTime())) {
+      registrationDate = date.toLocaleDateString('sv-SE', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+  }
   return (
     <section className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col gap-4 border border-slate-200 max-w-3xl mx-auto relative overflow-x-auto">
       {/* Top row: Avatar left, Info grid right, Cogwheel top right */}
@@ -121,7 +131,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           <div className="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-3xl font-bold text-slate-600 mb-2">
             {initials(name)}
           </div>
-          <div className="text-xs text-slate-300 font-normal">Registrerad: {registrationDate}</div>
+          <div className="text-xs text-slate-300 font-normal">{tSync('profilePage_registration_label') || 'Registrerad'}: {registrationDate}</div>
         </div>
         {/* Info grid and cogwheel */}
         <div className="flex-1 flex flex-col items-end">

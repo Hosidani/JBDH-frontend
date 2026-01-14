@@ -70,6 +70,8 @@
   "profilePage_no_saved_jobs": "You have no saved job ads yet.",
   "profilePage_tag_it": "IT",
   "profilePage_tag_stockholm": "Stockholm",
+  "profilePage_registration_label": "Registered",
+  "profilePage_registration_unknown": "Unknown",
   "profilePage_job_status_applied": "Applied",
   "createFlowPage_title": "Create new post",
   "createFlowPage_type_label": "Type:",

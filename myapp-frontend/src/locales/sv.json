@@ -70,6 +70,8 @@
   "profilePage_no_saved_jobs": "Du har inga sparade jobbannonser ännu.",
   "profilePage_tag_it": "IT",
   "profilePage_tag_stockholm": "Stockholm",
+  "profilePage_registration_label": "Registrerad",
+  "profilePage_registration_unknown": "Okänt",
   "profilePage_job_status_applied": "Sökt",
   "createFlowPage_title": "Skapa nytt inlägg",
   "createFlowPage_type_label": "Typ:",

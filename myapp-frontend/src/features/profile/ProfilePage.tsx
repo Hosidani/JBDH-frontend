@@ -134,7 +134,7 @@ function ProfilePage() {
   // Map fields for ProfileInfoCard
   const profileCardProps = {
     name: profileData.name || tSync('profilePage_name_missing'),
-    registrationDate: profileData.registrationDate || '2025-12-24',
+    createdAt: profileData.createdAt,
     title: profileData.desiredEmploymentType || tSync('profilePage_default_title'),
     employmentType: profileData.desiredEmploymentType || tSync('profilePage_default_employmentType'),
     location: profileData.location || tSync('profilePage_default_location'),
