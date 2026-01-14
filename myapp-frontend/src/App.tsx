@@ -32,12 +32,10 @@ function LogoutRedirect(props: LogoutRedirectProps) {
 }
 
 function App() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const { tSync } = useTranslation();
   const { language, changeLanguage } = useTranslation();
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
