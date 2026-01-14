@@ -131,7 +131,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           <div className="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-3xl font-bold text-slate-600 mb-2">
             {initials(name)}
           </div>
-          <div className="text-xs text-slate-300 font-normal">{tSync('profilePage_registration_label') || 'Registrerad'}: {registrationDate}</div>
+          <div className="text-xs text-slate-300 font-normal">{tSync('profilePage_registration_label')}: {registrationDate}</div>
         </div>
         {/* Info grid and cogwheel */}
         <div className="flex-1 flex flex-col items-end">
@@ -148,35 +148,35 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 w-full">
             <div className="text-right">
-              <div className="font-normal text-slate-700 text-sm">Namn</div>
+              <div className="font-normal text-slate-700 text-sm">{tSync('settingsPage_name_label')}</div>
               <div className="font-bold text-lg text-slate-900">{name}</div>
             </div>
             <div className="text-right">
-              <div className="font-normal text-slate-700 text-sm">Titel</div>
+              <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_title_label')}</div>
               <div className="font-bold text-lg text-slate-900">{title}</div>
             </div>
             <div className="text-right">
-              <div className="font-normal text-slate-700 text-sm">Önskad anställningsform</div>
+              <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_employmentType_label')}</div>
               <div className="font-bold text-lg text-slate-900">{employmentType}</div>
             </div>
             <div className="text-right">
-              <div className="font-normal text-slate-700 text-sm">Tillgänglig från</div>
+              <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_registration_date_label')}</div>
               <div className="font-bold text-lg text-slate-900">{registrationDate}</div>
             </div>
             <div className="text-right">
-              <div className="font-normal text-slate-700 text-sm">Telefon</div>
+              <div className="font-normal text-slate-700 text-sm">{tSync('settingsPage_phone_label')}</div>
               <div className="font-bold text-lg text-slate-900">{phone}</div>
             </div>
             <div className="text-right">
-              <div className="font-normal text-slate-700 text-sm">Email</div>
+              <div className="font-normal text-slate-700 text-sm">{tSync('settingsPage_email_label')}</div>
               <div className="font-bold text-lg text-slate-900">{email}</div>
             </div>
             <div className="text-right">
-              <div className="font-normal text-slate-700 text-sm">Önskad Ort</div>
+              <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_location_label')}</div>
               <div className="font-bold text-lg text-slate-900">{location}</div>
             </div>
             <div className="text-right">
-              <div className="font-normal text-slate-700 text-sm">Område</div>
+              <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_region_label')}</div>
               <div className="font-bold text-lg text-slate-900">{region}</div>
             </div>
           </div>
@@ -191,9 +191,9 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
             setSearchable(newValue);
             await saveSettings({ searchable: newValue });
           }}
-          label="Sökbar"
-          yesLabel="JA"
-          noLabel="NEJ"
+          label={tSync('profilePage_searchable_label')}
+          yesLabel={tSync('profilePage_yes_label')}
+          noLabel={tSync('profilePage_no_label')}
         />
         <ToggleSwitch
           checked={willingToTravel}
@@ -202,15 +202,15 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
             setWillingToTravel(newValue);
             await saveSettings({ travelAvailability: newValue });
           }}
-          label="Resbar"
-          yesLabel="JA"
-          noLabel="NEJ"
+          label={tSync('profilePage_travel_label')}
+          yesLabel={tSync('profilePage_yes_label')}
+          noLabel={tSync('profilePage_no_label')}
         />
         <div className="relative flex flex-col items-center ml-8">
-          <span className="text-xs text-slate-400 font-normal mb-1 text-center absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap">Önskad arbetsplats</span>
+          <span className="text-xs text-slate-400 font-normal mb-1 text-center absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap">{tSync('profilePage_workplace_label')}</span>
           <div className="flex flex-row items-end gap-2 min-h-[48px]">
             <OutlinedCheckbox
-              label="På plats"
+              label={tSync('profilePage_workplace_onsite_label')}
               checked={workplace.onSite}
               onChange={async () => {
                 setWorkplace({ onSite: true, hybrid: false, remote: false });
@@ -219,7 +219,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               stacked={false}
             />
             <OutlinedCheckbox
-              label="Hybrid"
+              label={tSync('profilePage_workplace_hybrid_label')}
               checked={workplace.hybrid}
               onChange={async () => {
                 setWorkplace({ onSite: false, hybrid: true, remote: false });
@@ -228,7 +228,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               stacked={false}
             />
             <OutlinedCheckbox
-              label="Distans"
+              label={tSync('profilePage_workplace_remote_label')}
               checked={workplace.remote}
               onChange={async () => {
                 setWorkplace({ onSite: false, hybrid: false, remote: true });
@@ -242,7 +242,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
       {/* Kompetenser */}
       <div className="mt-4">
         <div className="flex items-center gap-2 mb-1">
-          <div className="font-bold text-slate-700">Kompetenser</div>
+          <div className="font-bold text-slate-700">{tSync('profilePage_competencies_label')}</div>
           <IconEditPen className="opacity-60" />
         </div>
         <div className="flex flex-wrap gap-2">
