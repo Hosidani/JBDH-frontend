@@ -19,7 +19,7 @@ function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [polling, setPolling] = useState(false);
-  const { tSync, ready, language } = useTranslation();
+  const { tSync, language, ready } = useTranslation();
 
   useEffect(() => {
     if (!user) {
@@ -182,6 +182,7 @@ function ProfilePage() {
             aiResponse={latestAIResponse}
             aiResponses={aiResponses}
             tSync={tSync}
+            language={language}
           />
           <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
           <ButtonsCard 
