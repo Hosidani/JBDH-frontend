@@ -107,10 +107,13 @@ export class ApiService {
   }
 
   // Compare CV to Job Ad
-  static async compareCvToJobAd(jobAdText: string, cvFile: File): Promise<string> {
+  static async compareCvToJobAd(jobAdText: string, cvFile: File, language?: string): Promise<string> {
     const formData = new FormData();
     formData.append('jobAdText', jobAdText);
     formData.append('cvPath', cvFile);
+    if (language) {
+      formData.append('language', ApiService.mapLanguageToBackend(language));
+    }
 
     const response = await fetch(`${API_BASE_URL}/home/CompareCvToJobAd`, {
       method: 'POST',
@@ -126,9 +129,12 @@ export class ApiService {
   }
 
   // Upload CV for AI analysis
-  static async uploadCVForAnalysis(cvFile: File): Promise<{ success: boolean; message: string }> {
+  static async uploadCVForAnalysis(cvFile: File, language?: string): Promise<{ success: boolean; message: string }> {
     const formData = new FormData();
     formData.append('cvFile', cvFile);
+    if (language) {
+      formData.append('language', ApiService.mapLanguageToBackend(language));
+    }
     const response = await fetch(`${API_BASE_URL}/Profile/AnalyzeCV`, {
       method: 'POST',
       credentials: 'include',
@@ -155,5 +161,20 @@ export class ApiService {
       throw new Error(error || `HTTP error! status: ${response.status}`);
     }
     return await response.json();
+  }
+
+  // Map frontend language codes to backend-friendly names
+  private static mapLanguageToBackend(lang: string): string {
+    switch ((lang || '').toLowerCase()) {
+      case 'sv':
+      case 'sv-se':
+      case 'swedish':
+        return 'Swedish';
+      case 'en':
+      case 'en-us':
+      case 'english':
+      default:
+        return 'English';
+    }
   }
 }

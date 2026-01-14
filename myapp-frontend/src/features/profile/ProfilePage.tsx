@@ -19,7 +19,7 @@ function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [polling, setPolling] = useState(false);
-  const { tSync, ready } = useTranslation();
+  const { tSync, ready, language } = useTranslation();
 
   useEffect(() => {
     if (!user) {
@@ -115,7 +115,7 @@ function ProfilePage() {
     try {
       // Get initial latest AI response id before upload
       const initialLatestId = getLatestAIResponseId(profile?.aiResponses);
-      await ApiService.uploadCVForAnalysis(file);
+      await ApiService.uploadCVForAnalysis(file, language);
       setPolling(true);
       pollForLatestAIResponse(initialLatestId);
     } catch (err: any) {
