@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
+import { ApiService } from "../services/ApiService";
 
 export interface AuthUser {
   email: string;
@@ -22,13 +23,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore user from localStorage on mount
+  // Restore user from localStorage on mount and validate session
   useEffect(() => {
-    const stored = localStorage.getItem("authUser");
-    if (stored) {
-      setUser(JSON.parse(stored));
-    }
-    setLoading(false);
+    const restoreAndValidateSession = async () => {
+      const stored = localStorage.getItem("authUser");
+      if (stored) {
+        try {
+          // Try to validate the session by calling an auth-required endpoint
+          await ApiService.getMyProfile();
+          // If successful, session is valid - restore user
+          setUser(JSON.parse(stored));
+        } catch (error) {
+          // Session is invalid/expired, clear stored user
+          console.warn("Session validation failed - clearing stored user:", error);
+          localStorage.removeItem("authUser");
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    restoreAndValidateSession();
   }, []);
 
   // Save user to localStorage when changed (except during initial session check)
