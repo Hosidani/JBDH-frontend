@@ -2,6 +2,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../hooks/TranslationProvider';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { tSync } = useTranslation();
   const successMessage = location.state && location.state.success;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,10 +33,10 @@ const LoginPage: React.FC = () => {
         login({ email });
         navigate('/');
       } else {
-        setError('Invalid email or password.');
+        setError(tSync('loginPage_invalid_credentials'));
       }
     } catch (err) {
-      setError('An error occurred.');
+      setError(tSync('loginPage_error'));
     } finally {
       setLoading(false);
     }
@@ -43,13 +45,13 @@ const LoginPage: React.FC = () => {
   return (
     <div className="main-content">
       <div className="card">
-        <h2 style={{ textAlign: 'center', color: '#2563eb', marginBottom: '1.5rem' }}>Login</h2>
+        <h2 style={{ textAlign: 'center', color: '#2563eb', marginBottom: '1.5rem' }}>{tSync('loginPage_title')}</h2>
         {successMessage && (
           <div style={{ color: '#10b981', marginBottom: '1rem', textAlign: 'center' }}>{successMessage}</div>
         )}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="email" style={{ display: 'block', marginBottom: 4 }}>Email</label>
+            <label htmlFor="email" style={{ display: 'block', marginBottom: 4 }}>{tSync('loginPage_email_label')}</label>
             <input
               id="email"
               type="email"
@@ -61,7 +63,7 @@ const LoginPage: React.FC = () => {
             />
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="password" style={{ display: 'block', marginBottom: 4 }}>Password</label>
+            <label htmlFor="password" style={{ display: 'block', marginBottom: 4 }}>{tSync('loginPage_password_label')}</label>
             <input
               id="password"
               type="password"
@@ -78,7 +80,7 @@ const LoginPage: React.FC = () => {
             disabled={loading}
             style={{ width: '100%', background: '#2563eb', color: 'white', padding: 10, borderRadius: 4, fontWeight: 600 }}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? tSync('loginPage_logging_in') : tSync('loginPage_button')}
           </button>
         </form>
       </div>

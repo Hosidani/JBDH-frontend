@@ -1,6 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../hooks/TranslationProvider';
 
 const availableRoles = ["Manager", "Recruiter"];
 
@@ -15,6 +16,7 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { tSync } = useTranslation();
 
   const handleRoleChange = (role: string) => {
     setSelectedRoles(prev =>
@@ -56,10 +58,10 @@ const RegisterPage: React.FC = () => {
       });
       if (response.ok) {
         // Redirect to login page with success message
-        navigate('/login', { state: { success: 'Registration successful! Please check your email.' } });
+        navigate('/login', { state: { success: tSync('registerPage_success') } });
       } else {
         // Try to parse error as JSON, fallback to text
-        let errorMsg = 'Registration failed.';
+        let errorMsg = tSync('registerPage_failed');
         try {
           const data = await response.json();
           errorMsg = data.error || data.message || errorMsg;
@@ -70,7 +72,7 @@ const RegisterPage: React.FC = () => {
         setError(errorMsg);
       }
     } catch (err) {
-      setError('An error occurred.');
+      setError(tSync('registerPage_error'));
     } finally {
       setLoading(false);
     }
@@ -79,35 +81,35 @@ const RegisterPage: React.FC = () => {
   return (
     <div className="main-content">
       <div className="card">
-        <h2 style={{ color: '#2563eb', textAlign: 'center' }}>Register</h2>
+        <h2 style={{ color: '#2563eb', textAlign: 'center' }}>{tSync('registerPage_title')}</h2>
         <form onSubmit={handleSubmit} encType="multipart/form-data">
           <div style={{ marginBottom: '1rem' }}>
-            <label>Email</label>
+            <label>{tSync('registerPage_email_label')}</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%' }} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <label>Password</label>
+            <label>{tSync('registerPage_password_label')}</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%' }} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <label>Confirm Password</label>
+            <label>{tSync('registerPage_confirm_password_label')}</label>
             <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required style={{ width: '100%' }} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <label>Location</label>
+            <label>{tSync('registerPage_location_label')}</label>
             <input type="text" value={location} onChange={e => setLocation(e.target.value)} style={{ width: '100%' }} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <label>CV File</label>
+            <label>{tSync('registerPage_cv_file_label')}</label>
             <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
           </div>
           <div style={{ marginBottom: '1rem' }}>
             <label>
-              <input type="checkbox" checked={open} onChange={e => setOpen(e.target.checked)} /> Open to opportunities
+              <input type="checkbox" checked={open} onChange={e => setOpen(e.target.checked)} /> {tSync('registerPage_open_to_opportunities_label')}
             </label>
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <label>Roles</label>
+            <label>{tSync('registerPage_roles_label')}</label>
             <div>
               {availableRoles.map(role => (
                 <label key={role} style={{ marginRight: 12 }}>
@@ -124,7 +126,7 @@ const RegisterPage: React.FC = () => {
           </div>
           {error && <div style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ width: '100%', background: '#2563eb', color: 'white', padding: 10, borderRadius: 4, fontWeight: 600 }}>
-            {loading ? 'Registering...' : 'Register'}
+            {loading ? tSync('registerPage_registering') : tSync('registerPage_button')}
           </button>
         </form>
       </div>

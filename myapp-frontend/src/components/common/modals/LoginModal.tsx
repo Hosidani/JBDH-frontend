@@ -1,6 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import { useTranslation } from '../../../hooks/TranslationProvider';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface LoginModalProps {
 
 const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
   const { login } = useAuth();
+  const { tSync } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -18,19 +20,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     setError(null);
     // Manual validation
     if (!email.trim() && !password.trim()) {
-      setError('Fyll i både e-post och lösenord.');
+      setError(tSync('loginModal_error_both_required'));
       return;
     }
     if (!email.trim()) {
-      setError('Fyll i e-postadressen.');
+      setError(tSync('loginModal_error_email_required'));
       return;
     }
     if (!password.trim()) {
-      setError('Fyll i lösenordet.');
+      setError(tSync('loginModal_error_password_required'));
       return;
     }
     if (!email.includes('@')) {
-      setError('E-postadressen är felaktig.');
+      setError(tSync('loginModal_error_invalid_email'));
       return;
     }
     setLoading(true);
@@ -45,10 +47,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
         login({ email });
         onClose();
       } else {
-        setError('Fel e-post eller lösenord.');
+        setError(tSync('loginModal_error_invalid_credentials'));
       }
     } catch (err) {
-      setError('Ett fel uppstod.');
+      setError(tSync('loginModal_error_generic'));
     } finally {
       setLoading(false);
     }
@@ -58,11 +60,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30" onClick={onClose}>
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-sm relative" onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 text-2xl leading-none">&times;</button>
-        <div className="text-center font-bold text-xl mb-6">Välkommen</div>
+        <div className="text-center font-bold text-xl mb-6">{tSync('loginModal_title')}</div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="email"
-            placeholder="Email"
+            placeholder={tSync('loginModal_email_placeholder')}
             value={email}
             onChange={e => setEmail(e.target.value)}
               className="border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -71,7 +73,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
           />
           <input
             type="password"
-            placeholder="Lösenord"
+            placeholder={tSync('loginModal_password_placeholder')}
             value={password}
             onChange={e => setPassword(e.target.value)}
               className="border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -83,12 +85,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             disabled={loading}
             className="w-full bg-black text-white py-3 rounded-md font-semibold text-base mt-2 hover:bg-gray-800 transition"
           >
-            {loading ? 'Loggar in...' : 'Logga in'}
+            {loading ? tSync('loginModal_logging_in') : tSync('loginModal_button')}
           </button>
         </form>
         <div className="text-center text-sm mt-4 text-slate-500">
-          Har du inget konto? <a href="/register" className="text-blue-600 hover:underline">Registrera dig</a><br />
-          Glömt lösenordet? <a href="#" className="text-blue-600 hover:underline">Sätt ett nytt</a>
+          {tSync('loginModal_no_account')} <a href="/register" className="text-blue-600 hover:underline">{tSync('loginModal_register_link')}</a><br />
+          {tSync('loginModal_forgot_password')} <a href="#" className="text-blue-600 hover:underline">{tSync('loginModal_reset_password_link')}</a>
         </div>
       </div>
     </div>
