@@ -1,4 +1,2 @@
-// Export all Home-related pages from one place
+// Export HomePage from home feature
 export { default as HomePage } from './HomePage';
-export { default as CreateFlowPage } from './CreateFlowPage';
-export { default as CompareCvToJobAdPage } from './CompareCvToJobAdPage';
