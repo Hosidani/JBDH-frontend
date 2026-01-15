@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper, PageBackground } from '../../components/common';
 import { MatchingAssignmentsList } from '../../components/common/cards';
 import type { MatchingAssignment } from '../../components/common/cards';
 
 const MatchingProfilePage: React.FC = () => {
+  const navigate = useNavigate();
   const { tSync } = useTranslation();
   const [assignments, setAssignments] = useState<MatchingAssignment[]>([
     {
@@ -69,6 +71,10 @@ const MatchingProfilePage: React.FC = () => {
     setAssignments(assignments.filter(a => a.id !== id));
   };
 
+  const handleCardClick = (id: number) => {
+    navigate(`/job/${id}`);
+  };
+
   return (
     <>
       <PageBackground imageUrl="/match_profile.png" opacity={1} blur={0} />
@@ -85,6 +91,7 @@ const MatchingProfilePage: React.FC = () => {
             assignments={assignments}
             onSave={handleSave}
             onDelete={handleDelete}
+            onClick={handleCardClick}
           />
         </div>
       </PageWrapper>

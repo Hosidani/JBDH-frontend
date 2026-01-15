@@ -244,6 +244,20 @@
   "savedJobCard_save_tooltip": "Save job",
   "savedJobCard_delete_tooltip": "Delete job",
   "savedJobsList_loading": "Loading saved jobs...",
-  "savedJobsList_empty": "No saved jobs found."
+  "savedJobsList_empty": "No saved jobs found.",
+  "jobDetail_last_application_date": "Last application date",
+  "jobDetail_company": "Company",
+  "jobDetail_work_arrangement": "Work Arrangement",
+  "jobDetail_employment_type": "Employment Type",
+  "jobDetail_employment_hybrid": "Hybrid",
+  "jobDetail_location": "Location",
+  "jobDetail_competencies": "Competencies",
+  "jobDetail_match_score": "Match Score",
+  "jobDetail_apply_button": "Apply now",
+  "jobDetail_save_button": "Save",
+  "jobDetail_save_tooltip": "Save job",
+  "jobDetail_not_interested_button": "Not interested",
+  "jobDetail_tab_description": "Description",
+  "jobDetail_tab_matching": "Matching"
 
 }

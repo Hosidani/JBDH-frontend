@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper, PageBackground } from '../../components/common';
 import { SavedJobsList } from '../../components/common/cards';
 import type { SavedJob } from '../../components/common/cards';
 
 const SavedJobsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { tSync } = useTranslation();
   const [jobs, setJobs] = useState<SavedJob[]>([
     {
@@ -49,6 +51,10 @@ const SavedJobsPage: React.FC = () => {
     setJobs(jobs.filter(j => j.id !== id));
   };
 
+  const handleCardClick = (id: number) => {
+    navigate(`/job/${id}`);
+  };
+
   return (
     <>
       <PageBackground imageUrl="/saved_jobs.png" opacity={1} blur={0} />
@@ -65,6 +71,7 @@ const SavedJobsPage: React.FC = () => {
             jobs={jobs}
             onSave={handleSave}
             onDelete={handleDelete}
+            onClick={handleCardClick}
           />
         </div>
       </PageWrapper>

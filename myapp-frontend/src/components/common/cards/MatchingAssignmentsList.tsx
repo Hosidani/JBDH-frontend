@@ -8,6 +8,7 @@ interface MatchingAssignmentsListProps {
   loading?: boolean;
   onSave?: (id: number) => void;
   onDelete?: (id: number) => void;
+  onClick?: (id: number) => void;
 }
 
 const MatchingAssignmentsList: React.FC<MatchingAssignmentsListProps> = ({
@@ -15,6 +16,7 @@ const MatchingAssignmentsList: React.FC<MatchingAssignmentsListProps> = ({
   loading = false,
   onSave,
   onDelete,
+  onClick,
 }) => {
   const { tSync } = useTranslation();
 
@@ -42,6 +44,7 @@ const MatchingAssignmentsList: React.FC<MatchingAssignmentsListProps> = ({
           assignment={assignment}
           onSave={onSave}
           onDelete={onDelete}
+          onClick={onClick}
         />
       ))}
     </div>

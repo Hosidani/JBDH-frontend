@@ -14,6 +14,7 @@ import SettingsPage from './features/settings/SettingsPage';
 import MatchAdToCvsPage from './features/search/MatchAdToCvsPage';
 import AddJobAdPage from './features/boards/AddJobAdPage';
 import MatchingProfilePage from './features/matching/MatchingProfilePage';
+import { JobDetailPage } from './features/jobs';
 import './App.css';
 
 type LogoutRedirectProps = { user: any; setMenuOpen: (v: boolean) => void };
@@ -88,6 +89,7 @@ function App() {
           <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
           <Route path="/add-job-ad" element={<AddJobAdPage />} />
           <Route path="/saved-jobs" element={<SavedJobsPage />} />
+          <Route path="/job/:id" element={<JobDetailPage />} />
           <Route path="/about" element={<AboutPage />} />
           {/* Add a route for logout redirect */}
           <Route path="*" element={<LogoutRedirect user={user} setMenuOpen={setMenuOpen} />} />

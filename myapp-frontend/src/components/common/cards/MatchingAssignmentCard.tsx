@@ -17,17 +17,30 @@ interface MatchingAssignmentCardProps {
   assignment: MatchingAssignment;
   onSave?: (id: number) => void;
   onDelete?: (id: number) => void;
+  onClick?: (id: number) => void;
 }
 
 const MatchingAssignmentCard: React.FC<MatchingAssignmentCardProps> = ({ 
   assignment, 
   onSave, 
-  onDelete 
+  onDelete,
+  onClick 
 }) => {
   const { tSync } = useTranslation();
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    onClick?.(assignment.id);
+  };
+
   return (
-    <div className="border border-gray-300 rounded-lg p-6 bg-white hover:shadow-md transition">
+    <div 
+      className="border border-gray-300 rounded-lg p-6 bg-white hover:shadow-md transition cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Header with title and action item badge */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">

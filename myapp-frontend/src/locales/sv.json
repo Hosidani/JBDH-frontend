@@ -244,5 +244,19 @@
   "savedJobCard_save_tooltip": "Spara jobb",
   "savedJobCard_delete_tooltip": "Ta bort jobb",
   "savedJobsList_loading": "Laddar sparade jobb...",
-  "savedJobsList_empty": "Inga sparade jobb hittades."
+  "savedJobsList_empty": "Inga sparade jobb hittades.",
+  "jobDetail_last_application_date": "Sista ansökning",
+  "jobDetail_company": "Företag",
+  "jobDetail_work_arrangement": "Arbetsurlägning",
+  "jobDetail_employment_type": "Anställningstyp",
+  "jobDetail_employment_hybrid": "Hybrid",
+  "jobDetail_location": "Platsering",
+  "jobDetail_competencies": "Kompetenser",
+  "jobDetail_match_score": "Matchning",
+  "jobDetail_apply_button": "Ansök nu",
+  "jobDetail_save_button": "Spara",
+  "jobDetail_save_tooltip": "Spara jobb",
+  "jobDetail_not_interested_button": "Ointressant",
+  "jobDetail_tab_description": "Beskrivning",
+  "jobDetail_tab_matching": "Matchning"
 }
