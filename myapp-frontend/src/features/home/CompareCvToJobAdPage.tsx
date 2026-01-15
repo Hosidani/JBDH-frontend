@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import PageWrapper from '../../components/PageWrapper';
-import PageBackground from '../../components/PageBackground';
-import FileDropZone from '../../components/FileDropZone';
+import { PageWrapper, PageBackground, FileDropZone } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import CvMatchingVisualization from '../../components/Features/CvMatchingVisualization';
 

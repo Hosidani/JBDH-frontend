@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from './hooks/TranslationProvider';
-import LoginModal from './components/LoginModal';
+import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary } from './components/common';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage, CompareCvToJobAdPage } from './features/home';
@@ -15,9 +15,6 @@ import MatchAdToCvsPage from './features/search/MatchAdToCvsPage';
 import AddJobAdPage from './features/boards/AddJobAdPage';
 import MatchingProfilePage from './features/matching/MatchingProfilePage';
 import './App.css';
-import UserIndicator from './components/UserIndicator';
-import HamburgerMenu from './components/HamburgerMenu';
-import { useEffect } from 'react';
 
 type LogoutRedirectProps = { user: any; setMenuOpen: (v: boolean) => void };
 function LogoutRedirect(props: LogoutRedirectProps) {
@@ -103,8 +100,6 @@ function App() {
 // Wrap the app in AuthProvider
 
 import { TranslationProvider } from './hooks/TranslationProvider';
-
-import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function AppWithProvider() {
   return (

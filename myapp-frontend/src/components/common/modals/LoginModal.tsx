@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
 
 interface LoginModalProps {
   onClose: () => void;

@@ -1,9 +1,7 @@
-
-
 import React from 'react';
 import IconCvDocument from '../icon_library/IconCvDocument';
 import IconLetterDocument from '../icon_library/IconLetterDocument';
-import FileDropZone from '../FileDropZone';
+import { FileDropZone } from '../common';
 
 interface FileDropZoneCardProps {
   tSync: (key: string) => string;

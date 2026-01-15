@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import PageWrapper from '../../components/PageWrapper';
+import { PageWrapper } from '../../components/common';
 
 const AddJobAdPage: React.FC = () => {
   const { tSync } = useTranslation();

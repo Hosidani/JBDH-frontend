@@ -1,8 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import FeatureCard from '../../components/FeatureCard';
+import { FeatureCard, PageWrapper } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import PageWrapper from '../../components/PageWrapper';
 
 
 const features = (t: (key: string) => string) => [

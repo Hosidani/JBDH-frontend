@@ -2,12 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
-import ProfileInfoCard from '../../components/profile/ProfileInfoCard';
-import PageWrapper from '../../components/PageWrapper';
-import PageBackground from '../../components/PageBackground';
-import AIAnalysisCard from '../../components/profile/AIAnalysisCard';
-import FileDropZoneCard from '../../components/profile/FileDropZoneCard';
-import ButtonsCard from '../../components/profile/ButtonsCard';
+import { ProfileInfoCard, AIAnalysisCard, FileDropZoneCard, ButtonsCard } from '../../components/profile';
+import { PageWrapper, PageBackground } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useAIResponsePolling } from '../../hooks/useAIResponsePolling';
 

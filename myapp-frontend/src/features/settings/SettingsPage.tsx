@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { ApiService } from '../../services/ApiService';
-
-import PageWrapper from '../../components/PageWrapper';
-import PageBackground from '../../components/PageBackground';
+import { PageWrapper, PageBackground } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import ProfileForm from '../../components/settings/ProfileForm';
 import PasswordForm from '../../components/settings/PasswordForm';
