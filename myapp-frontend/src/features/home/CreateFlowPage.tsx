@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import type { CreateFlowRequest } from '../../types/DataFlow';
+import type { CreateFlowRequest } from '../../components/DataFlow/types';
 import { useTranslation } from '../../hooks/TranslationProvider';
 const API_URL = import.meta.env.VITE_API_URL;
 

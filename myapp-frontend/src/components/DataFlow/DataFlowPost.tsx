@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
-import type { DataFlow, CommentRequest, ReportRequest } from '../../types/DataFlow';
+import type { DataFlow, CommentRequest, ReportRequest } from './types';
 import DataFlowThread from './DataFlowThread';
 
 interface DataFlowPostProps {

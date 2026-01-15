@@ -1,4 +1,4 @@
-import type { ListDataFlowViewModel, CreateFlowRequest, CommentRequest, ReportRequest } from '../types/DataFlow';
+import type { ListDataFlowViewModel, CreateFlowRequest, CommentRequest, ReportRequest } from '../components/DataFlow/types';
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 

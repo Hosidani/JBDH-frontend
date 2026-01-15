@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
-import type { CreateFlowRequest } from '../../types/DataFlow';
+import type { CreateFlowRequest } from './types';
 
 interface CreateFlowFormProps {
   onPostCreated: () => void;

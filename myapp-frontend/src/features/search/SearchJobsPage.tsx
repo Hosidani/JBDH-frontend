@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageWrapper, PageBackground } from '../../components/common';
-import SearchJobsCard from './SearchJobsCard';
+import { SearchJobsCard } from '../../components/search';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 

@@ -1,4 +1,4 @@
-// TypeScript interfaces for your data models
+// TypeScript interfaces for DataFlow data models
 export interface User {
   id: number;
   email: string;

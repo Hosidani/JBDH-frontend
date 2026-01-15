@@ -1,16 +1,23 @@
 import React from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import { PageWrapper } from '../../components/common';
+import { PageWrapper, PageBackground } from '../../components/common';
 
 const AddJobAdPage: React.FC = () => {
   const { tSync } = useTranslation();
   return (
-    <PageWrapper>
-      <div className="card">
-    <h2 className="text-2xl font-bold mb-4">{tSync('addJobAdPage_title')}</h2>
-        <p>{tSync('addJobAdPage_comingSoon')}</p>
-      </div>
-    </PageWrapper>
+    <>
+      <PageBackground imageUrl="/add_job_ad.png" opacity={1} blur={0} />
+      <PageWrapper>
+        <div className="card relative z-10 p-6">
+          <h2 className="text-2xl font-bold mb-2" style={{ color: '#2563eb' }}>
+            {tSync('addJobAdPage_title')}
+          </h2>
+          <p className="text-gray-600">
+            {tSync('addJobAdPage_comingSoon')}
+          </p>
+        </div>
+      </PageWrapper>
+    </>
   );
 };
 

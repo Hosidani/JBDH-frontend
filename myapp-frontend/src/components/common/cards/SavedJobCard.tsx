@@ -1,50 +1,79 @@
 import React from 'react';
+import { useTranslation } from '../../../hooks/TranslationProvider';
 
-interface SavedJobProps {
-  jobTitle: string;
+export interface SavedJob {
+  id: number;
+  title: string;
   company: string;
   location: string;
-  tags: string[];
-  status: string;
-  appliedAt: string;
-  expiresAt: string;
-  jobUrl: string;
-  notes?: string;
-  actionItem?: boolean;
+  workType?: string;
+  lastApplicationDate: string;
+  isActionItem?: boolean;
+  saved?: boolean;
 }
 
-const SavedJobCard: React.FC<SavedJobProps> = ({
-  jobTitle,
-  company,
-  location,
-  tags,
-  status,
-  appliedAt,
-  expiresAt,
-  jobUrl,
-  notes,
-  actionItem,
-}) => (
-  <div className="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center gap-4 border border-slate-200 mb-3">
-    <div className="flex-1 min-w-0">
-      <div className="flex flex-wrap items-center gap-2 mb-1">
-        <a href={jobUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-700 hover:underline text-base">{jobTitle}</a>
-        {actionItem && <span className="bg-purple-200 text-purple-800 text-xs font-bold px-2 py-1 rounded ml-2">Action item</span>}
+interface SavedJobCardProps {
+  job: SavedJob;
+  onSave?: (id: number) => void;
+  onDelete?: (id: number) => void;
+}
+
+const SavedJobCard: React.FC<SavedJobCardProps> = ({ 
+  job, 
+  onSave, 
+  onDelete 
+}) => {
+  const { tSync } = useTranslation();
+
+  return (
+    <div className="border border-gray-300 rounded-lg p-6 bg-white hover:shadow-md transition">
+      {/* Header with title and action item badge */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <h3 className="text-lg font-bold text-gray-900">{job.title}</h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {job.company} | {job.location}
+            {job.workType && ` | ${job.workType}`}
+          </p>
+        </div>
+        {job.isActionItem && (
+          <span className="ml-4 px-3 py-1 bg-purple-600 text-white text-sm font-semibold rounded-full whitespace-nowrap">
+            {tSync('savedJobCard_action_item')}
+          </span>
+        )}
       </div>
-      <div className="text-slate-600 text-sm mb-1">{company} | {location}</div>
-      <div className="flex flex-wrap gap-2 mb-1">
-        {tags.map(tag => (
-          <span key={tag} className="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs font-medium">{tag}</span>
-        ))}
+
+      {/* Last application date */}
+      <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+        <div>
+          <p className="text-xs text-gray-500">{tSync('savedJobCard_last_application_date')}</p>
+          <p className="text-sm font-semibold text-gray-900">{job.lastApplicationDate}</p>
+        </div>
       </div>
-      {notes && <div className="text-xs text-slate-500 italic mb-1">{notes}</div>}
+
+      {/* Action buttons */}
+      <div className="flex gap-2 justify-end mt-4">
+        <button
+          onClick={() => onSave?.(job.id)}
+          title={tSync('savedJobCard_save_tooltip')}
+          className={`p-2 rounded transition ${
+            job.saved
+              ? 'bg-blue-100 text-blue-600'
+              : 'text-gray-400 hover:bg-gray-100'
+          }`}
+        >
+          🔖
+        </button>
+        <button
+          onClick={() => onDelete?.(job.id)}
+          title={tSync('savedJobCard_delete_tooltip')}
+          className="p-2 text-gray-400 hover:bg-gray-100 rounded transition"
+        >
+          🗑️
+        </button>
+      </div>
     </div>
-    <div className="flex flex-col items-end gap-1 min-w-[120px]">
-      <div className="text-xs text-slate-400">Sökt: {appliedAt}</div>
-      <div className="text-xs text-slate-400">Giltig till: {expiresAt}</div>
-      <div className="text-xs text-green-700 font-semibold">{status}</div>
-    </div>
-  </div>
-);
+  );
+};
 
 export default SavedJobCard;

@@ -86,7 +86,7 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/matching" element={<MatchingProfilePage />} />
           <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
-          <Route path="/addjobad" element={<AddJobAdPage />} />
+          <Route path="/add-job-ad" element={<AddJobAdPage />} />
           <Route path="/saved-jobs" element={<SavedJobsPage />} />
           <Route path="/about" element={<AboutPage />} />
           {/* Add a route for logout redirect */}
