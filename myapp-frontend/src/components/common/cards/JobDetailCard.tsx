@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from '../../../hooks/TranslationProvider';
+import MatchingAnalysisTab from './MatchingAnalysisTab';
 import type { SavedJob } from './SavedJobCard';
 
 interface JobDetailCardProps {
@@ -142,9 +143,27 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
           </div>
         )}
         {activeTab === 'matching' && (
-          <div>
-            <p className="text-gray-700 leading-relaxed">{job.matchingAnalysis}</p>
-          </div>
+          <MatchingAnalysisTab
+            matches={[
+              { id: 1, label: 'React' },
+              { id: 2, label: 'TypeScript' },
+              { id: 3, label: 'Angular' },
+              { id: 4, label: 'CSS' },
+              { id: 5, label: 'Material Design' },
+              { id: 6, label: 'Responsive Design' },
+            ]}
+            nonMatches={[
+              { id: 1, label: 'Python' },
+              { id: 2, label: 'DevOps' },
+              { id: 3, label: 'Machine Learning' },
+            ]}
+            improvements={[
+              { id: 1, label: 'Advanced State Management' },
+              { id: 2, label: 'E2E Testing' },
+              { id: 3, label: 'Performance Optimization' },
+            ]}
+            coachTips="Your CV matches this position very well. You have most of the required technical skills and relevant experience. Consider developing skills in: Advanced DevOps, Kubernetes, and AWS."
+          />
         )}
       </div>
     </div>

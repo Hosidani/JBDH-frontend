@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageWrapper, PageBackground } from '../../components/common';
 import JobDetailCard from '../../components/common/cards/JobDetailCard';
+import { getJobById } from '../../services/mockData';
 import type { SavedJob } from '../../components/common/cards';
 
 const JobDetailPage: React.FC = () => {
@@ -9,20 +10,31 @@ const JobDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'description' | 'matching'>('description');
 
-  // Mock job data - in a real app, fetch based on ID
-  const job: SavedJob & { competencies?: string[]; matchPercentage?: number; description?: string; matchingAnalysis?: string } = {
-    id: parseInt(id || '1'),
-    title: 'Fullstackutvecklare',
-    company: 'High Tech AB',
-    location: 'Stockholm',
-    workType: 'Deltid',
-    lastApplicationDate: '2025-12-23',
+  // Fetch job from mock data by ID
+  const mockJob = getJobById(parseInt(id || '1'));
+  
+  const job: SavedJob & { competencies?: string[]; matchPercentage?: number; description?: string; matchingAnalysis?: string } = mockJob ? {
+    id: mockJob.id,
+    title: mockJob.title,
+    company: mockJob.company,
+    location: mockJob.location,
+    workType: mockJob.workType,
+    lastApplicationDate: mockJob.lastApplicationDate || '',
+    isActionItem: mockJob.isActionItem,
+    saved: mockJob.saved,
+    competencies: mockJob.competencies,
+    matchPercentage: mockJob.matchPercentage,
+    description: mockJob.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    matchingAnalysis: 'Your CV matches this position very well. You have most of the required technical skills and relevant experience.',
+  } : {
+    id: 0,
+    title: 'Job Not Found',
+    company: 'Unknown',
+    location: 'Unknown',
+    workType: 'Unknown',
+    lastApplicationDate: '',
     isActionItem: false,
-    saved: true,
-    competencies: ['React Native', 'Javascript', 'PHP', 'CSS', 'Typescript', 'UX', 'HTTP', 'AI Prompting', 'UI'],
-    matchPercentage: 89,
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-    matchingAnalysis: 'Your CV matches this position very well. You have most of the required technical skills and relevant experience. Consider developing skills in: Advanced DevOps, Kubernetes, and AWS.',
+    saved: false,
   };
 
   const handleApply = () => {

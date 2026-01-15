@@ -3,43 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper, PageBackground } from '../../components/common';
 import { SavedJobsList } from '../../components/common/cards';
+import { getSavedJobs } from '../../services/mockData';
 import type { SavedJob } from '../../components/common/cards';
 
 const SavedJobsPage: React.FC = () => {
   const navigate = useNavigate();
   const { tSync } = useTranslation();
-  const [jobs, setJobs] = useState<SavedJob[]>([
-    {
-      id: 1,
-      title: 'Fullstackutvecklare',
-      company: 'High Tech AB',
-      location: 'Stockholm',
-      workType: 'Heltid',
-      lastApplicationDate: '2025-11-19',
-      isActionItem: true,
-      saved: true,
-    },
-    {
-      id: 2,
-      title: 'Tech Lead',
-      company: 'Futuristica',
-      location: 'Göteborg',
-      workType: 'Heltid',
-      lastApplicationDate: '2025-12-23',
-      isActionItem: false,
-      saved: true,
-    },
-    {
-      id: 3,
-      title: 'Frontendutvecklare i Angular',
-      company: 'Wyswwigg AB',
-      location: 'Göteborg',
-      workType: 'Heltid',
-      lastApplicationDate: '2025-11-19',
-      isActionItem: false,
-      saved: true,
-    },
-  ]);
+  
+  const mockJobData = getSavedJobs();
+  const [jobs, setJobs] = useState<SavedJob[]>(
+    mockJobData.map(job => ({
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      workType: job.workType,
+      lastApplicationDate: job.lastApplicationDate || '',
+      isActionItem: job.isActionItem,
+      saved: job.saved,
+    }))
+  );
 
   const handleSave = (id: number) => {
     setJobs(jobs.map(j => 
