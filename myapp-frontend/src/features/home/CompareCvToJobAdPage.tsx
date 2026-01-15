@@ -31,12 +31,12 @@ const CompareCvToJobAdPage: React.FC = () => {
     
     // Validate required fields
     if (!cvFile) {
-      setError('Vänligen välj en CV-fil');
+      setError(tSync('compareCvToJobAdPage_error_cv_required'));
       return;
     }
     
     if (!jobAdText.trim()) {
-      setError('Vänligen ange jobbannonsens text');
+      setError(tSync('compareCvToJobAdPage_error_jobad_required'));
       return;
     }
     
@@ -55,7 +55,7 @@ const CompareCvToJobAdPage: React.FC = () => {
       try {
         data = await response.json();
       } catch (jsonErr) {
-        setError('Ett fel uppstod vid jämförelsen.');
+        setError(tSync('compareCvToJobAdPage_error_parsing'));
         return;
       }
       let parsed = null;
@@ -99,13 +99,13 @@ const CompareCvToJobAdPage: React.FC = () => {
           errorMsg.includes('exceeded') ||
           errorMsg.includes('free tier')
         ) {
-          setError('Tjänsten är överbelastad för idag. Försök igen imorgon.');
+          setError(tSync('compareCvToJobAdPage_error_service_overloaded'));
         } else {
-          setError(data.error || 'Något gick fel vid jämförelsen.');
+          setError(data.error || tSync('compareCvToJobAdPage_error_comparison_failed'));
         }
       }
     } catch (err) {
-      setError('Ett fel uppstod vid jämförelsen.');
+      setError(tSync('compareCvToJobAdPage_error_generic'));
     } finally {
       setLoading(false);
     }
@@ -129,7 +129,7 @@ const CompareCvToJobAdPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <label className="block mb-1 font-semibold">
-                CV-fil
+                {tSync('compareCvToJobAdPage_cv_label')}
               </label>
               <FileDropZone
                 accept=".pdf,.doc,.docx"
@@ -144,14 +144,14 @@ const CompareCvToJobAdPage: React.FC = () => {
             </div>
             <div>
               <label className="block mb-1 font-semibold">
-                Jobbannons (text)
+                {tSync('compareCvToJobAdPage_jobad_label')}
               </label>
               <textarea
                 value={jobAdText}
                 onChange={e => setJobAdText(e.target.value)}
                 rows={6}
                 className="w-full border border-slate-200 rounded-md px-3 py-2"
-                placeholder="Klistra in jobbannonsens text här..."
+                placeholder={tSync('compareCvToJobAdPage_jobad_placeholder')}
               />
             </div>
             {error && <div className="text-red-600 text-sm">{error}</div>}
@@ -162,7 +162,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                 onClick={(e) => handleSubmit(e, false)}
                 className="flex-1 bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Jämför...' : 'Jämför CV mot annons (V1)'}
+                {loading ? tSync('compareCvToJobAdPage_button_comparing') : tSync('compareCvToJobAdPage_button_v1')}
               </button>
               <button
                 type="button"
@@ -170,7 +170,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                 onClick={(e) => handleSubmit(e, true)}
                 className="flex-1 bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Jämför...' : 'Jämför CV mot annons (V2)'}
+                {loading ? tSync('compareCvToJobAdPage_button_comparing') : tSync('compareCvToJobAdPage_button_v2')}
               </button>
             </div>
           </form>
@@ -194,19 +194,19 @@ const CompareCvToJobAdPage: React.FC = () => {
             </div>
           ) : result && typeof result === 'object' ? (
             <div className="mt-6 p-4 bg-slate-100 rounded flex flex-col gap-4">
-              <h3 className="font-bold mb-2">AI-analys:</h3>
+              <h3 className="font-bold mb-2">{tSync('compareCvToJobAdPage_result_ai_analysis')}</h3>
               {typeof result.matchScore !== 'undefined' && (
-                <div className="mb-2 text-lg font-bold">Match Score: {result.matchScore}%</div>
+                <div className="mb-2 text-lg font-bold">{tSync('compareCvToJobAdPage_result_match_score')}: {result.matchScore}%</div>
               )}
               {result.fitAssessment && (
                 <>
                   <div>
-                    <span className="font-semibold">Sammanfattning:</span>
+                    <span className="font-semibold">{tSync('compareCvToJobAdPage_result_summary')}</span>
                     <div className="text-slate-700 mt-1">{result.fitAssessment.overall}</div>
                   </div>
                   {result.fitAssessment.strengths && result.fitAssessment.strengths.length > 0 && (
                     <div>
-                      <span className="font-semibold">Styrkor:</span>
+                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_strengths')}</span>
                       <ul className="list-disc ml-6 mt-1 text-slate-700">
                         {result.fitAssessment.strengths.map((s: string, idx: number) => (
                           <li key={idx}>{s}</li>
@@ -216,7 +216,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                   )}
                   {result.fitAssessment.concerns && result.fitAssessment.concerns.length > 0 && (
                     <div>
-                      <span className="font-semibold">Orosmoment:</span>
+                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_concerns')}</span>
                       <ul className="list-disc ml-6 mt-1 text-slate-700">
                         {result.fitAssessment.concerns.map((c: string, idx: number) => (
                           <li key={idx}>{c}</li>
@@ -228,13 +228,13 @@ const CompareCvToJobAdPage: React.FC = () => {
               )}
               {result.detailedAnalysis && (
                 <div>
-                  <div className="font-bold mt-4 mb-2">Detaljerad analys</div>
+                  <div className="font-bold mt-4 mb-2">{tSync('compareCvToJobAdPage_result_detailed_analysis')}</div>
                   {result.detailedAnalysis.technicalSkills && (
                     <div>
-                      <div className="font-semibold">Tekniska färdigheter (nivå): {result.detailedAnalysis.technicalSkills.matchLevel}</div>
+                      <div className="font-semibold">{tSync('compareCvToJobAdPage_result_technical_skills')} {result.detailedAnalysis.technicalSkills.matchLevel}</div>
                       {result.detailedAnalysis.technicalSkills.matches && (
                         <div>
-                          <span className="font-semibold">Matchande tekniska färdigheter:</span>
+                          <span className="font-semibold">{tSync('compareCvToJobAdPage_result_matching_technical_skills')}</span>
                           <ul className="list-disc ml-6 mt-1 text-slate-700">
                             {result.detailedAnalysis.technicalSkills.matches.map((m: string, idx: number) => (
                               <li key={idx}>{m}</li>
@@ -244,7 +244,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                       )}
                       {result.detailedAnalysis.technicalSkills.gaps && (
                         <div>
-                          <span className="font-semibold">Tekniska gap:</span>
+                          <span className="font-semibold">{tSync('compareCvToJobAdPage_result_technical_gaps')}</span>
                           <ul className="list-disc ml-6 mt-1 text-slate-700">
                             {result.detailedAnalysis.technicalSkills.gaps.map((g: string, idx: number) => (
                               <li key={idx}>{g}</li>
@@ -256,7 +256,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                   )}
                   {result.detailedAnalysis.experience && (
                     <div>
-                      <span className="font-semibold">Matchande erfarenhet:</span>
+                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_matching_experience')}</span>
                       <ul className="list-disc ml-6 mt-1 text-slate-700">
                         {result.detailedAnalysis.experience.matches.map((m: string, idx: number) => (
                           <li key={idx}>{m}</li>
@@ -266,7 +266,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                   )}
                   {result.detailedAnalysis.experience.gaps && (
                     <div>
-                      <span className="font-semibold">Erfarenhets-gap:</span>
+                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_experience_gaps')}</span>
                       <ul className="list-disc ml-6 mt-1 text-slate-700">
                         {result.detailedAnalysis.experience.gaps.map((g: string, idx: number) => (
                           <li key={idx}>{g}</li>
@@ -276,10 +276,10 @@ const CompareCvToJobAdPage: React.FC = () => {
                   )}
                   {result.detailedAnalysis.education && (
                     <div>
-                      <div className="font-semibold">Utbildning (nivå): {result.detailedAnalysis.education.matchLevel}</div>
+                      <div className="font-semibold">{tSync('compareCvToJobAdPage_result_education')} {result.detailedAnalysis.education.matchLevel}</div>
                       {result.detailedAnalysis.education.details && (
                         <div>
-                          <span className="font-semibold">Utbildningsdetaljer:</span>
+                          <span className="font-semibold">{tSync('compareCvToJobAdPage_result_education_details')}</span>
                           <ul className="list-disc ml-6 mt-1 text-slate-700">
                             {result.detailedAnalysis.education.details.map((d: string, idx: number) => (
                               <li key={idx}>{d}</li>
@@ -291,10 +291,10 @@ const CompareCvToJobAdPage: React.FC = () => {
                   )}
                   {result.detailedAnalysis.softSkills && (
                     <div>
-                      <div className="font-semibold">Mjuka färdigheter (nivå): {result.detailedAnalysis.softSkills.matchLevel}</div>
+                      <div className="font-semibold">{tSync('compareCvToJobAdPage_result_soft_skills')} {result.detailedAnalysis.softSkills.matchLevel}</div>
                       {result.detailedAnalysis.softSkills.evidence && (
                         <div>
-                          <span className="font-semibold">Bevis på mjuka färdigheter:</span>
+                          <span className="font-semibold">{tSync('compareCvToJobAdPage_result_soft_skills_evidence')}</span>
                           <ul className="list-disc ml-6 mt-1 text-slate-700">
                             {result.detailedAnalysis.softSkills.evidence.map((e: string, idx: number) => (
                               <li key={idx}>{e}</li>
@@ -308,10 +308,10 @@ const CompareCvToJobAdPage: React.FC = () => {
               )}
               {result.actionableRecommendations && (
                 <div>
-                  <div className="font-bold mt-4 mb-2">Rekommendationer</div>
+                  <div className="font-bold mt-4 mb-2">{tSync('compareCvToJobAdPage_result_recommendations')}</div>
                   {result.actionableRecommendations.cvImprovements && (
                     <div>
-                      <span className="font-semibold">CV-förbättringar:</span>
+                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_cv_improvements')}</span>
                       <ul className="list-disc ml-6 mt-1 text-slate-700">
                         {result.actionableRecommendations.cvImprovements.map((c: string, idx: number) => (
                           <li key={idx}>{c}</li>
@@ -321,7 +321,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                   )}
                   {result.actionableRecommendations.skillDevelopment && (
                     <div>
-                      <span className="font-semibold">Kompetensutveckling:</span>
+                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_skill_development')}</span>
                       <ul className="list-disc ml-6 mt-1 text-slate-700">
                         {result.actionableRecommendations.skillDevelopment.map((s: string, idx: number) => (
                           <li key={idx}>{s}</li>
@@ -331,7 +331,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                   )}
                   {result.actionableRecommendations.interviewPreparation && (
                     <div>
-                      <span className="font-semibold">Intervjuförberedelser:</span>
+                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_interview_preparation')}</span>
                       <ul className="list-disc ml-6 mt-1 text-slate-700">
                         {result.actionableRecommendations.interviewPreparation.map((i: string, idx: number) => (
                           <li key={idx}>{i}</li>
@@ -343,7 +343,7 @@ const CompareCvToJobAdPage: React.FC = () => {
               )}
               {result.nextSteps && result.nextSteps.length > 0 && (
                 <div>
-                  <span className="font-semibold">Nästa steg:</span>
+                  <span className="font-semibold">{tSync('compareCvToJobAdPage_result_next_steps')}</span>
                   <ul className="list-disc ml-6 mt-1 text-slate-700">
                     {result.nextSteps.map((n: string, idx: number) => (
                       <li key={idx}>{n}</li>
@@ -354,7 +354,7 @@ const CompareCvToJobAdPage: React.FC = () => {
             </div>
           ) : result ? (
             <div className="mt-6 p-4 bg-slate-100 rounded">
-              <h3 className="font-bold mb-2">AI-analys:</h3>
+              <h3 className="font-bold mb-2">{tSync('compareCvToJobAdPage_result_ai_analysis')}</h3>
               <pre className="whitespace-pre-wrap text-sm">{result}</pre>
             </div>
           ) : null}
