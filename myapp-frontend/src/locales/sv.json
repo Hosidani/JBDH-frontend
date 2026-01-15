@@ -199,5 +199,7 @@
   "compareCvToJobAdPage_result_cv_improvements": "CV-förbättringar:",
   "compareCvToJobAdPage_result_skill_development": "Kompetensutveckling:",
   "compareCvToJobAdPage_result_interview_preparation": "Intervjuförberedelser:",
-  "compareCvToJobAdPage_result_next_steps": "Nästa steg:"
+  "compareCvToJobAdPage_result_next_steps": "Nästa steg:",
+  "savedJobsPage_title": "Sparade uppdrag",
+  "savedJobsPage_description": "Här kommer dina sparade jobbannonser att visas."
 }

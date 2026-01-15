@@ -199,6 +199,8 @@
   "compareCvToJobAdPage_result_cv_improvements": "CV Improvements:",
   "compareCvToJobAdPage_result_skill_development": "Skill Development:",
   "compareCvToJobAdPage_result_interview_preparation": "Interview Preparation:",
-  "compareCvToJobAdPage_result_next_steps": "Next Steps:"
+  "compareCvToJobAdPage_result_next_steps": "Next Steps:",
+  "savedJobsPage_title": "Saved Jobs",
+  "savedJobsPage_description": "Your saved job ads will appear here."
 
 }
