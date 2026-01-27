@@ -16,7 +16,7 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { tSync } = useTranslation();
+  const { tSync, language } = useTranslation();
 
   const handleRoleChange = (role: string) => {
     setSelectedRoles(prev =>
@@ -42,14 +42,10 @@ const RegisterPage: React.FC = () => {
       formData.append('Password', password);
       formData.append('ConfirmPassword', confirmPassword);
       formData.append('Location', location);
+      formData.append('PreferredLanguage', language);
       formData.append('Open', open ? 'true' : 'false');
       selectedRoles.forEach(role => formData.append('SelectedRoles', role));
       if (cvFile) formData.append('CVFile', cvFile);
-
-      // Debug: log all FormData keys and values
-      for (let [key, value] of (formData as any).entries()) {
-        console.log('FormData:', key, value);
-      }
 
       const response = await fetch(`${API_URL}/Register/RegisterUser`, {
         method: 'POST',

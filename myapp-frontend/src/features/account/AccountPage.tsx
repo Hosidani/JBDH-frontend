@@ -278,7 +278,6 @@ const AccountPage: React.FC = () => {
       
       // Refresh account settings
       const updatedData = await ApiService.getAccountSettings();
-      console.log('Full API response after join:', JSON.stringify(updatedData, null, 2));
       
       // Force re-render by updating accountSettings first
       setAccountSettings(updatedData);
@@ -302,12 +301,10 @@ const AccountPage: React.FC = () => {
       
       // If still no organisations showing, force reload the page data
       if (!updatedData.organisations || updatedData.organisations.length === 0) {
-        console.log('No organisations found, this might be a backend issue');
         // Let's try one more API call after a longer delay
         setTimeout(async () => {
           try {
             const finalCheck = await ApiService.getAccountSettings();
-            console.log('Final check API response:', finalCheck);
             if (finalCheck.organisations && finalCheck.organisations.length > 0) {
               setAccountSettings(finalCheck);
               const finalFormData = {
@@ -367,12 +364,6 @@ const AccountPage: React.FC = () => {
     );
   }
 
-  // Debug logging
-  console.log('Current accountSettings:', accountSettings);
-  console.log('Current formData:', formData);
-  console.log('Organizations in accountSettings:', accountSettings.organisations);
-  console.log('Organizations in formData:', formData.organisations);
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -418,7 +409,7 @@ const AccountPage: React.FC = () => {
                       />
                     ) : (
                       <div className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-                        {accountSettings.accountName || 'Not provided'}
+                        {accountSettings.accountName || tSync('not_provided')}
                       </div>
                     )}
                   </div>
@@ -438,7 +429,7 @@ const AccountPage: React.FC = () => {
                       />
                     ) : (
                       <div className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-                        {accountSettings.accountPhone || 'Not provided'}
+                        {accountSettings.accountPhone || tSync('not_provided')}
                       </div>
                     )}
                   </div>
@@ -461,7 +452,7 @@ const AccountPage: React.FC = () => {
                       />
                     ) : (
                       <div className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-                        {accountSettings.accountEmail || 'Not provided'}
+                        {accountSettings.accountEmail || tSync('not_provided')}
                       </div>
                     )}
                   </div>
@@ -531,7 +522,7 @@ const AccountPage: React.FC = () => {
                             </div>
                           ))
                         ) : (
-                          <span>No organisations (Count: {accountSettings.organisations?.length || 0})</span>
+                          <span>{tSync('no_organisations')}</span>
                         )}
                       </div>
                     )}
@@ -632,7 +623,7 @@ const AccountPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Account Type
+                    {tSync('account_type')}
                   </label>
                   <div className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -712,7 +703,7 @@ const AccountPage: React.FC = () => {
                         </button>
                       ))
                     ) : (
-                      <p className="text-gray-500 text-center py-4">No organisations found matching "{orgSearchQuery}"</p>
+                      <p className="text-gray-500 text-center py-4">{tSync('no_organisations_search_match')} "{orgSearchQuery}"</p>
                     )}
                   </div>
                   
