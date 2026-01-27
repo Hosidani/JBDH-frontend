@@ -48,6 +48,49 @@ export class ApiService {
       }
       return await response.text();
     }
+
+    // Get current user's account settings
+    static async getAccountSettings(): Promise<any> {
+      const response = await this.fetchWithAuth('/Settings/getaccountsettings', {
+        method: 'GET',
+      });
+      return await response.json();
+    }
+
+    // Get available organisations for user to join
+    static async getAvailableOrganisations(): Promise<any> {
+      const response = await this.fetchWithAuth('/Settings/getavailableorganisations', {
+        method: 'GET',
+      });
+      return await response.json();
+    }
+
+    // Update current user's account settings
+    static async updateAccountSettings(accountData: {
+      accountName?: string;
+      accountEmail?: string;
+      accountPhone?: string;
+      preferredLanguage?: string;
+      accountType?: string;
+      acceptedTermsAndConditions?: boolean;
+      updateRoles?: string[];
+      joinOrganisationIds?: number[];
+      leaveOrganisationIds?: number[];
+    }): Promise<any> {
+      const response = await this.fetchWithAuth('/Settings/updateaccountsettings', {
+        method: 'PUT',
+        body: JSON.stringify(accountData),
+      });
+      return await response.json();
+    }
+
+    // Terminate current user's account
+    static async terminateAccount(): Promise<any> {
+      const response = await this.fetchWithAuth('/Settings/terminateaccount', {
+        method: 'POST',
+      });
+      return await response.json();
+    }
   private static async fetchWithAuth(url: string, options: RequestInit = {}) {
     const response = await fetch(`${API_BASE_URL}${url}`, {
       ...options,
