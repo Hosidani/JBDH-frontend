@@ -114,7 +114,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
                               : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
                           } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          {isLoading ? '⏳' : (job.isSaved ? '📌' : '🔖')}
+                          {isLoading ? '⏳' : (job.isSaved ? '🖤' : '🤍')}
                         </button>
                         {!job.isSaved && (
                           <button
@@ -125,7 +125,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
                               isLoading ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
-                            {isLoading ? '⏳' : '👁️‍🗨️'}
+                            {isLoading ? '⏳' : '🗑️'}
                           </button>
                         )}
                       </div>
