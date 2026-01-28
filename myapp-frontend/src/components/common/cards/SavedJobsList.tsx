@@ -9,6 +9,7 @@ interface SavedJobsListProps {
   onSave?: (id: number) => void;
   onDelete?: (id: number) => void;
   onClick?: (id: number) => void;
+  onNotes?: (id: number) => void;
 }
 
 const SavedJobsList: React.FC<SavedJobsListProps> = ({
@@ -17,6 +18,7 @@ const SavedJobsList: React.FC<SavedJobsListProps> = ({
   onSave,
   onDelete,
   onClick,
+  onNotes,
 }) => {
   const { tSync } = useTranslation();
 
@@ -45,6 +47,7 @@ const SavedJobsList: React.FC<SavedJobsListProps> = ({
           onSave={onSave}
           onDelete={onDelete}
           onClick={onClick}
+          onNotes={onNotes}
         />
       ))}
     </div>

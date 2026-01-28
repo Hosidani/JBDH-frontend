@@ -1,10 +1,8 @@
 import React from 'react';
-import { PageWrapper, PageBackground } from '../../components/common';
+import { PageBackground } from '../../components/common';
 import { SearchJobsCard } from '../../components/search';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 const SearchJobsPage: React.FC = () => {
   const { user } = useAuth();
@@ -21,9 +19,9 @@ const SearchJobsPage: React.FC = () => {
   return (
     <>
       <PageBackground imageUrl="/searchJobsPage.png" opacity={1} blur={0} />
-      <PageWrapper>
-        <SearchJobsCard apiUrl={API_URL} />
-      </PageWrapper>
+      <div className="w-full mx-auto mt-8 px-6">
+        <SearchJobsCard />
+      </div>
     </>
   );
 };
