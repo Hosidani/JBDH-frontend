@@ -10,6 +10,7 @@ export interface SavedJob {
   lastApplicationDate: string;
   isActionItem?: boolean;
   saved?: boolean;
+  notes?: string;
 }
 
 interface SavedJobCardProps {
@@ -17,13 +18,15 @@ interface SavedJobCardProps {
   onSave?: (id: number) => void;
   onDelete?: (id: number) => void;
   onClick?: (id: number) => void;
+  onNotes?: (id: number) => void;
 }
 
 const SavedJobCard: React.FC<SavedJobCardProps> = ({ 
   job, 
   onSave, 
   onDelete,
-  onClick 
+  onClick,
+  onNotes,
 }) => {
   const { tSync } = useTranslation();
 
@@ -64,8 +67,27 @@ const SavedJobCard: React.FC<SavedJobCardProps> = ({
         </div>
       </div>
 
+      {/* Notes section */}
+      {job.notes && (
+        <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-200 rounded">
+          <p className="text-xs text-yellow-700 font-semibold mb-1">{tSync('savedJobCard_notes')}</p>
+          <p className="text-sm text-yellow-800">{job.notes}</p>
+        </div>
+      )}
+
       {/* Action buttons */}
       <div className="flex gap-2 justify-end mt-4">
+        <button
+          onClick={() => onNotes?.(job.id)}
+          title={tSync('savedJobCard_notes_tooltip')}
+          className={`p-2 rounded transition ${
+            job.notes
+              ? 'bg-yellow-100 text-yellow-600'
+              : 'text-gray-400 hover:bg-gray-100'
+          }`}
+        >
+          📝
+        </button>
         <button
           onClick={() => onSave?.(job.id)}
           title={tSync('savedJobCard_save_tooltip')}

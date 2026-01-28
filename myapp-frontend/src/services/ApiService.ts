@@ -300,8 +300,22 @@ export class ApiService {
 
   // Get all saved jobs for current user
   static async getSavedJobs(): Promise<JobDetailsDto[]> {
-    const response = await this.fetchWithAuth('/Jobs/saved', {
+    const response = await this.fetchWithAuth('/jobs/saved', {
       method: 'GET',
+    });
+    return await response.json();
+  }
+
+  // Update notes for a saved job
+  static async updateJobNotes(jobId: number, notes: string): Promise<any> {
+    const response = await this.fetchWithAuth(`/jobs/${jobId}/save`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        notes: notes
+      })
     });
     return await response.json();
   }
