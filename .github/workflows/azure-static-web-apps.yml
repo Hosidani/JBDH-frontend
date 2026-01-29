@@ -30,10 +30,23 @@ jobs:
           cd myapp-frontend
           npm ci
 
+      - name: Clean build folder
+        run: rm -rf myapp-frontend/dist
+
       - name: Build application
         run: |
           cd myapp-frontend
           npm run build
+
+      - name: Validate build output files
+        run: |
+          cd myapp-frontend/dist
+          file_count=$(find . -type f | wc -l)
+          echo "Total files: $file_count"
+          if [ $file_count -gt 3500 ]; then
+            echo "ERROR: File count exceeds Azure SWA limit"
+            exit 1
+          fi
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
