@@ -15,6 +15,9 @@ interface JobDetailCardProps {
   onApply: () => void;
   onSave: () => void;
   onNotInterested: () => void;
+  isLoading?: boolean;
+  isNotInterestedLoading?: boolean;
+  countdown?: number;
 }
 
 const JobDetailCard: React.FC<JobDetailCardProps> = ({
@@ -24,6 +27,9 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
   onApply,
   onSave,
   onNotInterested,
+  isLoading = false,
+  isNotInterestedLoading = false,
+  countdown = 0,
 }) => {
   const { tSync } = useTranslation();
 
@@ -97,16 +103,28 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
           </button>
           <button
             onClick={onSave}
+            disabled={isLoading}
             title={tSync('jobDetail_save_tooltip')}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition"
+            className={`px-6 py-2 border border-gray-300 rounded hover:bg-gray-50 transition ${
+              job.saved 
+                ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
+                : 'text-gray-700'
+            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            🔖 {tSync('jobDetail_save_button')}
+            {isLoading ? '⏳' : (job.saved ? '🖤' : '🤍')} {tSync('jobDetail_save_button')}
           </button>
           <button
             onClick={onNotInterested}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition"
+            title={isNotInterestedLoading ? tSync('jobDetail_cancel_action') : undefined}
+            className={`px-6 py-2 border border-gray-300 rounded hover:bg-gray-50 transition ${
+              isNotInterestedLoading 
+                ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                : 'text-gray-700'
+            } ${isNotInterestedLoading ? 'cursor-pointer' : ''}`}
           >
-            🗑️ {tSync('jobDetail_not_interested_button')}
+            🗑️ {isNotInterestedLoading && countdown > 0 
+              ? tSync('jobDetail_job_disappearing').replace('{seconds}', countdown.toString())
+              : tSync('jobDetail_not_interested_button')}
           </button>
         </div>
       </div>
