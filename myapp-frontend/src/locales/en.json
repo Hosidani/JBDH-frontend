@@ -287,6 +287,9 @@
   "jobDetail_save_button": "Save",
   "jobDetail_save_tooltip": "Save job",
   "jobDetail_not_interested_button": "Not interested",
+  "jobDetail_no_url_available": "This job is no longer available or the application link is not accessible.",
+  "jobDetail_job_disappearing": "Job will disappear in {seconds} sec",
+  "jobDetail_cancel_action": "Click to cancel",
   "jobDetail_tab_description": "Description",
   "jobDetail_tab_matching": "Matching"
 

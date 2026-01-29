@@ -3,16 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageWrapper, PageBackground } from '../../components/common';
 import JobDetailCard from '../../components/common/cards/JobDetailCard';
 import { ApiService } from '../../services/ApiService';
+import { useTranslation } from '../../hooks/TranslationProvider';
 import type { SavedJob } from '../../components/common/cards';
 import type { JobDetailsDto } from '../../services/ApiService';
 
 const JobDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { tSync } = useTranslation();
   const [activeTab, setActiveTab] = useState<'description' | 'matching'>('description');
   const [jobData, setJobData] = useState<JobDetailsDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [notInterestedLoading, setNotInterestedLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   // Fetch job details from API
   useEffect(() => {
@@ -41,6 +46,15 @@ const JobDetailPage: React.FC = () => {
     fetchJobDetails();
   }, [id]);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if ((window as any).notInterestedTimer) {
+        clearInterval((window as any).notInterestedTimer);
+      }
+    };
+  }, []);
+
   // Map JobDetailsDto to the expected format
   const job: SavedJob & { competencies?: string[]; matchPercentage?: number; description?: string; matchingAnalysis?: string } = jobData ? {
     id: jobData.jobId,
@@ -67,13 +81,19 @@ const JobDetailPage: React.FC = () => {
   };
 
   const handleApply = () => {
-    // TODO: Implement apply functionality
-    console.log('Apply clicked for job:', job.id);
+    if (jobData?.webpageUrl) {
+      // Öppna jobgets web URL i en ny flik
+      window.open(jobData.webpageUrl, '_blank');
+    } else {
+      console.log('No webpage URL available for job:', job.id);
+      alert(tSync('jobDetail_no_url_available'));
+    }
   };
 
   const handleSave = async () => {
-    if (!jobData) return;
+    if (!jobData || saveLoading) return;
     
+    setSaveLoading(true);
     try {
       if (jobData.isSaved) {
         await ApiService.unsaveJob(jobData.jobId);
@@ -84,20 +104,51 @@ const JobDetailPage: React.FC = () => {
       setJobData({ ...jobData, isSaved: !jobData.isSaved });
     } catch (err) {
       console.error('Error toggling save status:', err);
+    } finally {
+      setSaveLoading(false);
     }
   };
 
   const handleNotInterested = async () => {
     if (!jobData) return;
     
-    try {
-      await ApiService.markNotInterested(jobData.jobId);
-      navigate(-1);
-    } catch (err) {
-      console.error('Error marking job as not interested:', err);
-      // Still navigate back even if API call fails
-      navigate(-1);
+    // If already loading, cancel the action
+    if (notInterestedLoading) {
+      setNotInterestedLoading(false);
+      setCountdown(0);
+      // Clear the timer
+      if ((window as any).notInterestedTimer) {
+        clearInterval((window as any).notInterestedTimer);
+        (window as any).notInterestedTimer = null;
+      }
+      return;
     }
+    
+    setNotInterestedLoading(true);
+    setCountdown(5);
+    
+    // Start countdown timer - API call happens ONLY when countdown reaches 0
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          // NOW call the API and navigate to search page
+          ApiService.markNotInterested(jobData.jobId)
+            .then(() => {
+              navigate('/search');
+            })
+            .catch((err) => {
+              console.error('Error marking job as not interested:', err);
+              navigate('/search');
+            });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    // Store timer reference to clear it if cancelled
+    (window as any).notInterestedTimer = timer;
   };
 
   if (loading) {
@@ -148,6 +199,9 @@ const JobDetailPage: React.FC = () => {
             onApply={handleApply}
             onSave={handleSave}
             onNotInterested={handleNotInterested}
+            isLoading={saveLoading}
+            isNotInterestedLoading={notInterestedLoading}
+            countdown={countdown}
           />
         </div>
       </PageWrapper>
