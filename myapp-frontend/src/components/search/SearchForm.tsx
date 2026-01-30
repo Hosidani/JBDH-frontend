@@ -11,7 +11,7 @@ export interface SearchFormData {
   workArea: string;
   jobDescription: string;
   roles: string;
-  competencies: string;
+  competence: string;
   useProfile: boolean;
 }
 
