@@ -337,10 +337,10 @@ export class ApiService {
     if (searchParams.workArea) params.append('workArea', searchParams.workArea);
     if (searchParams.jobDescription) params.append('description', searchParams.jobDescription);
     if (searchParams.roles) params.append('roles', searchParams.roles);
-    if (searchParams.competencies) params.append('competencies', searchParams.competencies);
+    if (searchParams.competence) params.append('competence', searchParams.competence);
     if (searchParams.useProfile) params.append('useProfile', 'true');
 
-    const response = await fetch(`${API_BASE_URL}/Search/SearchForJobs?${params.toString()}`, {
+    const response = await fetch(`${API_BASE_URL}/Search/SearchV2?${params.toString()}`, {
       method: 'GET',
       credentials: 'include',
     });

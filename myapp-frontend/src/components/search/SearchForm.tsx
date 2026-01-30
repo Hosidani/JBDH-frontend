@@ -31,7 +31,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading }) => {
       workArea,
       jobDescription,
       roles,
-      competencies,
+      competence: competencies, // ändrat till singular för backend
       useProfile,
     });
   };
