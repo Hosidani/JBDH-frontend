@@ -14,6 +14,12 @@ export default defineConfig({
   },
   build: {
     cssCodeSplit: false,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: false, // Behåll console.log
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: (id) => {

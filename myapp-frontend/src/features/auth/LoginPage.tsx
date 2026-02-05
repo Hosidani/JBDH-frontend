@@ -1,10 +1,13 @@
-const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { ApiService } from '../../services/ApiService';
 
 const LoginPage: React.FC = () => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  console.log('🔍 LoginPage API_URL:', API_URL);
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -20,17 +23,26 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/Login`, {
+      const response = await fetch(`${API_URL}/auth/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
+
       if (response.ok) {
-        // Backend does not return user info, treat any 2xx as success
-        login({ email });
+        const data = await response.json();
+        
+        // Store JWT tokens
+        if (data.access && data.refresh) {
+          ApiService.setTokens(data.access, data.refresh);
+        }
+
+        // Login user with email (and any other user info from response)
+        const userInfo = data.user || { email };
+        login(userInfo);
+        
         navigate('/');
       } else {
         setError(tSync('loginPage_invalid_credentials'));

@@ -61,9 +61,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(user);
     localStorage.setItem("authUser", JSON.stringify(user));
   };
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("authUser");
+  
+  const logout = async () => {
+    try {
+      // Call backend to blacklist refresh token
+      const accessToken = localStorage.getItem('access_token');
+      const refreshToken = localStorage.getItem('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        await fetch(`${import.meta.env.VITE_API_URL}/Logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refresh: refreshToken }),
+        });
+      }
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    } finally {
+      // Clear tokens and user state regardless of API call result
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('authUser');
+      setUser(null);
+    }
   };
 
   if (loading) {

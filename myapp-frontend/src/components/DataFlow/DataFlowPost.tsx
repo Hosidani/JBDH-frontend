@@ -1,4 +1,3 @@
-const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import type { DataFlow, CommentRequest, ReportRequest } from './types';
 import DataFlowThread from './DataFlowThread';
@@ -10,6 +9,9 @@ interface DataFlowPostProps {
 }
 
 const DataFlowPost: React.FC<DataFlowPostProps> = ({ post, onPostDeleted, onCommentAdded }) => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  console.log('🔍 DataFlowPost API_URL:', API_URL);
+  
   const [showReportForm, setShowReportForm] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -31,7 +33,7 @@ const DataFlowPost: React.FC<DataFlowPostProps> = ({ post, onPostDeleted, onComm
     };
 
     try {
-      const response = await fetch(`${API_URL}/api/home/ReportDataFlow`, {
+      const response = await fetch(`${API_URL}/home/ReportDataFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +64,7 @@ const DataFlowPost: React.FC<DataFlowPostProps> = ({ post, onPostDeleted, onComm
     };
 
     try {
-      const response = await fetch(`${API_URL}/api/home/CommentOnDataFlow`, {
+      const response = await fetch(`${API_URL}/home/CommentOnDataFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +88,7 @@ const DataFlowPost: React.FC<DataFlowPostProps> = ({ post, onPostDeleted, onComm
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        const response = await fetch(`${API_URL}/api/home/Delete/${post.id}`, {
+        const response = await fetch(`${API_URL}/home/Delete/${post.id}`, {
           method: 'DELETE',
           credentials: 'include',
         });

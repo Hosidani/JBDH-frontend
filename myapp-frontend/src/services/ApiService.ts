@@ -26,9 +26,69 @@ interface JobDetailsDto {
 
 export type { JobDetailsDto };
 
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
+const API_BASE_URL = import.meta.env;
+
+// 🔍 DEBUG LOGGING
+console.log('🔍 API_BASE_URL:', API_BASE_URL);
+console.log('🔍 VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('🔍 MODE:', import.meta.env.MODE);
 
 export class ApiService {
+  // JWT Token Management
+  private static getAccessToken(): string | null {
+    return localStorage.getItem('access_token');
+  }
+
+  private static getRefreshToken(): string | null {
+    return localStorage.getItem('refresh_token');
+  }
+
+  static setTokens(accessToken: string, refreshToken: string): void {
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+  }
+
+  static clearTokens(): void {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  }
+
+  // Refresh the access token using the refresh token
+  private static async refreshAccessToken(): Promise<string | null> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      return null;
+    }
+
+    try {
+      const refreshUrl = `${API_BASE_URL}/auth/refresh/`;
+      console.log(`🔄 [REFRESH TOKEN] POST ${refreshUrl}`);
+      
+      const response = await fetch(refreshUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const newAccessToken = data.access;
+        localStorage.setItem('access_token', newAccessToken);
+        console.log('✅ [REFRESH SUCCESS] New token obtained');
+        return newAccessToken;
+      } else {
+        console.log(`❌ [REFRESH FAILED] ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+    }
+
+    // If refresh fails, clear tokens
+    this.clearTokens();
+    return null;
+  }
     // Get another user's profile by userId
     static async getProfile(userId: number): Promise<any> {
       const response = await this.fetchWithAuth(`/Profile/getprofile/${userId}`, {
@@ -39,7 +99,7 @@ export class ApiService {
 
     // Get current user's profile
     static async getMyProfile(): Promise<any> {
-      const response = await this.fetchWithAuth('/Profile/getmyprofile', {
+      const response = await this.fetchWithAuth('/Profile/getmyprofile', {  // lowercase + trailing slash
         method: 'GET',
       });
       return await response.json();
@@ -118,14 +178,40 @@ export class ApiService {
       return await response.json();
     }
   private static async fetchWithAuth(url: string, options: RequestInit = {}) {
-    const response = await fetch(`${API_BASE_URL}${url}`, {
+    let accessToken = this.getAccessToken();
+
+    const fullUrl = `${API_BASE_URL}${url}`;
+    console.log(`🌐 [API CALL] ${options.method || 'GET'} ${fullUrl}`);
+    console.log(`🔑 [TOKEN] ${accessToken ? 'Bearer ' + accessToken.substring(0, 20) + '...' : 'No token'}`);
+
+    // First attempt with current access token
+    let response = await fetch(fullUrl, {
       ...options,
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
         ...options.headers,
       },
     });
+
+    // If 401, try to refresh token and retry
+    if (response.status === 401) {
+      console.log('⚠️  [401] Attempting token refresh...');
+      const newAccessToken = await this.refreshAccessToken();
+      if (newAccessToken) {
+        // Retry request with new token
+        response = await fetch(fullUrl, {
+          ...options,
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${newAccessToken}`,
+            ...options.headers,
+          },
+        });
+      }
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
