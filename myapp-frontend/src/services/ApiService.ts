@@ -290,10 +290,12 @@ export class ApiService {
     if (language) {
       formData.append('language', ApiService.mapLanguageToBackend(language));
     }
-    const response = await fetch(`${API_BASE_URL}/Profile/AnalyzeCV`, {
+    // Använd fetchWithAuth för att skicka med JWT
+    const response = await this.fetchWithAuth('/Profile/AnalyzeCV', {
       method: 'POST',
-      credentials: 'include',
       body: formData,
+      // Viktigt: ta bort Content-Type, FormData sätter rätt header automatiskt
+      headers: {},
     });
     if (!response.ok) {
       const error = await response.text();
