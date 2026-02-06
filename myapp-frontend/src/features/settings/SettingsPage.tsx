@@ -49,9 +49,6 @@ const SettingsPage: React.FC = () => {
       // setAiResponses(profile.ai_responses || []);
       // setOwnedUsers(profile.owned_users || []);
       // setOwner(profile.owner || null);
-      })
-      .catch(error => {
-        setProfileMessage('Error loading profile data');
       });
   }, []);
 

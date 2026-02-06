@@ -29,10 +29,16 @@ function ProfilePage() {
       setLoading(true);
       setError(null);
       try {
-        const data = await ApiService.getMyProfile();
-        setProfile(data);
+        const response = await ApiService.getMyProfile();
+        // Om response är ett objekt med id, email etc, sätt det direkt
+        if (response && response.id) {
+          setProfile(response);
+        } else {
+          setError('Något gick fel (1).');
+          setProfile(null);
+        }
       } catch (err) {
-        setError((err as any)?.message || 'Något gick fel.');
+        setError((err as any)?.message || 'Något gick fel (2).');
         setAnalysisResult(null);
       } finally {
         setLoading(false);
@@ -60,14 +66,17 @@ function ProfilePage() {
 
   const profileData = profile;
 
+  // Lägg till denna rad för felsökning:
+  alert('profileData.location: ' + profileData.location);
+
   const profileCardProps = {
     name: profileData.name || tSync('profilePage_name_missing'),
-    createdAt: profileData.createdAt,
-    title: profileData.desiredEmploymentType || tSync('profilePage_default_title'),
-    employmentType: profileData.desiredEmploymentType || tSync('profilePage_default_employmentType'),
+    createdAt: profileData.created_at,
+    title: Array.isArray(profileData.desired_employment_types) && profileData.desired_employment_types.length > 0 ? profileData.desired_employment_types[0] : tSync('profilePage_default_title'),
+    employmentType: Array.isArray(profileData.desired_employment_types) ? profileData.desired_employment_types.join(', ') : tSync('profilePage_default_employmentType'),
     location: profileData.location || tSync('profilePage_default_location'),
-    region: profileData.desiredCity || tSync('profilePage_default_region'),
-    phone: profileData.phoneNumber || tSync('profilePage_default_phone'),
+    region: profileData.desired_city || tSync('profilePage_default_region'),
+    phone: profileData.phone_number || tSync('profilePage_default_phone'),
     email: profileData.email,
     tags:
       analysisResult && (analysisResult.hardSkills || analysisResult.softSkills)
@@ -75,16 +84,23 @@ function ProfilePage() {
             ...(analysisResult.hardSkills || []),
             ...(analysisResult.softSkills || [])
           ]
-        : profileData.competencies || [
-            tSync('profilePage_tag_reactNative'),
-            tSync('profilePage_tag_angular'),
-            tSync('profilePage_tag_php'),
-            tSync('profilePage_tag_csharp'),
-            tSync('profilePage_tag_typescript'),
-            tSync('profilePage_tag_ux'),
-            tSync('profilePage_tag_java'),
-            tSync('profilePage_tag_aiPrompting')
-          ]
+        : profileData.competencies || [],
+    aboutMe: profileData.about_me,
+    owner: profileData.owner,
+    ownedUsers: profileData.owned_users,
+    selectedRoles: profileData.selected_roles,
+    developerMode: profileData.developer_mode,
+    searchable: profileData.searchable,
+    isBanned: profileData.is_banned,
+    role: profileData.role,
+    cvPath: profileData.cv_path,
+    workPlace: profileData.work_place,
+    travelAvailability: profileData.travel_availability,
+    availableFrom: profileData.available_from,
+    aiResponses: profileData.ai_responses,
+    ownerId: profileData.owner_id,
+    id: profileData.id,
+    // Lägg till fler fält om du vill visa dem
   };
 
   let latestAIResponse: any = null;

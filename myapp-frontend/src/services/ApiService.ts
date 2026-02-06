@@ -26,7 +26,7 @@ interface JobDetailsDto {
 
 export type { JobDetailsDto };
 
-const API_BASE_URL = import.meta.env;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // 🔍 DEBUG LOGGING
 console.log('🔍 API_BASE_URL:', API_BASE_URL);
@@ -91,7 +91,7 @@ export class ApiService {
   }
     // Get another user's profile by userId
     static async getProfile(userId: number): Promise<any> {
-      const response = await this.fetchWithAuth(`/Profile/getprofile/${userId}`, {
+      const response = await this.fetchWithAuth(`/profile/getprofile/${userId}`, {
         method: 'GET',
       });
       return await response.json();
@@ -99,7 +99,7 @@ export class ApiService {
 
     // Get current user's profile
     static async getMyProfile(): Promise<any> {
-      const response = await this.fetchWithAuth('/Profile/getmyprofile', {  // lowercase + trailing slash
+      const response = await this.fetchWithAuth('/profile/getmyprofile/', {
         method: 'GET',
       });
       return await response.json();
