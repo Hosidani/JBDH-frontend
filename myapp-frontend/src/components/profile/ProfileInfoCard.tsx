@@ -15,6 +15,10 @@ interface ProfileInfoCardProps {
   phone: string;
   email: string;
   tags: string[];
+  searchable?: boolean;
+  travelAvailability?: boolean;
+  desiredWorkModes?: string[];
+  developerMode?: boolean;
 }
 
 const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -62,36 +66,41 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   phone,
   email,
   tags,
+  searchable = false,
+  travelAvailability = false,
+  desiredWorkModes = [],
+  //developerMode,
 }) => {
-  const [searchable, setSearchable] = useState(false);
-  const [willingToTravel, setWillingToTravel] = useState(false);
-  const [workplace, setWorkplace] = useState({ onSite: false, hybrid: false, remote: false });
+  const [localSearchable, setLocalSearchable] = useState(searchable);
+  const [localTravel, setLocalTravel] = useState(travelAvailability);
+  const [workplace, setWorkplace] = useState(() => {
+    const modes: string[] = Array.isArray(desiredWorkModes)
+      ? desiredWorkModes
+      : desiredWorkModes
+      ? [desiredWorkModes]
+      : [];
+    return {
+      onSite: modes.includes("På plats"),
+      hybrid: modes.includes("Hybrid"),
+      remote: modes.includes("Distans"),
+    };
+  });
   const { tSync } = useTranslation();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
-    ApiService.getMyProfile().then(profile => {
-      // Backend returns camelCase properties via System.Text.Json
-      setSearchable(!!profile.searchable);
-      setWillingToTravel(!!profile.travelAvailability);
-      const modes: string[] = Array.isArray(profile.desiredWorkModes)
-        ? profile.desiredWorkModes
-        : profile.desiredWorkModes
-        ? [profile.desiredWorkModes]
-        : [];
-      setWorkplace({
-        onSite: modes.includes("På plats"),
-        hybrid: modes.includes("Hybrid"),
-        remote: modes.includes("Distans"),
-      });
-    }).catch(() => {
-      // Leave defaults if profile fetch fails
+    setLocalSearchable(!!searchable);
+    setLocalTravel(!!travelAvailability);
+    const modes = Array.isArray(desiredWorkModes) ? desiredWorkModes : [];
+    setWorkplace({
+      onSite: modes.includes("På plats"),
+      hybrid: modes.includes("Hybrid"),
+      remote: modes.includes("Distans"),
     });
-  }, []);
-  const navigate = useNavigate();
+  }, [searchable, travelAvailability, desiredWorkModes]);
 
   // Compute desiredWorkModes string from UI state
   const currentDesiredWorkModes = (): string[] | undefined => {
-    // UI is mutually exclusive; send single-element array
     if (workplace.onSite) return ["På plats"];
     if (workplace.hybrid) return ["Hybrid"];
     if (workplace.remote) return ["Distans"];
@@ -101,14 +110,12 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   // Send a full settings payload expected by backend (not partial)
   const saveSettings = async (overrides: Partial<{ searchable: boolean; travelAvailability: boolean; desiredWorkModes: string[] }>) => {
     const payload = {
-      searchable,
-      travelAvailability: willingToTravel,
+      searchable: localSearchable,
+      travelAvailability: localTravel,
       desiredWorkModes: currentDesiredWorkModes(),
       ...overrides,
     };
-    // Only send if we have a desiredWorkModes value (backend may require it)
     if (!payload.desiredWorkModes || payload.desiredWorkModes.length === 0) {
-      // default to "På plats" if none selected to satisfy validation
       payload.desiredWorkModes = ["På plats"];
     }
     await ApiService.updateUserSettings(payload);
@@ -185,10 +192,10 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
       {/* Toggles and workplace switches in a single row, with label above checkboxes only */}
       <div className="flex flex-row items-end gap-6 mt-4 w-full">
         <ToggleSwitch
-          checked={searchable}
+          checked={localSearchable}
           onChange={async () => {
-            const newValue = !searchable;
-            setSearchable(newValue);
+            const newValue = !localSearchable;
+            setLocalSearchable(newValue);
             await saveSettings({ searchable: newValue });
           }}
           label={tSync('profilePage_searchable_label')}
@@ -196,10 +203,10 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           noLabel={tSync('profilePage_no_label')}
         />
         <ToggleSwitch
-          checked={willingToTravel}
+          checked={localTravel}
           onChange={async () => {
-            const newValue = !willingToTravel;
-            setWillingToTravel(newValue);
+            const newValue = !localTravel;
+            setLocalTravel(newValue);
             await saveSettings({ travelAvailability: newValue });
           }}
           label={tSync('profilePage_travel_label')}

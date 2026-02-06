@@ -66,18 +66,21 @@ function ProfilePage() {
 
   const profileData = profile;
 
-  // Lägg till denna rad för felsökning:
-  alert('profileData.location: ' + profileData.location);
-
   const profileCardProps = {
-    name: profileData.name || tSync('profilePage_name_missing'),
+    name: profileData.name ?? tSync('profilePage_name_missing'),
     createdAt: profileData.created_at,
-    title: Array.isArray(profileData.desired_employment_types) && profileData.desired_employment_types.length > 0 ? profileData.desired_employment_types[0] : tSync('profilePage_default_title'),
-    employmentType: Array.isArray(profileData.desired_employment_types) ? profileData.desired_employment_types.join(', ') : tSync('profilePage_default_employmentType'),
-    location: profileData.location || tSync('profilePage_default_location'),
-    region: profileData.desired_city || tSync('profilePage_default_region'),
-    phone: profileData.phone_number || tSync('profilePage_default_phone'),
-    email: profileData.email,
+    title:
+      Array.isArray(profileData.desired_employment_types) && profileData.desired_employment_types.length > 0
+        ? profileData.desired_employment_types[0]
+        : tSync('profilePage_default_title'),
+    employmentType:
+      Array.isArray(profileData.desired_employment_types)
+        ? profileData.desired_employment_types.join(', ')
+        : tSync('profilePage_default_employmentType'),
+    location: profileData.location ?? tSync('profilePage_default_location'),
+    region: profileData.desired_city ?? tSync('profilePage_default_region'),
+    phone: profileData.phone_number ?? tSync('profilePage_default_phone'),
+    email: profileData.email ?? tSync('kir'),
     tags:
       analysisResult && (analysisResult.hardSkills || analysisResult.softSkills)
         ? [
@@ -85,17 +88,20 @@ function ProfilePage() {
             ...(analysisResult.softSkills || [])
           ]
         : profileData.competencies || [],
+    // NYA PROPS
+    searchable: profileData.searchable ?? false,
+    travelAvailability: profileData.travel_availability ?? false,
+    desiredWorkModes: profileData.desired_work_modes ?? [],
+    // ...existing code...
     aboutMe: profileData.about_me,
     owner: profileData.owner,
     ownedUsers: profileData.owned_users,
     selectedRoles: profileData.selected_roles,
     developerMode: profileData.developer_mode,
-    searchable: profileData.searchable,
     isBanned: profileData.is_banned,
     role: profileData.role,
     cvPath: profileData.cv_path,
     workPlace: profileData.work_place,
-    travelAvailability: profileData.travel_availability,
     availableFrom: profileData.available_from,
     aiResponses: profileData.ai_responses,
     ownerId: profileData.owner_id,
