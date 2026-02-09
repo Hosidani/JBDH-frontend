@@ -61,6 +61,7 @@ interface CvMatchingVisualizationProps {
   totalRequirements: number;
   matches: MatchData[];
   topGaps?: MatchData[];
+  careerSummaryPitch?: string; 
 }
 
 // Sorting functionality temporarily disabled
@@ -79,6 +80,7 @@ const CvMatchingVisualization: React.FC<CvMatchingVisualizationProps> = ({
   totalRequirements,
   matches,
   topGaps,
+  careerSummaryPitch,
 }) => {
   const getMatchLabel = (vectorSimilarity: number): string => {
     // Temporarily disabled keyword-based labeling - now only uses vector similarity
@@ -265,6 +267,14 @@ const CvMatchingVisualization: React.FC<CvMatchingVisualizationProps> = ({
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Career Summary Pitch - visas innan Profession Analysis */}
+      {careerSummaryPitch && (
+        <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
+          <h3 className="font-semibold text-yellow-900 mb-3">Career Summary Pitch</h3>
+          <div className="text-gray-800">{careerSummaryPitch}</div>
         </div>
       )}
 
