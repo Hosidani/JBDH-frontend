@@ -196,6 +196,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                 totalRequirements={result.totalRequirements}
                 matches={result.matches || []}
                 topGaps={result.topGaps || []}
+                careerSummaryPitch={result.CareerSummaryPitch || result.careerSummaryPitch}
               />
             </div>
           ) : result && typeof result === 'object' ? (
