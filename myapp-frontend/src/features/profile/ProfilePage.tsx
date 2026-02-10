@@ -112,8 +112,8 @@ function ProfilePage() {
   let latestAIResponse: any = null;
   let latestAIAnalysis: any = null;
   let aiResponses: any[] = [];
-  if (profileData && Array.isArray(profileData.aiResponses) && profileData.aiResponses.length > 0) {
-    aiResponses = profileData.aiResponses;
+  if (profileData && Array.isArray(profileData.ai_responses) && profileData.ai_responses.length > 0) {
+    aiResponses = profileData.ai_responses;
     latestAIResponse = aiResponses[0];
     latestAIAnalysis = latestAIResponse?.analysis || null;
   }

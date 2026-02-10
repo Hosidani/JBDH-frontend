@@ -179,19 +179,26 @@ export class ApiService {
     }
   private static async fetchWithAuth(url: string, options: RequestInit = {}) {
     let accessToken = this.getAccessToken();
-
     const fullUrl = `${API_BASE_URL}${url}`;
     console.log(`🌐 [API CALL] ${options.method || 'GET'} ${fullUrl}`);
     console.log(`🔑 [TOKEN] ${accessToken ? 'Bearer ' + accessToken.substring(0, 20) + '...' : 'No token'}`);
 
-    // First attempt with current access token
+    // Bygg headers dynamiskt
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    // Sätt INTE Content-Type om body är FormData
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     let response = await fetch(fullUrl, {
       ...options,
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
-        ...options.headers,
+        ...headers,
+        ...options.headers, // options.headers har prio sist
       },
     });
 
@@ -200,13 +207,18 @@ export class ApiService {
       console.log('⚠️  [401] Attempting token refresh...');
       const newAccessToken = await this.refreshAccessToken();
       if (newAccessToken) {
-        // Retry request with new token
+        const retryHeaders: Record<string, string> = {
+          'Authorization': `Bearer ${newAccessToken}`,
+        };
+        // Sätt INTE Content-Type om body är FormData
+        if (!(options.body instanceof FormData)) {
+          retryHeaders['Content-Type'] = 'application/json';
+        }
         response = await fetch(fullUrl, {
           ...options,
           credentials: 'include',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${newAccessToken}`,
+            ...retryHeaders,
             ...options.headers,
           },
         });
@@ -265,9 +277,9 @@ export class ApiService {
   static async compareCvToJobAd(jobAdText: string, cvFile: File, language?: string): Promise<string> {
     const formData = new FormData();
     formData.append('jobAdText', jobAdText);
-    formData.append('cvPath', cvFile);
+    formData.append('cv_file', cvFile);      // rätt namn enligt backend
     if (language) {
-      formData.append('language', ApiService.mapLanguageToBackend(language));
+      formData.append('language', 'sv');     // eller 'en' för engelska
     }
 
     const response = await fetch(`${API_BASE_URL}/home/CompareCvToJobAd`, {
@@ -284,18 +296,15 @@ export class ApiService {
   }
 
   // Upload CV for AI analysis
-  static async uploadCVForAnalysis(cvFile: File, language?: string): Promise<{ success: boolean; message: string }> {
+  static async uploadCVForAnalysis(file: File, language: string): Promise<any> {
     const formData = new FormData();
-    formData.append('cvFile', cvFile);
-    if (language) {
-      formData.append('language', ApiService.mapLanguageToBackend(language));
-    }
-    // Använd fetchWithAuth för att skicka med JWT
-    const response = await this.fetchWithAuth('/Profile/AnalyzeCV', {
+    formData.append('cv_file', file);
+    formData.append('language', language);
+
+    const response = await this.fetchWithAuth('/profile/analyzecv/', {
       method: 'POST',
       body: formData,
-      // Viktigt: ta bort Content-Type, FormData sätter rätt header automatiskt
-      headers: {},
+      headers: {}, // Låt browsern sätta Content-Type
     });
     if (!response.ok) {
       const error = await response.text();

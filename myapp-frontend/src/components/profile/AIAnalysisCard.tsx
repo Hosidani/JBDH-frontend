@@ -76,8 +76,8 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
     return normalize(pickLang(parsed));
   };
 
-  // Prefer first aiResponse, then analysis prop
-  const primary = aiResponses.length > 0
+  // Hantera endast aiResponses
+  const primary = aiResponses && aiResponses.length > 0
     ? selectData(aiResponses[0])
     : selectData(analysis ?? aiResponse);
 
