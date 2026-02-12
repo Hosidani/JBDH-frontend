@@ -91,7 +91,7 @@ function ProfilePage() {
     // NYA PROPS
     searchable: profileData.searchable ?? false,
     travelAvailability: profileData.travel_availability ?? false,
-    desiredWorkModes: profileData.desired_work_modes ?? [],
+    desired_work_modes: profileData.desired_work_modes ?? [],
     // ...existing code...
     aboutMe: profileData.about_me,
     owner: profileData.owner,

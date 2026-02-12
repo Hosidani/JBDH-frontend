@@ -56,9 +56,9 @@ const SettingsPage: React.FC = () => {
     e.preventDefault();
     setProfileMessage(null);
     const dto = {
-      Name: name,
-      Email: email,
-      PhoneNumber: phone
+      name: name,
+      email: email,
+      phone_number: phone
     };
     if (email !== originalEmail) {
       setPendingDto(dto);
@@ -72,12 +72,14 @@ const SettingsPage: React.FC = () => {
     setLoading(true);
     try {
       await ApiService.updateUserSettings(dto);
-      if (dto.Email !== originalEmail) {
-        window.location.href = '/login';
-        return;
-      }
+      // Hämta uppdaterad profil direkt efter lyckad PUT
+      const updatedProfile = await ApiService.getMyProfile();
+      setName(updatedProfile.name || '');
+      setEmail(updatedProfile.email || '');
+      setPhone(updatedProfile.phone_number || '');
+      setOriginalEmail(updatedProfile.email || '');
       setProfileMessage(tSync('settingsPage_profile_updated'));
-      window.location.href = '/profile';
+      // window.location.href = '/profile'; // Ta bort denna rad om du vill stanna kvar på sidan
     } catch (error: any) {
       setProfileMessage(error?.message || 'Error updating profile');
     } finally {

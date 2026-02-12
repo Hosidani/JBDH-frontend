@@ -17,7 +17,7 @@ interface ProfileInfoCardProps {
   tags: string[];
   searchable?: boolean;
   travelAvailability?: boolean;
-  desiredWorkModes?: string[];
+  desired_work_modes?: string[];
   developerMode?: boolean;
 }
 
@@ -68,16 +68,16 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   tags,
   searchable = false,
   travelAvailability = false,
-  desiredWorkModes = [],
+  desired_work_modes = [],
   //developerMode,
 }) => {
   const [localSearchable, setLocalSearchable] = useState(searchable);
   const [localTravel, setLocalTravel] = useState(travelAvailability);
   const [workplace, setWorkplace] = useState(() => {
-    const modes: string[] = Array.isArray(desiredWorkModes)
-      ? desiredWorkModes
-      : desiredWorkModes
-      ? [desiredWorkModes]
+    const modes: string[] = Array.isArray(desired_work_modes)
+      ? desired_work_modes
+      : desired_work_modes
+      ? [desired_work_modes]
       : [];
     return {
       onSite: modes.includes("På plats"),
@@ -91,32 +91,36 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   React.useEffect(() => {
     setLocalSearchable(!!searchable);
     setLocalTravel(!!travelAvailability);
-    const modes = Array.isArray(desiredWorkModes) ? desiredWorkModes : [];
+    const modes = Array.isArray(desired_work_modes) ? desired_work_modes : [];
     setWorkplace({
       onSite: modes.includes("På plats"),
       hybrid: modes.includes("Hybrid"),
       remote: modes.includes("Distans"),
     });
-  }, [searchable, travelAvailability, desiredWorkModes]);
+  }, [searchable, travelAvailability, desired_work_modes]);
 
   // Compute desiredWorkModes string from UI state
-  const currentDesiredWorkModes = (): string[] | undefined => {
-    if (workplace.onSite) return ["På plats"];
-    if (workplace.hybrid) return ["Hybrid"];
-    if (workplace.remote) return ["Distans"];
-    return undefined;
+  const currentDesiredWorkModes = (): string[] => {
+    const modes: string[] = [];
+    if (workplace.onSite) modes.push("På plats");
+    if (workplace.hybrid) modes.push("Hybrid");
+    if (workplace.remote) modes.push("Distans");
+    return modes;
   };
 
   // Send a full settings payload expected by backend (not partial)
-  const saveSettings = async (overrides: Partial<{ searchable: boolean; travelAvailability: boolean; desiredWorkModes: string[] }>) => {
+  const saveSettings = async (overrides: Partial<{ searchable: boolean; travelAvailability: boolean; desired_work_modes: string[] }>) => {
     const payload = {
+      name: name,
+      email: email,
+      phone_number: phone,
       searchable: localSearchable,
       travelAvailability: localTravel,
-      desiredWorkModes: currentDesiredWorkModes(),
+      desired_work_modes: currentDesiredWorkModes(),
       ...overrides,
     };
-    if (!payload.desiredWorkModes || payload.desiredWorkModes.length === 0) {
-      payload.desiredWorkModes = ["På plats"];
+    if (!payload.desired_work_modes || payload.desired_work_modes.length === 0) {
+      payload.desired_work_modes = ["På plats"];
     }
     await ApiService.updateUserSettings(payload);
   };
@@ -220,8 +224,8 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               label={tSync('profilePage_workplace_onsite_label')}
               checked={workplace.onSite}
               onChange={async () => {
-                setWorkplace({ onSite: true, hybrid: false, remote: false });
-                await saveSettings({ desiredWorkModes: ["På plats"] });
+                setWorkplace(w => ({ ...w, onSite: !w.onSite }));
+                await saveSettings({ desired_work_modes: [...currentDesiredWorkModes(), !workplace.onSite ? "På plats" : ""].filter(Boolean) });
               }}
               stacked={false}
             />
@@ -229,8 +233,8 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               label={tSync('profilePage_workplace_hybrid_label')}
               checked={workplace.hybrid}
               onChange={async () => {
-                setWorkplace({ onSite: false, hybrid: true, remote: false });
-                await saveSettings({ desiredWorkModes: ["Hybrid"] });
+                setWorkplace(w => ({ ...w, hybrid: !w.hybrid }));
+                await saveSettings({ desired_work_modes: [...currentDesiredWorkModes(), !workplace.hybrid ? "Hybrid" : ""].filter(Boolean) });
               }}
               stacked={false}
             />
@@ -238,8 +242,8 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               label={tSync('profilePage_workplace_remote_label')}
               checked={workplace.remote}
               onChange={async () => {
-                setWorkplace({ onSite: false, hybrid: false, remote: true });
-                await saveSettings({ desiredWorkModes: ["Distans"] });
+                setWorkplace(w => ({ ...w, remote: !w.remote }));
+                await saveSettings({ desired_work_modes: [...currentDesiredWorkModes(), !workplace.remote ? "Distans" : ""].filter(Boolean) });
               }}
               stacked={false}
             />
