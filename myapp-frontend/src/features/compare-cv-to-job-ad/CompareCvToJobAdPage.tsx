@@ -46,9 +46,15 @@ const CompareCvToJobAdPage: React.FC = () => {
       formData.append('CvPath', cvFile);
       formData.append('JobAdText', jobAdText);
       const endpoint = useV2 ? '/Home/CompareCvToJobAdV2' : '/Home/CompareCvToJobAd';
+      const token = localStorage.getItem('access_token');
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
       const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
         method: 'POST',
         credentials: 'include',
+        headers,
         body: formData,
       });
       let data = null;
