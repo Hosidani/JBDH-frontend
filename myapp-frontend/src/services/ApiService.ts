@@ -427,6 +427,8 @@ export class ApiService {
     }
   }
 
+  // TODO: Backend supports DELETE /api/Jobs/{jobId}/not-interested, but FE flow/method is not implemented yet.
+
   // Search jobs - call real backend API
   static async searchJobs(searchParams: any): Promise<JobDetailsDto[]> {
     const params = new URLSearchParams();
