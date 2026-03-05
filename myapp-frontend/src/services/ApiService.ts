@@ -450,4 +450,21 @@ export class ApiService {
 
     return await response.json();
   }
+
+  static async searchJobsLegacy(searchParams: any): Promise<JobDetailsDto[]> {
+    const params = new URLSearchParams();
+    if (searchParams.location) params.append('location', searchParams.location);
+    if (searchParams.jobDescription) params.append('description', searchParams.jobDescription);
+
+    const response = await fetch(`${API_BASE_URL}/Search/SearchForJobs?${params.toString()}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Legacy search failed: ${response.status}`);
+    }
+
+    return await response.json();
+  }
 }
