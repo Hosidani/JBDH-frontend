@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
 
 interface SearchFormProps {
-  onSubmit: (formData: SearchFormData, mode?: 'v2' | 'legacy') => void;
+  onSubmit: (formData: SearchFormData) => void;
   loading: boolean;
 }
 
@@ -24,22 +24,16 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading }) => {
   const [competencies, setCompetencies] = useState('');
   const [useProfile, setUseProfile] = useState(false);
 
-  const getFormData = (): SearchFormData => ({
-    location,
-    workArea,
-    jobDescription,
-    roles,
-    competence: competencies,
-    useProfile,
-  });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(getFormData(), 'v2');
-  };
-
-  const handleLegacySearch = () => {
-    onSubmit(getFormData(), 'legacy');
+    onSubmit({
+      location,
+      workArea,
+      jobDescription,
+      roles,
+      competence: competencies, // ändrat till singular för backend
+      useProfile,
+    });
   };
 
   return (
@@ -168,24 +162,14 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading }) => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? tSync('searchForm_searching') : tSync('searchForm_search_button')}
-          </button>
-
-          <button
-            type="button"
-            disabled={loading}
-            onClick={handleLegacySearch}
-            className="w-full border border-blue-600 text-blue-600 py-3 rounded-md font-semibold hover:bg-blue-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? tSync('searchForm_searching') : 'Sök legacy'}
-          </button>
-        </div>
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? tSync('searchForm_searching') : tSync('searchForm_search_button')}
+        </button>
       </form>
     </div>
   );
