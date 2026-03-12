@@ -1,15 +1,15 @@
+
 import React, { useState } from 'react';
 import type { CreateFlowRequest } from '../../components/DataFlow/types';
 import { useTranslation } from '../../hooks/TranslationProvider';
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface CreateFlowPageProps {
   onNavigateBack?: () => void;
 }
 
 const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  console.log('🔍 CreateFlowPage API_URL:', API_URL);
-  
+
   const { tSync } = useTranslation();
   const [content, setContent] = useState('');
   const [contentType, setContentType] = useState<'text' | 'image' | 'video' | 'link'>('text');
@@ -27,7 +27,7 @@ const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
       contentType: contentType
     };
     try {
-      const response = await fetch(`${API_URL}/home/CreateFlow`, {
+      const response = await fetch(`${API_URL}/api/home/CreateFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,15 +1,11 @@
+const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import { useAuth } from '../../context/AuthContext';
-import { ApiService } from '../../services/ApiService';
 
 const availableRoles = ["Manager", "Recruiter"];
 
 const RegisterPage: React.FC = () => {
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  console.log('🔍 RegisterPage API_URL:', API_URL);
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,7 +17,6 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { tSync, language } = useTranslation();
-  const { login } = useAuth();
 
   const handleRoleChange = (role: string) => {
     setSelectedRoles(prev =>
@@ -54,23 +49,12 @@ const RegisterPage: React.FC = () => {
 
       const response = await fetch(`${API_URL}/Register/RegisterUser`, {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
-
       if (response.ok) {
-        const data = await response.json();
-        
-        // Store JWT tokens from registration response
-        if (data.access && data.refresh) {
-          ApiService.setTokens(data.access, data.refresh);
-          // Auto-login user after registration
-          login({ email });
-          // Redirect to home page
-          navigate('/', { replace: true });
-        } else {
-          // Fallback: redirect to login if tokens not provided
-          navigate('/login', { state: { success: tSync('registerPage_success') } });
-        }
+        // Redirect to login page with success message
+        navigate('/login', { state: { success: tSync('registerPage_success') } });
       } else {
         // Try to parse error as JSON, fallback to text
         let errorMsg = tSync('registerPage_failed');

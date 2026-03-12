@@ -26,72 +26,12 @@ interface JobDetailsDto {
 
 export type { JobDetailsDto };
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
-// 🔍 DEBUG LOGGING
-console.log('🔍 API_BASE_URL:', API_BASE_URL);
-console.log('🔍 VITE_API_URL:', import.meta.env.VITE_API_URL);
-console.log('🔍 MODE:', import.meta.env.MODE);
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 export class ApiService {
-  // JWT Token Management
-  private static getAccessToken(): string | null {
-    return localStorage.getItem('access_token');
-  }
-
-  private static getRefreshToken(): string | null {
-    return localStorage.getItem('refresh_token');
-  }
-
-  static setTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
-  }
-
-  static clearTokens(): void {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-  }
-
-  // Refresh the access token using the refresh token
-  private static async refreshAccessToken(): Promise<string | null> {
-    const refreshToken = this.getRefreshToken();
-    if (!refreshToken) {
-      return null;
-    }
-
-    try {
-      const refreshUrl = `${API_BASE_URL}/auth/refresh/`;
-      console.log(`🔄 [REFRESH TOKEN] POST ${refreshUrl}`);
-      
-      const response = await fetch(refreshUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh: refreshToken }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const newAccessToken = data.access;
-        localStorage.setItem('access_token', newAccessToken);
-        console.log('✅ [REFRESH SUCCESS] New token obtained');
-        return newAccessToken;
-      } else {
-        console.log(`❌ [REFRESH FAILED] ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Failed to refresh token:', error);
-    }
-
-    // If refresh fails, clear tokens
-    this.clearTokens();
-    return null;
-  }
     // Get another user's profile by userId
     static async getProfile(userId: number): Promise<any> {
-      const response = await this.fetchWithAuth(`/profile/getprofile/${userId}`, {
+      const response = await this.fetchWithAuth(`/Profile/getprofile/${userId}`, {
         method: 'GET',
       });
       return await response.json();
@@ -99,7 +39,7 @@ export class ApiService {
 
     // Get current user's profile
     static async getMyProfile(): Promise<any> {
-      const response = await this.fetchWithAuth('/profile/getmyprofile/', {
+      const response = await this.fetchWithAuth('/Profile/getmyprofile', {
         method: 'GET',
       });
       return await response.json();
@@ -178,52 +118,14 @@ export class ApiService {
       return await response.json();
     }
   private static async fetchWithAuth(url: string, options: RequestInit = {}) {
-    let accessToken = this.getAccessToken();
-    const fullUrl = `${API_BASE_URL}${url}`;
-    console.log(`🌐 [API CALL] ${options.method || 'GET'} ${fullUrl}`);
-    console.log(`🔑 [TOKEN] ${accessToken ? 'Bearer ' + accessToken.substring(0, 20) + '...' : 'No token'}`);
-
-    // Bygg headers dynamiskt
-    const headers: Record<string, string> = {};
-    if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
-    }
-    // Sätt INTE Content-Type om body är FormData
-    if (!(options.body instanceof FormData)) {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    let response = await fetch(fullUrl, {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
       ...options,
       credentials: 'include',
       headers: {
-        ...headers,
-        ...options.headers, // options.headers har prio sist
+        'Content-Type': 'application/json',
+        ...options.headers,
       },
     });
-
-    // If 401, try to refresh token and retry
-    if (response.status === 401) {
-      console.log('⚠️  [401] Attempting token refresh...');
-      const newAccessToken = await this.refreshAccessToken();
-      if (newAccessToken) {
-        const retryHeaders: Record<string, string> = {
-          'Authorization': `Bearer ${newAccessToken}`,
-        };
-        // Sätt INTE Content-Type om body är FormData
-        if (!(options.body instanceof FormData)) {
-          retryHeaders['Content-Type'] = 'application/json';
-        }
-        response = await fetch(fullUrl, {
-          ...options,
-          credentials: 'include',
-          headers: {
-            ...retryHeaders,
-            ...options.headers,
-          },
-        });
-      }
-    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -277,9 +179,9 @@ export class ApiService {
   static async compareCvToJobAd(jobAdText: string, cvFile: File, language?: string): Promise<string> {
     const formData = new FormData();
     formData.append('jobAdText', jobAdText);
-    formData.append('cv_file', cvFile);      // rätt namn enligt backend
+    formData.append('cvPath', cvFile);
     if (language) {
-      formData.append('language', 'sv');     // eller 'en' för engelska
+      formData.append('language', ApiService.mapLanguageToBackend(language));
     }
 
     const response = await fetch(`${API_BASE_URL}/home/CompareCvToJobAd`, {
@@ -296,15 +198,16 @@ export class ApiService {
   }
 
   // Upload CV for AI analysis
-  static async uploadCVForAnalysis(file: File, language: string): Promise<any> {
+  static async uploadCVForAnalysis(cvFile: File, language?: string): Promise<{ success: boolean; message: string }> {
     const formData = new FormData();
-    formData.append('cv_file', file);
-    formData.append('language', language);
-
-    const response = await this.fetchWithAuth('/profile/analyzecv/', {
+    formData.append('cvFile', cvFile);
+    if (language) {
+      formData.append('language', ApiService.mapLanguageToBackend(language));
+    }
+    const response = await fetch(`${API_BASE_URL}/Profile/AnalyzeCV`, {
       method: 'POST',
+      credentials: 'include',
       body: formData,
-      headers: {}, // Låt browsern sätta Content-Type
     });
     if (!response.ok) {
       const error = await response.text();
@@ -427,8 +330,6 @@ export class ApiService {
     }
   }
 
-  // TODO: Backend supports DELETE /api/Jobs/{jobId}/not-interested, but FE flow/method is not implemented yet.
-
   // Search jobs - call real backend API
   static async searchJobs(searchParams: any): Promise<JobDetailsDto[]> {
     const params = new URLSearchParams();
@@ -446,23 +347,6 @@ export class ApiService {
 
     if (!response.ok) {
       throw new Error(`Search failed: ${response.status}`);
-    }
-
-    return await response.json();
-  }
-
-  static async searchJobsLegacy(searchParams: any): Promise<JobDetailsDto[]> {
-    const params = new URLSearchParams();
-    if (searchParams.location) params.append('location', searchParams.location);
-    if (searchParams.jobDescription) params.append('description', searchParams.jobDescription);
-
-    const response = await fetch(`${API_BASE_URL}/Search/SearchForJobs?${params.toString()}`, {
-      method: 'GET',
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error(`Legacy search failed: ${response.status}`);
     }
 
     return await response.json();

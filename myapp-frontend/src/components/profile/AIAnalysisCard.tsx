@@ -30,36 +30,14 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
   };
 
   const pickLang = (obj: any) => {
-    if (!obj || typeof obj !== 'object') {
-      return {};
-    }
-    
-    // First, check if obj already has the data fields (no language nesting)
-    if (obj.BestJobTitlesForUser || obj.bestJobTitlesForUser || obj.HardSkills || obj.hardSkills) {
-      return obj; // Already flat, return as-is
-    }
-    
-    // Try to find the language-specific section
+    if (!obj) return {};
     const key = language === 'sv' ? 'Sv' : 'En';
     const longKey = language === 'sv' ? 'Swedish' : 'English';
     const shortKey = language === 'sv' ? 'sv' : 'en';
-    
-    // Try preferred language first
-    let langSection = obj[key] || obj[longKey] || obj[shortKey];
-    if (langSection) return langSection;
-    
-    // If preferred language not found, use any available language
-    // This handles cases where only English exists but user wants Swedish (or vice versa)
-    if (obj.English) return obj.English;
-    if (obj.Swedish) return obj.Swedish;
-    if (obj.En) return obj.En;
-    if (obj.Sv) return obj.Sv;
-    
-    // Fallback: return empty object if nothing found
-    return {};
+    return obj[key] || obj[longKey] || obj[shortKey] || obj; // fallback if already flat
   };
 
-  const normalize = (src: any, createdAt?: string) => {
+  const normalize = (src: any) => {
     if (!src) return {};
     return {
       bestJobTitlesForUser: src.bestJobTitlesForUser ?? src.BestJobTitlesForUser ?? [],
@@ -70,49 +48,36 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
       experiences: src.experiences ?? src.Experiences ?? [],
       educationAndCertifications:
         src.educationAndCertifications ?? src.EducationAndCertifications ?? [],
-      createdAt: createdAt ?? src.createdAt ?? src.created_at,
+      createdAt: src.createdAt,
     };
   };
 
   const selectData = (payload: any) => {
-    if (!payload) {
-      return {};
-    }
-    
-    // Prioritize the already-parsed 'analysis' field over raw 'response_text'
-    // Backend provides 'analysis' as a parsed object with English/Swedish keys
-    // But if analysis is null/undefined, fall back to parsing response_text
-    let raw = null;
-    
-    // Check if analysis exists and is not an empty object
-    if (payload.analysis !== null && payload.analysis !== undefined && 
-        typeof payload.analysis === 'object' && Object.keys(payload.analysis).length > 0) {
-      raw = payload.analysis;
-    } else if (payload.response_text) {
-      // If analysis is not available, parse response_text
-      raw = payload.response_text;
-    } else if (payload.responseText) {
-      raw = payload.responseText;
-    } else if (payload.ResponseText) {
-      raw = payload.ResponseText;
-    } else {
-      raw = payload;
-    }
+    // Try multiple possible fields the backend might use to store the JSON blob
+    // Backend uses ResponseText (PascalCase)
+    let raw = payload?.ResponseText ??
+      payload?.responseText ??
+      payload?.analysis ??
+      payload?.aiResponse ??
+      payload?.response ??
+      payload?.content ??
+      payload?.text ??
+      payload;
     
     // If raw is an object with nested language keys (En/Sv), it's already the language-keyed object
     // Don't parse it again if it's already an object
     const parsed = typeof raw === 'string' ? parseMaybeJson(raw) : raw;
     
-    // Extract createdAt from parent payload if available (it's in aiResponses[0], not in analysis)
-    const createdAt = payload?.created_at ?? payload?.createdAt;
-    
-    const result = normalize(pickLang(parsed), createdAt);
-    
-    return result;
+    if (import.meta.env.MODE !== 'production') {
+      console.debug('AIAnalysisCard payload raw', raw);
+      console.debug('AIAnalysisCard payload parsed', parsed);
+      console.debug('AIAnalysisCard selectData input', payload);
+    }
+    return normalize(pickLang(parsed));
   };
 
-  // Hantera endast aiResponses
-  const primary = aiResponses && aiResponses.length > 0
+  // Prefer first aiResponse, then analysis prop
+  const primary = aiResponses.length > 0
     ? selectData(aiResponses[0])
     : selectData(analysis ?? aiResponse);
 
@@ -214,16 +179,6 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
     </div>
   );
 
-  // Check if primary has actual data (not just empty arrays/strings)
-  const hasData = primary && (
-    (primary.bestJobTitlesForUser?.length > 0) ||
-    (primary.hardSkills?.length > 0) ||
-    (primary.softSkills?.length > 0) ||
-    (primary.experiences?.length > 0) ||
-    (primary.educationAndCertifications?.length > 0) ||
-    (primary.reasoningBehindJobTitles?.length > 0)
-  );
-
   return (
     <div className="bg-white border border-blue-200 rounded-xl shadow p-6 mt-4 max-w-2xl mx-auto flex flex-col gap-6 min-h-[200px]">
       <h3 className="font-bold text-lg mb-2 text-blue-700">{tSync('profilePage_ai_analysis_title')}</h3>
@@ -233,7 +188,7 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
           <div className="animate-spin text-4xl">🔄</div>
           <div className="text-slate-500 text-sm mt-4">{tSync('profilePage_polling_hint')}</div>
         </div>
-      ) : hasData ? (
+      ) : primary && Object.keys(primary).length > 0 ? (
         renderBlock(primary)
       ) : (
         <div className="text-slate-500 text-sm">{tSync('profilePage_no_ai_analysis_found')}</div>
