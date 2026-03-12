@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
 import { PageWrapper } from '../../components/common';
+import { useTranslation } from '../../hooks/TranslationProvider';
 
 function getInitials(name?: string) {
   if (!name) return '?';
@@ -28,6 +29,7 @@ function formatSellerId(id?: number | string): string {
 export default function SellerProfilePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { tSync } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
   const [account, setAccount] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -79,34 +81,34 @@ export default function SellerProfilePage() {
           {/* Fields grid */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-6 pr-28">
             <div>
-              <div className="text-xs text-slate-400 mb-0.5">Namn</div>
+              <div className="text-xs text-slate-400 mb-0.5">{tSync('sellerProfilePage_name_label')}</div>
               <div className="font-semibold text-slate-800">{profile.name ?? '–'}</div>
             </div>
             <div>
-              <div className="text-xs text-slate-400 mb-0.5">Titel</div>
+              <div className="text-xs text-slate-400 mb-0.5">{tSync('sellerProfilePage_title_label')}</div>
               <div className="font-semibold text-slate-800">{title}</div>
             </div>
 
             <div>
-              <div className="text-xs text-slate-400 mb-0.5">Företag</div>
+              <div className="text-xs text-slate-400 mb-0.5">{tSync('sellerProfilePage_company_label')}</div>
               <div className="font-semibold text-slate-800">{company}</div>
             </div>
             <div>
-              <div className="text-xs text-slate-400 mb-0.5">Säljar ID</div>
+              <div className="text-xs text-slate-400 mb-0.5">{tSync('sellerProfilePage_seller_id_label')}</div>
               <div className="font-semibold text-slate-800">{formatSellerId(profile.id)}</div>
             </div>
 
             <div>
-              <div className="text-xs text-slate-400 mb-0.5">Telefon</div>
+              <div className="text-xs text-slate-400 mb-0.5">{tSync('sellerProfilePage_phone_label')}</div>
               <div className="font-semibold text-slate-800">{profile.phone_number ?? '–'}</div>
             </div>
             <div>
-              <div className="text-xs text-slate-400 mb-0.5">Email</div>
+              <div className="text-xs text-slate-400 mb-0.5">{tSync('sellerProfilePage_email_label')}</div>
               <div className="font-semibold text-slate-800">{profile.email ?? '–'}</div>
             </div>
 
             <div className="col-span-2">
-              <div className="text-xs text-slate-400 mb-0.5">Prisplan</div>
+              <div className="text-xs text-slate-400 mb-0.5">{tSync('sellerProfilePage_plan_label')}</div>
               <div className="font-semibold text-slate-800">{plan}</div>
             </div>
           </div>

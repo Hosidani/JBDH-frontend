@@ -291,6 +291,13 @@
   "jobDetail_job_disappearing": "Job will disappear in {seconds} sec",
   "jobDetail_cancel_action": "Click to cancel",
   "jobDetail_tab_description": "Description",
-  "jobDetail_tab_matching": "Matching"
+  "jobDetail_tab_matching": "Matching",
+  "sellerProfilePage_name_label": "Name",
+  "sellerProfilePage_title_label": "Title",
+  "sellerProfilePage_company_label": "Company",
+  "sellerProfilePage_seller_id_label": "Seller ID",
+  "sellerProfilePage_phone_label": "Phone",
+  "sellerProfilePage_email_label": "Email",
+  "sellerProfilePage_plan_label": "Price plan"
 
 }
