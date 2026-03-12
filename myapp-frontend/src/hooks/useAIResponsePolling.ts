@@ -4,9 +4,9 @@ import { ApiService } from '../services/ApiService';
 export const useAIResponsePolling = () => {
   const [polling, setPolling] = useState(false);
 
-  const getLatestAIResponseId = useCallback((ai_responses: any[]) => {
-    if (!Array.isArray(ai_responses) || ai_responses.length === 0) return null;
-    const latest = ai_responses.reduce((latest: any, curr: any) => {
+  const getLatestAIResponseId = useCallback((aiResponses: any[]) => {
+    if (!Array.isArray(aiResponses) || aiResponses.length === 0) return null;
+    const latest = aiResponses.reduce((latest: any, curr: any) => {
       if (!latest) return curr;
       const latestDate = new Date(latest.createdAt || latest.CreatedAt || 0);
       const currDate = new Date(curr.createdAt || curr.CreatedAt || 0);
@@ -23,7 +23,7 @@ export const useAIResponsePolling = () => {
         try {
           const data = await ApiService.getMyProfile();
           onProfileUpdate(data);
-          const newLatestId = getLatestAIResponseId(data.ai_responses);
+          const newLatestId = getLatestAIResponseId(data.aiResponses);
           if (newLatestId && newLatestId !== initialLatestId) {
             setPolling(false);
             return;

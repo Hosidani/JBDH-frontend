@@ -1,3 +1,4 @@
+const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import type { DataFlow, CommentRequest } from './types';
 
@@ -7,9 +8,6 @@ interface DataFlowThreadProps {
 }
 
 const DataFlowThread: React.FC<DataFlowThreadProps> = ({ dataFlow, onCommentAdded }) => {
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  console.log('🔍 DataFlowThread API_URL:', API_URL);
-  
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [reply, setReply] = useState('');
 
@@ -26,7 +24,7 @@ const DataFlowThread: React.FC<DataFlowThreadProps> = ({ dataFlow, onCommentAdde
     };
 
     try {
-      const response = await fetch(`${API_URL}/home/CommentOnDataFlow`, {
+      const response = await fetch(`${API_URL}/api/home/CommentOnDataFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,7 +49,7 @@ const DataFlowThread: React.FC<DataFlowThreadProps> = ({ dataFlow, onCommentAdde
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
-        const response = await fetch(`${API_URL}/home/Delete/${dataFlow.id}`, {
+        const response = await fetch(`${API_URL}/api/home/Delete/${dataFlow.id}`, {
           method: 'DELETE',
           credentials: 'include',
         });
