@@ -145,7 +145,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           <div className="text-xs text-slate-300 font-normal">{tSync('profilePage_registration_label')}: {registrationDate}</div>
         </div>
         {/* Info grid and cogwheel */}
-        <div className="flex-1 flex flex-col items-end">
+        <div className="flex-1 flex flex-col items-start">
           <div className="w-full flex flex-row justify-end">
             <button
               type="button"
@@ -158,35 +158,35 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 w-full">
-            <div className="text-right">
+            <div className="text-left">
               <div className="font-normal text-slate-700 text-sm">{tSync('settingsPage_name_label')}</div>
               <div className="font-bold text-lg text-slate-900">{name}</div>
             </div>
-            <div className="text-right">
+            <div className="text-left">
               <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_title_label')}</div>
               <div className="font-bold text-lg text-slate-900">{title}</div>
             </div>
-            <div className="text-right">
+            <div className="text-left">
               <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_employmentType_label')}</div>
               <div className="font-bold text-lg text-slate-900">{employmentType}</div>
             </div>
-            <div className="text-right">
+            <div className="text-left">
               <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_registration_date_label')}</div>
               <div className="font-bold text-lg text-slate-900">{registrationDate}</div>
             </div>
-            <div className="text-right">
+            <div className="text-left">
               <div className="font-normal text-slate-700 text-sm">{tSync('settingsPage_phone_label')}</div>
               <div className="font-bold text-lg text-slate-900">{phone}</div>
             </div>
-            <div className="text-right">
+            <div className="text-left">
               <div className="font-normal text-slate-700 text-sm">{tSync('settingsPage_email_label')}</div>
               <div className="font-bold text-lg text-slate-900">{email}</div>
             </div>
-            <div className="text-right">
+            <div className="text-left">
               <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_location_label')}</div>
               <div className="font-bold text-lg text-slate-900">{location}</div>
             </div>
-            <div className="text-right">
+            <div className="text-left">
               <div className="font-normal text-slate-700 text-sm">{tSync('profilePage_region_label')}</div>
               <div className="font-bold text-lg text-slate-900">{region}</div>
             </div>

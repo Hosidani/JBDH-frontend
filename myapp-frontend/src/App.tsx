@@ -10,7 +10,7 @@ import { CompareCvToJobAdPage } from './features/compare-cv-to-job-ad';
 import { SavedJobsPage } from './features/saved-jobs';
 import { LoginPage, RegisterPage } from './features/auth';
 import { SearchJobsPage, MatchAdToCvsPage } from './features/search';
-import { ProfilePage } from './features/profile';
+import { ProfilePage, SellerProfilePage } from './features/profile';
 import { SettingsPage } from './features/settings';
 import { AccountPage } from './features/account';
 import { AddJobAdPage } from './features/boards';
@@ -50,7 +50,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       {/* Header with hamburger and language switcher */}
-      <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20">
+      <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20 sticky top-0">
         <div className="flex items-center gap-3">
           <Link to="/">
             <img src="/SMATCH_64X64.png" alt="SMATCH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
@@ -101,6 +101,7 @@ function App() {
           <Route path="/matching" element={<MatchingProfilePage />} />
           <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
           <Route path="/add-job-ad" element={<AddJobAdPage />} />
+          <Route path="/seller-profile" element={<SellerProfilePage />} />
           <Route path="/saved-jobs" element={<SavedJobsPage />} />
           <Route path="/job/:id" element={<JobDetailPage />} />
           <Route path="/about" element={<AboutPage />} />
