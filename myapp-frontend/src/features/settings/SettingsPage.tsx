@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { ApiService } from '../../services/ApiService';
-import { PageWrapper, PageBackground } from '../../components/common';
+import { PageWrapper, PageBackground, CheckboxGroup } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { useAuth } from '../../context/AuthContext';
 import ProfileForm from '../../components/settings/ProfileForm';
 import PasswordForm from '../../components/settings/PasswordForm';
 import EmailConfirmModal from '../../components/settings/EmailConfirmModal';
 
 const SettingsPage: React.FC = () => {
   const { tSync } = useTranslation();
+  const { refreshRoles } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [showEmailConfirm, setShowEmailConfirm] = useState(false);
@@ -22,31 +25,44 @@ const SettingsPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [pwMessage, setPwMessage] = useState<string | null>(null);
 
-  // TODO: Fetch current user info and prefill fields
   React.useEffect(() => {
     ApiService.getMyProfile()
       .then(profile => {
-        console.log('Profile data received:', profile);
         setName(profile.name || '');
         setEmail(profile.email || '');
-        setPhone(profile.phoneNumber || '');
+        setPhone(profile.phone_number || '');
         setOriginalEmail(profile.email || '');
-      })
-      .catch(error => {
-        console.error('Error fetching profile:', error);
-        setProfileMessage('Error loading profile data');
+        setSelectedRoles(profile.selected_roles || []);
+      // setLocation(profile.location || '');
+      // setDesiredEmploymentTypes(profile.desired_employment_types || []);
+      // setDesiredWorkModes(profile.desired_work_modes || []);
+      // setTravelAvailability(profile.travel_availability || '');
+      // setAvailableFrom(profile.available_from || '');
+      // setDesiredCity(profile.desired_city || '');
+      // setWorkPlace(profile.work_place || '');
+      // setCompetencies(profile.competencies || []);
+      // setCvPath(profile.cv_path || '');
+      // setDeveloperMode(profile.developer_mode || false);
+      // setSearchable(profile.searchable || false);
+      // setIsBanned(profile.is_banned || false);
+      // setRole(profile.role || '');
+      // setSelectedRoles(profile.selected_roles || []);
+      // setOwnerId(profile.owner_id || null);
+      // setAboutMe(profile.about_me || '');
+      // setCreatedAt(profile.created_at || '');
+      // setAiResponses(profile.ai_responses || []);
+      // setOwnedUsers(profile.owned_users || []);
+      // setOwner(profile.owner || null);
       });
   }, []);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileMessage(null);
-    // Prepare DTO for API
     const dto = {
-      Name: name,
-      Email: email,
-      PhoneNumber: phone
-      // Add other fields as needed
+      name: name,
+      email: email,
+      phone_number: phone
     };
     if (email !== originalEmail) {
       setPendingDto(dto);
@@ -60,14 +76,14 @@ const SettingsPage: React.FC = () => {
     setLoading(true);
     try {
       await ApiService.updateUserSettings(dto);
-      // If email was changed, log out and redirect to login
-      if (dto.Email !== originalEmail) {
-        // Optionally, call a logout API if needed
-        window.location.href = '/login';
-        return;
-      }
+      // Hämta uppdaterad profil direkt efter lyckad PUT
+      const updatedProfile = await ApiService.getMyProfile();
+      setName(updatedProfile.name || '');
+      setEmail(updatedProfile.email || '');
+      setPhone(updatedProfile.phone_number || '');
+      setOriginalEmail(updatedProfile.email || '');
       setProfileMessage(tSync('settingsPage_profile_updated'));
-      window.location.href = '/profile';
+      // window.location.href = '/profile'; // Ta bort denna rad om du vill stanna kvar på sidan
     } catch (error: any) {
       setProfileMessage(error?.message || 'Error updating profile');
     } finally {
@@ -99,7 +115,6 @@ const SettingsPage: React.FC = () => {
     try {
       await ApiService.changePassword(currentPassword, newPassword, confirmPassword);
       setPwMessage(tSync('settingsPage_password_updated'));
-      // Clear password fields after successful change
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -107,6 +122,17 @@ const SettingsPage: React.FC = () => {
       setPwMessage(error?.message || 'Error changing password');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRolesChange = async (newRoles: string[]) => {
+    const previous = selectedRoles;
+    setSelectedRoles(newRoles);
+    try {
+      await ApiService.updateAccountSettings({ updateRoles: newRoles });
+      await refreshRoles();
+    } catch {
+      setSelectedRoles(previous);
     }
   };
 
@@ -146,6 +172,18 @@ const SettingsPage: React.FC = () => {
             onSubmit={handlePasswordSubmit}
             tSync={tSync}
           />
+          <section className="flex flex-col gap-3">
+            <h3 className="text-lg font-semibold text-slate-800">{tSync('account_roles')}</h3>
+            <CheckboxGroup
+              options={[
+                { value: 'User',      label: tSync('role_candidate') },
+                { value: 'Recruiter', label: tSync('role_recruiter') },
+                { value: 'Manager',   label: tSync('role_sales') },
+              ]}
+              selected={selectedRoles}
+              onChange={handleRolesChange}
+            />
+          </section>
         </div>
       </PageWrapper>
     </>

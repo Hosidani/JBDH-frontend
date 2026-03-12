@@ -8,14 +8,15 @@ const SearchJobsCard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = async (formData: SearchFormData) => {
+  const handleSearch = async (formData: SearchFormData, mode: 'v2' | 'legacy' = 'v2') => {
     setError(null);
     setLoading(true);
     setResults(null);
 
     try {
-      // Use ApiService to search jobs (currently returns hardcoded data)
-      const searchResults = await ApiService.searchJobs(formData);
+      const searchResults = mode === 'legacy'
+        ? await ApiService.searchJobsLegacy(formData)
+        : await ApiService.searchJobs(formData);
       setResults(searchResults);
     } catch (err) {
       setError('An error occurred during the search.');

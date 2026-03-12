@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from './hooks/TranslationProvider';
+import { isTokenValid, useAutoLogout } from './hooks/useAutoLogout';
 import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary } from './components/common';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -9,13 +10,14 @@ import { CompareCvToJobAdPage } from './features/compare-cv-to-job-ad';
 import { SavedJobsPage } from './features/saved-jobs';
 import { LoginPage, RegisterPage } from './features/auth';
 import { SearchJobsPage, MatchAdToCvsPage } from './features/search';
-import { ProfilePage } from './features/profile';
+import { ProfilePage, SellerProfilePage } from './features/profile';
 import { SettingsPage } from './features/settings';
 import { AccountPage } from './features/account';
 import { AddJobAdPage } from './features/boards';
 import { MatchingProfilePage } from './features/matching';
 import { JobDetailPage } from './features/jobs';
 import './App.css';
+
 
 type LogoutRedirectProps = { user: any; setMenuOpen: (v: boolean) => void };
 function LogoutRedirect(props: LogoutRedirectProps) {
@@ -30,15 +32,25 @@ function LogoutRedirect(props: LogoutRedirectProps) {
 }
 
 function App() {
+  useAutoLogout(); // <-- Lägg till denna rad högst upp i funktionen
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const { language, changeLanguage } = useTranslation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!isTokenValid(token)) {
+      localStorage.removeItem('access_token');
+      navigate('/login');
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       {/* Header with hamburger and language switcher */}
-      <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20">
+      <header className="w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20 sticky top-0">
         <div className="flex items-center gap-3">
           <Link to="/">
             <img src="/SMATCH_64X64.png" alt="SMATCH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
@@ -89,6 +101,7 @@ function App() {
           <Route path="/matching" element={<MatchingProfilePage />} />
           <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
           <Route path="/add-job-ad" element={<AddJobAdPage />} />
+          <Route path="/seller-profile" element={<SellerProfilePage />} />
           <Route path="/saved-jobs" element={<SavedJobsPage />} />
           <Route path="/job/:id" element={<JobDetailPage />} />
           <Route path="/about" element={<AboutPage />} />

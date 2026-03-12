@@ -1,4 +1,3 @@
-const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useTranslation } from '../../../hooks/TranslationProvider';
@@ -8,6 +7,9 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  console.log('🔍 LoginModal API_URL:', API_URL);
+
   const { login } = useAuth();
   const { tSync } = useTranslation();
   const [email, setEmail] = useState('');
@@ -37,17 +39,26 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     }
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/Login`, {
+      const response = await fetch(`${API_URL}/auth/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
       if (response.ok) {
-        login({ email });
-        onClose();
+        const data = await response.json();
+        if (data.access && data.refresh) {
+          // Spara JWT-tokens i localStorage
+          localStorage.setItem('access_token', data.access);
+          localStorage.setItem('refresh_token', data.refresh);
+          login(data.user || { email });
+          onClose();
+        } else {
+          setError(tSync('loginModal_error_invalid_credentials') + ': No JWT token returned');
+        }
       } else {
-        setError(tSync('loginModal_error_invalid_credentials'));
+        const errorText = await response.text();
+        setError(tSync('loginModal_error_invalid_credentials') + (errorText ? `: ${errorText}` : ''));
       }
     } catch (err) {
       setError(tSync('loginModal_error_generic'));
@@ -67,7 +78,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             placeholder={tSync('loginModal_email_placeholder')}
             value={email}
             onChange={e => setEmail(e.target.value)}
-              className="border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             required
             autoFocus
           />
@@ -76,7 +87,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             placeholder={tSync('loginModal_password_placeholder')}
             value={password}
             onChange={e => setPassword(e.target.value)}
-              className="border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             required
           />
           {error && <div className="text-red-600 text-sm text-center">{error}</div>}

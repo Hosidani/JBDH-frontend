@@ -1,7 +1,9 @@
-const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 
 const CvJobAdComparison: React.FC = () => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  console.log('🔍 CvJobAdComparison API_URL:', API_URL);
+  
   const [jobAdText, setJobAdText] = useState('');
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -162,7 +164,7 @@ const CvJobAdComparison: React.FC = () => {
     formData.append('cvPath', cvFile);
 
     try {
-      const response = await fetch(`${API_URL}/api/home/CompareCvToJobAd`, {
+      const response = await fetch(`${API_URL}/home/CompareCvToJobAd`, {
         method: 'POST',
         credentials: 'include',
         body: formData

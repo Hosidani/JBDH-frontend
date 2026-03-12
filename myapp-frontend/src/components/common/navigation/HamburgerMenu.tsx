@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useTranslation } from '../../../hooks/TranslationProvider';
+import { useRoles } from '../../../hooks/useRoles';
 
 interface HamburgerMenuProps {
   isOpen: boolean;
@@ -9,9 +10,30 @@ interface HamburgerMenuProps {
   onOpenLogin: () => void;
 }
 
+interface MenuItem {
+  to: string;
+  labelKey: string;
+  roles: string[];
+}
+
+const MENU_ITEMS: MenuItem[] = [
+  { to: '/profile',          labelKey: 'menu_profile',          roles: ['User'] },
+  { to: '/seller-profile',   labelKey: 'menu_seller_profile',   roles: ['Manager'] },
+  { to: '/matching',         labelKey: 'menu_matching',         roles: ['User'] },
+  { to: '/search',           labelKey: 'menu_match_cv_ads',     roles: ['User'] },
+  { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',       roles: ['User'] },
+  { to: '/add-job-ad',       labelKey: 'menu_post_ad',          roles: ['Recruiter', 'Manager'] },
+  { to: '/match-ad-cvs',     labelKey: 'menu_match_ad_cvs',     roles: ['Recruiter', 'Manager'] },
+  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',   roles: [] },
+  { to: '/about',            labelKey: 'menu_how_it_works',     roles: [] },
+  { to: '/settings',         labelKey: 'menu_settings',         roles: [] },
+  { to: '/account',          labelKey: 'menu_account_settings', roles: [] },
+];
+
 const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLogin }) => {
   const { user, logout } = useAuth();
   const { tSync } = useTranslation();
+  const { hasAnyRole } = useRoles();
   const navigate = useNavigate();
 
   if (!isOpen) return null;
@@ -27,17 +49,15 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
           {!user && (
             <button className="text-left hover:underline" onClick={() => { onClose(); onOpenLogin(); }}>{tSync('menu_login')}</button>
           )}
-          {user && (
-            <>
-              <Link to="/profile" className="text-left hover:underline" onClick={onClose}>{tSync('menu_profile')}</Link>
-              <Link to="/settings" className="text-left hover:underline" onClick={onClose}>{tSync('menu_settings')}</Link>
-              <Link to="/account" className="text-left hover:underline" onClick={onClose}>{tSync('menu_account_settings')}</Link>
-            </>
-          )}
-          <Link to="/search" className="text-left hover:underline" onClick={onClose}>{tSync('menu_match_cv_ads')}</Link>
-          <Link to="/add-job-ad" className="text-left hover:underline" onClick={onClose}>{tSync('menu_post_ad')}</Link>
-          <Link to="/compare-cv-jobad" className="text-left hover:underline" onClick={onClose}>{tSync('menu_match_cv_jobad')}</Link>
-          <Link to="/about" className="text-left hover:underline" onClick={onClose}>{tSync('menu_how_it_works')}</Link>
+          {user && MENU_ITEMS.map(item => {
+            const visible = item.roles.length === 0 || hasAnyRole(item.roles);
+            if (!visible) return null;
+            return (
+              <Link key={item.to} to={item.to} className="text-left hover:underline" onClick={onClose}>
+                {tSync(item.labelKey)}
+              </Link>
+            );
+          })}
           {user && (
             <button className="text-left text-red-600 mt-2 flex items-center gap-2 hover:underline" onClick={() => { logout(); navigate('/'); }}>
               {tSync('menu_logout')} <span style={{ fontSize: 18 }}>&#8594;</span>

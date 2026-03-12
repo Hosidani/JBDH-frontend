@@ -22,8 +22,7 @@ src/**/*.spec.*
 src/**/*.stories.*
 src/**/*.mdx
 
-# Ignore markdown and docs
-*.md
+# Ignore some markdown and docs
 README.md
 
 # Ignore backup and temp files
