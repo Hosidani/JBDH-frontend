@@ -142,8 +142,50 @@ if (isRecruiter) { ... }
 
 ---
 
+## Backend Bugs to Fix First
+
+### Bug 1 — `AccountSettingsSerializer.get_roles()` always returns `[]`
+
+**File:** `JBDH-backend/apps/users/serializers.py` lines 44–51
+
+`get_roles()` is a stub that was never implemented — it always returns an empty list.
+Must be changed to read from `user.role_assignments` (same source as `UserProfileSerializer.get_selected_roles`):
+
+```python
+def get_roles(self, obj):
+    return list(obj.user.role_assignments.values_list('role', flat=True))
+```
+
+### Bug 2 — `UpdateAccountSettingsView` silently ignores role updates
+
+**File:** `JBDH-backend/apps/users/views.py` lines 333–343
+
+The view delegates everything to `AccountSettingsSerializer` which has no write logic for roles.
+When the frontend sends `updateRoles`, it is silently dropped.
+
+Must handle `updateRoles` explicitly — clear existing `UserRoleAssignment` rows for the user
+and create new ones from the submitted list:
+
+```python
+update_roles = request.data.get('updateRoles')
+if update_roles is not None:
+    from apps.users.models.roles import UserRoleAssignment
+    UserRoleAssignment.objects.filter(user=user).delete()
+    for role in update_roles:
+        UserRoleAssignment.objects.create(user=user, role=role)
+```
+
+---
+
 ## Files to Create/Modify
 
+### Backend
+| File | Action |
+|------|--------|
+| `apps/users/serializers.py` | Fix `get_roles()` — read from `user.role_assignments` |
+| `apps/users/views.py` | Handle `updateRoles` in `UpdateAccountSettingsView` |
+
+### Frontend
 | File | Action |
 |------|--------|
 | `src/context/AuthContext.tsx` | Add `roles`, `refreshRoles` |
