@@ -4,6 +4,7 @@ import { ApiService } from '../../services/ApiService';
 import { useNavigate } from 'react-router-dom';
 import IconSettings from '../icon_library/IconSettings';
 import IconEditPen from '../icon_library/IconEditPen';
+import { CheckboxGroup } from '../common';
 
 interface ProfileInfoCardProps {
   name: string;
@@ -36,24 +37,6 @@ const ToggleSwitch = ({ checked, onChange, label, yesLabel, noLabel }: { checked
       <span className={`text-xs font-bold ${checked ? 'text-slate-700' : 'text-slate-400'}`}>{yesLabel}</span>
     </div>
   </div>
-);
-
-const OutlinedCheckbox = ({ label, checked, onChange, stacked = false }: { label: string; checked: boolean; onChange: () => void; stacked?: boolean }) => (
-  <label
-    className={`flex ${stacked ? 'flex-col items-center justify-center' : 'flex-row items-center'} gap-0 px-4 py-2 border-2 rounded-xl cursor-pointer text-base font-semibold transition-all duration-150 min-w-[110px] min-h-[48px] 
-      ${checked ? 'border-slate-400 bg-white' : 'border-slate-200 bg-white'} 
-      hover:border-slate-400`}
-    style={{ boxShadow: checked ? '0 0 0 2px #64748b' : undefined }}
-  >
-    <span
-      className={`w-5 h-5 border-2 rounded-md flex items-center justify-center mb-1 mt-1 ${checked ? 'border-slate-700 bg-white' : 'border-slate-300 bg-white'}`}
-      style={{ fontWeight: 700 }}
-    >
-      {checked && <span className="text-lg leading-none text-slate-700">&#10005;</span>}
-    </span>
-    <span className={`text-slate-700 text-sm font-semibold ${stacked ? 'text-center' : ''}`}>{label}</span>
-    <input type="checkbox" checked={checked} onChange={onChange} className="hidden" />
-  </label>
 );
 
 const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
@@ -220,32 +203,21 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         <div className="relative flex flex-col items-center ml-8">
           <span className="text-xs text-slate-400 font-normal mb-1 text-center absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap">{tSync('profilePage_workplace_label')}</span>
           <div className="flex flex-row items-end gap-2 min-h-[48px]">
-            <OutlinedCheckbox
-              label={tSync('profilePage_workplace_onsite_label')}
-              checked={workplace.onSite}
-              onChange={async () => {
-                setWorkplace(w => ({ ...w, onSite: !w.onSite }));
-                await saveSettings({ desired_work_modes: [...currentDesiredWorkModes(), !workplace.onSite ? "På plats" : ""].filter(Boolean) });
+            <CheckboxGroup
+              options={[
+                { value: 'På plats', label: tSync('profilePage_workplace_onsite_label') },
+                { value: 'Hybrid',   label: tSync('profilePage_workplace_hybrid_label') },
+                { value: 'Distans',  label: tSync('profilePage_workplace_remote_label') },
+              ]}
+              selected={currentDesiredWorkModes()}
+              onChange={async (newModes) => {
+                setWorkplace({
+                  onSite: newModes.includes('På plats'),
+                  hybrid: newModes.includes('Hybrid'),
+                  remote: newModes.includes('Distans'),
+                });
+                await saveSettings({ desired_work_modes: newModes.length > 0 ? newModes : ['På plats'] });
               }}
-              stacked={false}
-            />
-            <OutlinedCheckbox
-              label={tSync('profilePage_workplace_hybrid_label')}
-              checked={workplace.hybrid}
-              onChange={async () => {
-                setWorkplace(w => ({ ...w, hybrid: !w.hybrid }));
-                await saveSettings({ desired_work_modes: [...currentDesiredWorkModes(), !workplace.hybrid ? "Hybrid" : ""].filter(Boolean) });
-              }}
-              stacked={false}
-            />
-            <OutlinedCheckbox
-              label={tSync('profilePage_workplace_remote_label')}
-              checked={workplace.remote}
-              onChange={async () => {
-                setWorkplace(w => ({ ...w, remote: !w.remote }));
-                await saveSettings({ desired_work_modes: [...currentDesiredWorkModes(), !workplace.remote ? "Distans" : ""].filter(Boolean) });
-              }}
-              stacked={false}
             />
           </div>
         </div>

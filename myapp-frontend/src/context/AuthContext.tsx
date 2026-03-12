@@ -1,27 +1,36 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { ApiService } from "../services/ApiService";
 
 export interface AuthUser {
   email: string;
   name?: string;
-  roles?: string[];
-  // Add more fields as needed
 }
 
 interface AuthContextType {
   user: AuthUser | null;
+  roles: string[];
   login: (user: AuthUser) => void;
   logout: () => void;
+  refreshRoles: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-
 export { AuthContext };
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const fetchRoles = async () => {
+    try {
+      const profile = await ApiService.getMyProfile();
+      setRoles(profile.selected_roles ?? []);
+    } catch {
+      setRoles([]);
+    }
+  };
 
   // Restore user from localStorage on mount and validate session
   useEffect(() => {
@@ -29,15 +38,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const stored = localStorage.getItem("authUser");
       if (stored) {
         try {
-          // Try to validate the session by calling an auth-required endpoint
-          await ApiService.getMyProfile();
-          // If successful, session is valid - restore user
+          const profile = await ApiService.getMyProfile();
           setUser(JSON.parse(stored));
+          setRoles(profile.selected_roles ?? []);
         } catch (error) {
-          // Session is invalid/expired, clear stored user
           console.warn("Session validation failed - clearing stored user:", error);
           localStorage.removeItem("authUser");
           setUser(null);
+          setRoles([]);
         }
       }
       setLoading(false);
@@ -60,14 +68,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (user: AuthUser) => {
     setUser(user);
     localStorage.setItem("authUser", JSON.stringify(user));
+    fetchRoles();
   };
-  
+
+  const refreshRoles = useCallback(async () => {
+    await fetchRoles();
+  }, []);
+
   const logout = async () => {
     try {
-      // Call backend to blacklist refresh token
       const accessToken = localStorage.getItem('access_token');
       const refreshToken = localStorage.getItem('refresh_token');
-      
       if (accessToken && refreshToken) {
         await fetch(`${import.meta.env.VITE_API_URL}/Logout`, {
           method: 'POST',
@@ -81,11 +92,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Logout API call failed:', error);
     } finally {
-      // Clear tokens and user state regardless of API call result
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('authUser');
       setUser(null);
+      setRoles([]);
     }
   };
 
@@ -94,7 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, roles, login, logout, refreshRoles }}>
       {children}
     </AuthContext.Provider>
   );

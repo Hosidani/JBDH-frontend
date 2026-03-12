@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { ApiService } from '../../services/ApiService';
-import { PageWrapper, PageBackground } from '../../components/common';
+import { PageWrapper, PageBackground, CheckboxGroup } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { useAuth } from '../../context/AuthContext';
 import ProfileForm from '../../components/settings/ProfileForm';
 import PasswordForm from '../../components/settings/PasswordForm';
 import EmailConfirmModal from '../../components/settings/EmailConfirmModal';
 
 const SettingsPage: React.FC = () => {
   const { tSync } = useTranslation();
+  const { refreshRoles } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [showEmailConfirm, setShowEmailConfirm] = useState(false);
@@ -29,6 +32,7 @@ const SettingsPage: React.FC = () => {
         setEmail(profile.email || '');
         setPhone(profile.phone_number || '');
         setOriginalEmail(profile.email || '');
+        setSelectedRoles(profile.selected_roles || []);
       // setLocation(profile.location || '');
       // setDesiredEmploymentTypes(profile.desired_employment_types || []);
       // setDesiredWorkModes(profile.desired_work_modes || []);
@@ -121,6 +125,17 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  const handleRolesChange = async (newRoles: string[]) => {
+    const previous = selectedRoles;
+    setSelectedRoles(newRoles);
+    try {
+      await ApiService.updateAccountSettings({ updateRoles: newRoles });
+      await refreshRoles();
+    } catch {
+      setSelectedRoles(previous);
+    }
+  };
+
   return (
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
@@ -157,6 +172,18 @@ const SettingsPage: React.FC = () => {
             onSubmit={handlePasswordSubmit}
             tSync={tSync}
           />
+          <section className="flex flex-col gap-3">
+            <h3 className="text-lg font-semibold text-slate-800">{tSync('account_roles')}</h3>
+            <CheckboxGroup
+              options={[
+                { value: 'User',      label: tSync('role_candidate') },
+                { value: 'Recruiter', label: tSync('role_recruiter') },
+                { value: 'Manager',   label: tSync('role_sales') },
+              ]}
+              selected={selectedRoles}
+              onChange={handleRolesChange}
+            />
+          </section>
         </div>
       </PageWrapper>
     </>
