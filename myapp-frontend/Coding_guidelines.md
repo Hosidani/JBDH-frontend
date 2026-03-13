@@ -1,6 +1,7 @@
 # Coding Guidelines — myapp-frontend
 
 ---
+
 Use this documents as a guidline for future human development and/or as an instruction to yout favourite LLM-AI-coder
 
 ## Role-Based UI Gating
