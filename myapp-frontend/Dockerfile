@@ -12,12 +12,17 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Set build-time environment variable
-ARG VITE_API_URL=http://localhost:8000/api
-ENV VITE_API_URL=$VITE_API_URL
+# Set build-time arguments
+ARG VITE_MODE=production
+ARG VITE_API_URL=""
 
 # Build the app
-RUN npm run build
+# If VITE_API_URL is provided, use it. Otherwise, Vite reads from .env files
+RUN if [ -n "$VITE_API_URL" ]; then \
+      VITE_API_URL="$VITE_API_URL" npm run build -- --mode ${VITE_MODE}; \
+    else \
+      npm run build -- --mode ${VITE_MODE}; \
+    fi
 
 # Production stage
 FROM nginx:alpine
