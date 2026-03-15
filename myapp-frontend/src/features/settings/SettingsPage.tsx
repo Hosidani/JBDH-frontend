@@ -22,43 +22,31 @@ const SettingsPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [pwMessage, setPwMessage] = useState<string | null>(null);
 
+  // TODO: Fetch current user info and prefill fields
   React.useEffect(() => {
     ApiService.getMyProfile()
       .then(profile => {
+        console.log('Profile data received:', profile);
         setName(profile.name || '');
         setEmail(profile.email || '');
-        setPhone(profile.phone_number || '');
+        setPhone(profile.phoneNumber || '');
         setOriginalEmail(profile.email || '');
-      // setLocation(profile.location || '');
-      // setDesiredEmploymentTypes(profile.desired_employment_types || []);
-      // setDesiredWorkModes(profile.desired_work_modes || []);
-      // setTravelAvailability(profile.travel_availability || '');
-      // setAvailableFrom(profile.available_from || '');
-      // setDesiredCity(profile.desired_city || '');
-      // setWorkPlace(profile.work_place || '');
-      // setCompetencies(profile.competencies || []);
-      // setCvPath(profile.cv_path || '');
-      // setDeveloperMode(profile.developer_mode || false);
-      // setSearchable(profile.searchable || false);
-      // setIsBanned(profile.is_banned || false);
-      // setRole(profile.role || '');
-      // setSelectedRoles(profile.selected_roles || []);
-      // setOwnerId(profile.owner_id || null);
-      // setAboutMe(profile.about_me || '');
-      // setCreatedAt(profile.created_at || '');
-      // setAiResponses(profile.ai_responses || []);
-      // setOwnedUsers(profile.owned_users || []);
-      // setOwner(profile.owner || null);
+      })
+      .catch(error => {
+        console.error('Error fetching profile:', error);
+        setProfileMessage('Error loading profile data');
       });
   }, []);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileMessage(null);
+    // Prepare DTO for API
     const dto = {
-      name: name,
-      email: email,
-      phone_number: phone
+      Name: name,
+      Email: email,
+      PhoneNumber: phone
+      // Add other fields as needed
     };
     if (email !== originalEmail) {
       setPendingDto(dto);
@@ -72,14 +60,14 @@ const SettingsPage: React.FC = () => {
     setLoading(true);
     try {
       await ApiService.updateUserSettings(dto);
-      // Hämta uppdaterad profil direkt efter lyckad PUT
-      const updatedProfile = await ApiService.getMyProfile();
-      setName(updatedProfile.name || '');
-      setEmail(updatedProfile.email || '');
-      setPhone(updatedProfile.phone_number || '');
-      setOriginalEmail(updatedProfile.email || '');
+      // If email was changed, log out and redirect to login
+      if (dto.Email !== originalEmail) {
+        // Optionally, call a logout API if needed
+        window.location.href = '/login';
+        return;
+      }
       setProfileMessage(tSync('settingsPage_profile_updated'));
-      // window.location.href = '/profile'; // Ta bort denna rad om du vill stanna kvar på sidan
+      window.location.href = '/profile';
     } catch (error: any) {
       setProfileMessage(error?.message || 'Error updating profile');
     } finally {
@@ -111,6 +99,7 @@ const SettingsPage: React.FC = () => {
     try {
       await ApiService.changePassword(currentPassword, newPassword, confirmPassword);
       setPwMessage(tSync('settingsPage_password_updated'));
+      // Clear password fields after successful change
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');

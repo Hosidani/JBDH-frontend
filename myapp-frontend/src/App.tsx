@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from './hooks/TranslationProvider';
-import { isTokenValid, useAutoLogout } from './hooks/useAutoLogout';
 import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary } from './components/common';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -18,7 +17,6 @@ import { MatchingProfilePage } from './features/matching';
 import { JobDetailPage } from './features/jobs';
 import './App.css';
 
-
 type LogoutRedirectProps = { user: any; setMenuOpen: (v: boolean) => void };
 function LogoutRedirect(props: LogoutRedirectProps) {
   const navigate = useNavigate();
@@ -32,20 +30,10 @@ function LogoutRedirect(props: LogoutRedirectProps) {
 }
 
 function App() {
-  useAutoLogout(); // <-- Lägg till denna rad högst upp i funktionen
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const { language, changeLanguage } = useTranslation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!isTokenValid(token)) {
-      localStorage.removeItem('access_token');
-      navigate('/login');
-    }
-  }, [navigate]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">

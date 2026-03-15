@@ -45,16 +45,10 @@ const CompareCvToJobAdPage: React.FC = () => {
       const formData = new FormData();
       formData.append('CvPath', cvFile);
       formData.append('JobAdText', jobAdText);
-      const endpoint = useV2 ? '/Home/CompareCvToJobAdV2' : '/Home/CompareCvToJobAd';
-      const token = localStorage.getItem('access_token');
-      const headers: HeadersInit = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      const endpoint = useV2 ? '/api/Home/CompareCvToJobAdV2' : '/api/Home/CompareCvToJobAd';
       const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
         method: 'POST',
         credentials: 'include',
-        headers,
         body: formData,
       });
       let data = null;
@@ -196,6 +190,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                 totalRequirements={result.totalRequirements}
                 matches={result.matches || []}
                 topGaps={result.topGaps || []}
+                careerSummaryPitch={result.CareerSummaryPitch || result.careerSummaryPitch}
               />
             </div>
           ) : result && typeof result === 'object' ? (

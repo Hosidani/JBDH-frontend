@@ -1,3 +1,4 @@
+const API_URL = import.meta.env.VITE_API_URL;
 import React, { useState } from 'react';
 import type { CreateFlowRequest } from './types';
 
@@ -6,9 +7,6 @@ interface CreateFlowFormProps {
 }
 
 const CreateFlowForm: React.FC<CreateFlowFormProps> = ({ onPostCreated }) => {
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  console.log('🔍 CreateFlowForm API_URL:', API_URL);
-  
   const [showForm, setShowForm] = useState(false);
   const [content, setContent] = useState('');
   const [contentType, setContentType] = useState<'text' | 'image' | 'video' | 'link'>('text');
@@ -30,7 +28,7 @@ const CreateFlowForm: React.FC<CreateFlowFormProps> = ({ onPostCreated }) => {
     };
 
     try {
-      const response = await fetch(`${API_URL}/home/CreateFlow`, {
+      const response = await fetch(`${API_URL}/api/home/CreateFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
