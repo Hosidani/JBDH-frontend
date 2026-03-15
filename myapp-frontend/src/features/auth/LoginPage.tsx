@@ -1,8 +1,9 @@
-const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { ApiService } from '../../services/ApiService';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -19,27 +20,14 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    try {
-      const response = await fetch(`${API_URL}/Login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
-      if (response.ok) {
-        // Backend does not return user info, treat any 2xx as success
-        login({ email });
-        navigate('/');
-      } else {
-        setError(tSync('loginPage_invalid_credentials'));
-      }
-    } catch (err) {
-      setError(tSync('loginPage_error'));
-    } finally {
-      setLoading(false);
+    const result = await ApiService.loginUser(email, password);
+    if (result.user) {
+      login(result.user);
+      navigate('/');
+    } else {
+      setError(tSync('loginPage_invalid_credentials'));
     }
+    setLoading(false);
   };
 
   return (

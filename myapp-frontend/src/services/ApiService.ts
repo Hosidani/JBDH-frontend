@@ -43,9 +43,37 @@ export class ApiService {
     localStorage.setItem('refresh_token', refreshToken);
   }
 
+
   static clearTokens(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+  }
+
+  // Shared login method for DRY principle
+  static async loginUser(email: string, password: string): Promise<{ user: any; access?: string; refresh?: string; error?: string }> {
+    const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+    try {
+      const response = await fetch(`${API_URL}/auth/login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.access && data.refresh) {
+          ApiService.setTokens(data.access, data.refresh);
+        }
+        const userInfo = data.user || { email };
+        return { user: userInfo, access: data.access, refresh: data.refresh };
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        return { user: null, error: errorData.detail || 'Invalid credentials' };
+      }
+    } catch (err: any) {
+      return { user: null, error: err?.message || 'Login failed' };
+    }
   }
 
   // Refresh the access token using the refresh token

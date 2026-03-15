@@ -1,7 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL;
+
 import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useTranslation } from '../../../hooks/TranslationProvider';
+import { ApiService } from '../../../services/ApiService';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -36,24 +37,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
       return;
     }
     setLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/Login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
-      if (response.ok) {
-        login({ email });
-        onClose();
-      } else {
-        setError(tSync('loginModal_error_invalid_credentials'));
-      }
-    } catch (err) {
-      setError(tSync('loginModal_error_generic'));
-    } finally {
-      setLoading(false);
+    const result = await ApiService.loginUser(email, password);
+    if (result.user) {
+      login(result.user);
+      onClose();
+    } else {
+      setError(tSync('loginModal_error_invalid_credentials'));
     }
+    setLoading(false);
   };
 
   return (
