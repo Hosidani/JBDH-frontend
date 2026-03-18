@@ -41,6 +41,8 @@
   "searchJobs_search_button": "Search",
   "searchJobs_searching": "Searching...",
   "searchJobs_results_title": "Results",
+  "searchJobs_tab_search": "Search",
+  "searchJobs_tab_results": "Results",
   "searchJobs_no_results": "No jobs found.",
   "matchAdToCvsPage_title": "Match ad to CVs",
   "matchAdToCvsPage_comingSoon": "This feature is coming soon. Please check back later!",

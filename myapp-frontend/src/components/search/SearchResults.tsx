@@ -162,10 +162,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
   ];
 
   return (
-    <div className="card relative z-10 p-6 mt-6">
-      <h3 className="text-xl font-bold mb-4">
-        {tSync('searchJobs_results_title')} ({results.length})
-      </h3>
+    <div>
       <DataList
         items={results}
         columns={columns}

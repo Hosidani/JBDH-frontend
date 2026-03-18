@@ -9,3 +9,5 @@ export { Badge } from './Badge';
 export { FileDropZone } from './FileDropZone';
 export { DataList } from './DataList';
 export type { DataListColumn } from './DataList';
+export { Tabs } from './Tabs';
+export type { TabItem } from './Tabs';
