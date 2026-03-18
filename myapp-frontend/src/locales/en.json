@@ -255,6 +255,7 @@
   "searchResults_deadline": "Deadline",
   "searchResults_area": "Area",
   "searchResults_compensation": "Compensation",
+  "searchResults_actions": "",
   "searchResults_save_tooltip": "Save job",
   "searchResults_unsave_tooltip": "Remove from saved",
   "searchResults_hide_tooltip": "Hide job",

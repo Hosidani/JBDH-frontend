@@ -24,7 +24,7 @@ const SavedJobsPage: React.FC = () => {
     company: jobDetails.company || '---',
     location: jobDetails.location || '---',
     workType: jobDetails.workType || jobDetails.employmentType || '---',
-    lastApplicationDate: jobDetails.applicationDeadline || '---',
+    lastApplicationDate: jobDetails.applicationDeadline ? new Date(jobDetails.applicationDeadline).toLocaleDateString('sv-SE') : '---',
     isActionItem: !jobDetails.hasApplied, // Action item if not applied yet
     saved: jobDetails.isSaved,
     notes: jobDetails.notes || undefined,

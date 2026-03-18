@@ -255,6 +255,7 @@
   "searchResults_deadline": "Deadline",
   "searchResults_area": "Område",
   "searchResults_compensation": "Arvode",
+  "searchResults_actions": "",
   "searchResults_save_tooltip": "Spara jobb",
   "searchResults_unsave_tooltip": "Ta bort från sparade",
   "searchResults_hide_tooltip": "Dölj jobb",

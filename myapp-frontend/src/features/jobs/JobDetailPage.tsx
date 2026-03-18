@@ -67,7 +67,7 @@ const JobDetailPage: React.FC = () => {
     company: jobData.company || '---',
     location: jobData.location || '---',
     workType: jobData.workType || jobData.employmentType || '---',
-    lastApplicationDate: jobData.applicationDeadline || '---',
+    lastApplicationDate: jobData.applicationDeadline ? new Date(jobData.applicationDeadline).toLocaleDateString('sv-SE') : '---',
     isActionItem: !jobData.hasApplied,
     saved: jobData.isSaved,
     competencies: jobData.requiredSkills || [],
