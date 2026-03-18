@@ -59,10 +59,18 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   }, []);
 
   const currentDesiredWorkModes = (): string[] => {
+<<<<<<< HEAD
     if (workplace.onSite) return ['På plats'];
     if (workplace.hybrid) return ['Hybrid'];
     if (workplace.remote) return ['Distans'];
     return ['På plats'];
+=======
+    const modes: string[] = [];
+    if (workplace.onSite) modes.push('På plats');
+    if (workplace.hybrid) modes.push('Hybrid');
+    if (workplace.remote) modes.push('Distans');
+    return modes;
+>>>>>>> 9a28654 (Fix multi checkbox)
   };
 
   const saveSettings = async (overrides: Partial<{ searchable: boolean; travelAvailability: boolean; desiredWorkModes: string[] }>) => {
@@ -71,7 +79,12 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
       travelAvailability: willingToTravel,
       desiredWorkModes: currentDesiredWorkModes(),
       ...overrides,
+<<<<<<< HEAD
     });
+=======
+    };
+    await ApiService.updateUserSettings(payload);
+>>>>>>> 9a28654 (Fix multi checkbox)
   };
 
   let registrationDate = tSync('profilePage_registration_unknown');
@@ -167,6 +180,56 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           }}
           layout="row"
         />
+<<<<<<< HEAD
+=======
+        <div className="relative flex flex-col items-center ml-8">
+          <span className="text-xs text-slate-400 font-normal mb-1 text-center absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap">{tSync('profilePage_workplace_label')}</span>
+          <div className="flex flex-row items-end gap-2 min-h-[48px]">
+            <OutlinedCheckbox
+              label={tSync('profilePage_workplace_onsite_label')}
+              checked={workplace.onSite}
+              onChange={async () => {
+                const next = { ...workplace, onSite: !workplace.onSite };
+                setWorkplace(next);
+                const modes: string[] = [];
+                if (next.onSite) modes.push('På plats');
+                if (next.hybrid) modes.push('Hybrid');
+                if (next.remote) modes.push('Distans');
+                await saveSettings({ desiredWorkModes: modes });
+              }}
+              stacked={false}
+            />
+            <OutlinedCheckbox
+              label={tSync('profilePage_workplace_hybrid_label')}
+              checked={workplace.hybrid}
+              onChange={async () => {
+                const next = { ...workplace, hybrid: !workplace.hybrid };
+                setWorkplace(next);
+                const modes: string[] = [];
+                if (next.onSite) modes.push('På plats');
+                if (next.hybrid) modes.push('Hybrid');
+                if (next.remote) modes.push('Distans');
+                await saveSettings({ desiredWorkModes: modes });
+              }}
+              stacked={false}
+            />
+            <OutlinedCheckbox
+              label={tSync('profilePage_workplace_remote_label')}
+              checked={workplace.remote}
+              onChange={async () => {
+                const next = { ...workplace, remote: !workplace.remote };
+                setWorkplace(next);
+                const modes: string[] = [];
+                if (next.onSite) modes.push('På plats');
+                if (next.hybrid) modes.push('Hybrid');
+                if (next.remote) modes.push('Distans');
+                await saveSettings({ desiredWorkModes: modes });
+              }}
+              stacked={false}
+            />
+          </div>
+        </div>
+>>>>>>> 9a28654 (Fix multi checkbox)
       </div>
 
       {/* Kompetenser */}
