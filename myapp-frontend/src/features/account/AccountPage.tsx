@@ -8,6 +8,8 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { PageCard } from '../../components/common/PageCard';
 import { Modal } from '../../components/common/Modal';
+import { PageWrapper, PageBackground } from '../../components/common';
+import accountSettingsBg from '../../assets/img/account_settings.png';
 
 interface Organisation {
   id: number;
@@ -330,33 +332,42 @@ const AccountPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading account settings...</p>
-        </div>
-      </div>
+      <>
+        <PageBackground imageUrl={accountSettingsBg} opacity={1} blur={0} />
+        <PageWrapper>
+          <div className="flex items-center justify-center py-24">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading account settings...</p>
+            </div>
+          </div>
+        </PageWrapper>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <h2 className="text-red-800 text-lg font-semibold mb-2">Error</h2>
-          <p className="text-red-600">{error}</p>
-        </div>
-      </div>
+      <>
+        <PageBackground imageUrl={accountSettingsBg} opacity={1} blur={0} />
+        <PageWrapper>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+            <h2 className="text-red-800 text-lg font-semibold mb-2">Error</h2>
+            <p className="text-red-600">{error}</p>
+          </div>
+        </PageWrapper>
+      </>
     );
   }
 
   if (!accountSettings) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <>
+        <PageBackground imageUrl={accountSettingsBg} opacity={1} blur={0} />
+        <PageWrapper>
           <p className="text-gray-600">No account settings found.</p>
-        </div>
-      </div>
+        </PageWrapper>
+      </>
     );
   }
 
@@ -367,8 +378,9 @@ const AccountPage: React.FC = () => {
     role === 'Manager' ? tSync('role_admin') : role;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="w-[760px] max-w-full mx-auto px-4 flex flex-col gap-6">
+    <>
+      <PageBackground imageUrl={accountSettingsBg} opacity={1} blur={0} />
+      <PageWrapper className="flex flex-col gap-6 relative z-10">
 
         {/* Account Information */}
         <PageCard
@@ -469,7 +481,7 @@ const AccountPage: React.FC = () => {
           )}
         </PageCard>
 
-      </div>
+      </PageWrapper>
 
       {/* Organisation Picker Modal */}
       <Modal open={showOrgPicker} onClose={() => { setShowOrgPicker(false); setOrgSearchQuery(''); setFilteredOrgs([]); }} title="Join Organisation">
@@ -501,7 +513,7 @@ const AccountPage: React.FC = () => {
           <Button variant="secondary" disabled={isTerminating} onClick={() => setShowTerminateConfirm(false)} className="flex-1">{tSync('button_cancel')}</Button>
         </div>
       </Modal>
-    </div>
+    </>
   );
 };
 
