@@ -8,7 +8,6 @@ import { Toggle } from '../ui/Toggle';
 import { CheckboxGroup } from '../ui/CheckboxGroup';
 import { InfoRow } from '../common/InfoRow';
 import { Badge } from '../ui/Badge';
-import { SectionCard } from '../common/SectionCard';
 
 interface ProfileInfoCardProps {
   name: string;
@@ -108,7 +107,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   }
 
   return (
-    <SectionCard className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Avatar */}
       <div className="flex flex-col items-center">
         <div className="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-3xl font-bold text-slate-600 mb-2">
@@ -129,57 +128,62 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         </button>
       </div>
 
-      {/* Info grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <InfoRow label={tSync('settingsPage_name_label')}             value={name} />
-        <InfoRow label={tSync('profilePage_title_label')}             value={title} />
-        <InfoRow label={tSync('profilePage_employmentType_label')}    value={employmentType} />
-        <InfoRow label={tSync('profilePage_registration_date_label')} value={registrationDate} />
-        <InfoRow label={tSync('settingsPage_phone_label')}            value={phone} />
-        <InfoRow label={tSync('settingsPage_email_label')}            value={email} type="email" />
-        <InfoRow label={tSync('profilePage_location_label')}          value={location} />
-        <InfoRow label={tSync('profilePage_region_label')}            value={region} />
-      </div>
+      {/* Two-column layout */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        {/* Column 1: Namn, Anst.form, Telefon, Ort + Sökbar + Resbar */}
+        <div className="flex-1 flex flex-col gap-4">
+          <InfoRow label={tSync('settingsPage_name_label')}          value={name} />
+          <InfoRow label={tSync('profilePage_employmentType_label')} value={employmentType} />
+          <InfoRow label={tSync('settingsPage_phone_label')}         value={phone} />
+          <InfoRow label={tSync('profilePage_location_label')}       value={location} />
+          <div className="flex flex-row gap-6">
+            <Toggle
+              label={tSync('profilePage_searchable_label')}
+              checked={searchable}
+              yesLabel={tSync('profilePage_yes_label')}
+              noLabel={tSync('profilePage_no_label')}
+              onChange={async () => {
+                const v = !searchable;
+                setSearchable(v);
+                await saveSettings({ searchable: v });
+              }}
+            />
+            <Toggle
+              label={tSync('profilePage_travel_label')}
+              checked={willingToTravel}
+              yesLabel={tSync('profilePage_yes_label')}
+              noLabel={tSync('profilePage_no_label')}
+              onChange={async () => {
+                const v = !willingToTravel;
+                setWillingToTravel(v);
+                await saveSettings({ travelAvailability: v });
+              }}
+            />
+          </div>
+        </div>
 
-      {/* Toggles + workplace */}
-      <div className="flex flex-row flex-wrap items-end gap-6">
-        <Toggle
-          label={tSync('profilePage_searchable_label')}
-          checked={searchable}
-          yesLabel={tSync('profilePage_yes_label')}
-          noLabel={tSync('profilePage_no_label')}
-          onChange={async () => {
-            const v = !searchable;
-            setSearchable(v);
-            await saveSettings({ searchable: v });
-          }}
-        />
-        <Toggle
-          label={tSync('profilePage_travel_label')}
-          checked={willingToTravel}
-          yesLabel={tSync('profilePage_yes_label')}
-          noLabel={tSync('profilePage_no_label')}
-          onChange={async () => {
-            const v = !willingToTravel;
-            setWillingToTravel(v);
-            await saveSettings({ travelAvailability: v });
-          }}
-        />
-        <CheckboxGroup
-          label={tSync('profilePage_workplace_label')}
-          options={workplaceOptions}
-          selected={workplaceSelectedArr}
-          onChange={async (vals) => {
-            const next = { onSite: vals.includes('onSite'), hybrid: vals.includes('hybrid'), remote: vals.includes('remote') };
-            setWorkplace(next);
-            const modes: string[] = [];
-            if (next.onSite) modes.push('På plats');
-            if (next.hybrid) modes.push('Hybrid');
-            if (next.remote) modes.push('Distans');
-            await saveSettings({ desiredWorkModes: modes });
-          }}
-          layout="row"
-        />
+        {/* Column 2: Titel, Tillgänglig från, E-post, Område + Önskad arbetsplats */}
+        <div className="flex-1 flex flex-col gap-4">
+          <InfoRow label={tSync('profilePage_title_label')}             value={title} />
+          <InfoRow label={tSync('profilePage_registration_date_label')} value={registrationDate} />
+          <InfoRow label={tSync('settingsPage_email_label')}            value={email} type="email" />
+          <InfoRow label={tSync('profilePage_region_label')}            value={region} />
+          <CheckboxGroup
+            label={tSync('profilePage_workplace_label')}
+            options={workplaceOptions}
+            selected={workplaceSelectedArr}
+            onChange={async (vals) => {
+              const next = { onSite: vals.includes('onSite'), hybrid: vals.includes('hybrid'), remote: vals.includes('remote') };
+              setWorkplace(next);
+              const modes: string[] = [];
+              if (next.onSite) modes.push('På plats');
+              if (next.hybrid) modes.push('Hybrid');
+              if (next.remote) modes.push('Distans');
+              await saveSettings({ desiredWorkModes: modes });
+            }}
+            layout="row"
+          />
+        </div>
       </div>
 
       {/* Kompetenser */}
@@ -198,7 +202,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           ))}
         </div>
       </div>
-    </SectionCard>
+    </div>
   );
 };
 

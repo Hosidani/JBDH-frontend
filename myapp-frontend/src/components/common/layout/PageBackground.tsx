@@ -13,7 +13,7 @@ const PageBackground: React.FC<PageBackgroundProps> = ({
   imageUrl,
   opacity = 0.18,
   blur = 1,
-  topOffset = '100px',
+  topOffset = '0px',
   className = '',
 }) => (
   <div

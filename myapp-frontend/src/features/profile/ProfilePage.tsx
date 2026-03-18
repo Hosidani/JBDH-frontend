@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
 import { ProfileInfoCard, AIAnalysisCard, FileDropZoneCard, ButtonsCard } from '../../components/profile';
 import { PageWrapper, PageBackground } from '../../components/common';
+import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useAIResponsePolling } from '../../hooks/useAIResponsePolling';
 
@@ -101,22 +102,27 @@ function ProfilePage() {
   return (
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
-      <PageWrapper className="relative z-10 flex flex-col gap-8">
-        <ProfileInfoCard {...profileCardProps} />
-        <AIAnalysisCard
-          polling={polling}
-          analysis={latestAIAnalysis}
-          aiResponse={latestAIResponse}
-          aiResponses={aiResponses}
-          tSync={tSync}
-          language={language}
-        />
-        <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
-        <ButtonsCard
-          tSync={tSync}
-          onMatchNowClick={() => navigate('/matching')}
-          onManualSearchClick={() => navigate('/search')}
-        />
+      <PageWrapper className="relative z-10">
+        <SectionCard className="flex flex-col gap-8">
+          <ProfileInfoCard {...profileCardProps} />
+          <hr className="border-slate-200" />
+          <AIAnalysisCard
+            polling={polling}
+            analysis={latestAIAnalysis}
+            aiResponse={latestAIResponse}
+            aiResponses={aiResponses}
+            tSync={tSync}
+            language={language}
+          />
+          <hr className="border-slate-200" />
+          <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
+          <hr className="border-slate-200" />
+          <ButtonsCard
+            tSync={tSync}
+            onMatchNowClick={() => navigate('/matching')}
+            onManualSearchClick={() => navigate('/search')}
+          />
+        </SectionCard>
       </PageWrapper>
     </>
   );
