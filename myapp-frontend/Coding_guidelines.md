@@ -2,7 +2,92 @@
 
 ---
 
-Use this documents as a guidline for future human development and/or as an instruction to yout favourite LLM-AI-coder
+Use this document as a guideline for future human development and/or as an instruction to your favourite LLM AI coder.
+
+---
+
+## Designdirektiv — Komponentbibliotek
+
+Dessa direktiv gäller all ny och modifierad kod i `myapp-frontend`. Avvik **inte** från dem utan att uppdatera denna fil.
+
+### 1. Använd alltid de etablerade komponenterna
+
+Vi har ett tvålagers komponentbibliotek. Skapa **inte** egna inline-varianter av saker som redan finns.
+
+**UI-primitiver** (`src/components/ui/`) — atoma, återanvändbara byggstenar:
+
+| Komponent | Används för |
+|---|---|
+| `TextInput` | Alla textfält — stödjer `readOnly`-läge för visning |
+| `Button` | Alla knappar — `variant`: `primary \| secondary \| danger \| ghost` |
+| `Heading` | Rubriker — `level`: `1–4`, ger konsekvent typografi |
+| `Badge` | Etiketter/taggar — `color`: `blue \| green \| red \| yellow \| gray \| purple` |
+| `Toggle` | Av/på-brytare (boolean) |
+| `CheckboxGroup` | Grupp av kryssrutor med etiketter |
+| `FileDropZone` | Fil-uppladdning med drag-and-drop |
+
+```tsx
+import { TextInput, Button, Heading, Badge, Toggle, CheckboxGroup, FileDropZone } from '../../components/ui';
+```
+
+**Sammansatta komponenter** (`src/components/common/`) — byggda på primitiver:
+
+| Komponent | Används för |
+|---|---|
+| `PageWrapper` | Yttre sidombrytning — **alltid** `<PageWrapper>` som rot på en sida |
+| `SectionCard` | Vitt kort med skugga och border — ersätter alla `<div className="card ...">` |
+| `PageCard` | `SectionCard` med titelfält och valfri åtgärdsknapp |
+| `FormField` | Label + input + felmeddelande |
+| `InfoRow` | Etikett + visningsvärde (readonly `TextInput`) |
+| `Modal` | Dialogruta med backdrop och stängknapp |
+| `PageBackground` | Bakgrundsbild med opacity/blur |
+
+```tsx
+import { PageWrapper, PageBackground, SectionCard, PageCard, FormField, InfoRow, Modal } from '../../components/common';
+```
+
+### 2. Sidstruktur — alltid samma mönster
+
+Varje sida ska följa denna grundstruktur:
+
+```tsx
+return (
+  <>
+    <PageBackground imageUrl="/min-bild.png" opacity={1} blur={0} />
+    <PageWrapper>
+      <SectionCard>
+        {/* sidinnehåll */}
+      </SectionCard>
+    </PageWrapper>
+  </>
+);
+```
+
+- `PageWrapper` bestämmer bredden (760 px, centrerad). Lägg **aldrig** en egen `max-w-*` eller `w-*` utanpå.
+- `SectionCard` är alltid det vita kortet. Använd **inte** `<div className="card ...">` eller egna `bg-white rounded shadow`-kombinationer.
+
+### 3. Formulär och fält
+
+- Alla textinputs → `TextInput`. Stöder `readOnly`, `error`, `label`, `placeholder`.
+- Visa data (ej redigerbart) → `InfoRow` eller `TextInput readOnly`.
+- Knappar → `Button` med rätt `variant`. Använd **inte** råa `<button>` med Tailwind-klasser.
+- Rubrik på sektion → `Heading level={2}` eller `level={3}`. Använd **inte** `<h2 className="text-2xl font-bold ...">`.
+
+### 4. Skapa inte nya komponenter i onödan
+
+Innan du skapar en ny komponent, kontrollera:
+
+1. Finns primitiven redan i `src/components/ui/`?
+2. Finns den sammansatta varianten i `src/components/common/`?
+3. Räcker `SectionCard` + `PageCard` + inbyggda HTML-element?
+
+Skapa en ny komponent bara om den fyller ett genuint nytt syfte som inte kan lösas med de befintliga.
+
+### 5. Uppdatera denna fil vid förändringar
+
+Om du lägger till, byter namn på eller tar bort en komponent ur biblioteket — uppdatera tabellerna ovan. Filen är källan till sanning för vilka komponenter som finns och hur de används.
+
+---
 
 ## Role-Based UI Gating
 

@@ -99,24 +99,22 @@ function ProfilePage() {
   return (
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
-      <PageWrapper>
-        <div className="relative z-10 max-w-2xl w-full mx-auto mt-8 flex flex-col gap-8">
-          <ProfileInfoCard {...profileCardProps} />
-          <AIAnalysisCard
-            polling={polling}
-            analysis={latestAIAnalysis}
-            aiResponse={latestAIResponse}
-            aiResponses={aiResponses}
-            tSync={tSync}
-            language={language}
-          />
-          <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
-          <ButtonsCard 
-            tSync={tSync}
-            onMatchNowClick={() => navigate('/matching')}
-            onManualSearchClick={() => navigate('/search')}
-          />
-        </div>
+      <PageWrapper className="flex flex-col gap-8">
+        <ProfileInfoCard {...profileCardProps} />
+        <AIAnalysisCard
+          polling={polling}
+          analysis={latestAIAnalysis}
+          aiResponse={latestAIResponse}
+          aiResponses={aiResponses}
+          tSync={tSync}
+          language={language}
+        />
+        <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
+        <ButtonsCard
+          tSync={tSync}
+          onMatchNowClick={() => navigate('/matching')}
+          onManualSearchClick={() => navigate('/search')}
+        />
       </PageWrapper>
     </>
   );

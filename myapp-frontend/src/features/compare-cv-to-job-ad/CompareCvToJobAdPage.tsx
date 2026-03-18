@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { PageWrapper, PageBackground, FileDropZone } from '../../components/common';
+import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import CvMatchingVisualization from '../../components/Features/CvMatchingVisualization';
 
@@ -115,7 +116,7 @@ const CompareCvToJobAdPage: React.FC = () => {
     <>
       <PageBackground imageUrl="/match_CV_against_job.png" opacity={1} blur={0} />
       <PageWrapper>
-        <div className="card relative z-10">
+        <SectionCard className="relative z-10">
           <h2 className="text-2xl font-bold mb-4">{tSync('compareCvToJobAdPage_title') || 'Matcha CV mot jobbannons'}</h2>
           <section className="mb-6">
             <h3 className="font-semibold mb-2">{tSync('compareCvToJobAdPage_howto_title')}</h3>
@@ -359,7 +360,7 @@ const CompareCvToJobAdPage: React.FC = () => {
               <pre className="whitespace-pre-wrap text-sm">{result}</pre>
             </div>
           ) : null}
-        </div>
+        </SectionCard>
       </PageWrapper>
     </>
   );

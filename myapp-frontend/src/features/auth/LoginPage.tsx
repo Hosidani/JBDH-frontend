@@ -1,9 +1,13 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService } from '../../services/ApiService';
+import { PageWrapper } from '../../components/common';
+import { SectionCard } from '../../components/common/SectionCard';
+import { TextInput } from '../../components/ui/TextInput';
+import { Button } from '../../components/ui/Button';
+import { Heading } from '../../components/ui/Heading';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,7 +18,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { tSync } = useTranslation();
-  const successMessage = location.state && location.state.success;
+  const successMessage = location.state?.success;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,48 +35,20 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="main-content">
-      <div className="card">
-        <h2 style={{ textAlign: 'center', color: '#2563eb', marginBottom: '1.5rem' }}>{tSync('loginPage_title')}</h2>
-        {successMessage && (
-          <div style={{ color: '#10b981', marginBottom: '1rem', textAlign: 'center' }}>{successMessage}</div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="email" style={{ display: 'block', marginBottom: 4 }}>{tSync('loginPage_email_label')}</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-                className=""
-              style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #d1d5db' }}
-            />
-          </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="password" style={{ display: 'block', marginBottom: 4 }}>{tSync('loginPage_password_label')}</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-                className=""
-              style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #d1d5db' }}
-            />
-          </div>
-          {error && <div style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</div>}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ width: '100%', background: '#2563eb', color: 'white', padding: 10, borderRadius: 4, fontWeight: 600 }}
-          >
+    <PageWrapper>
+      <SectionCard>
+        <Heading level={2} className="text-center text-blue-600 mb-6">{tSync('loginPage_title')}</Heading>
+        {successMessage && <p className="text-green-600 text-sm text-center mb-4">{successMessage}</p>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <TextInput label={tSync('loginPage_email_label')}    value={email}    onChange={setEmail}    type="email"    />
+          <TextInput label={tSync('loginPage_password_label')} value={password} onChange={setPassword} type="password" />
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+          <Button type="submit" variant="primary" loading={loading} className="w-full">
             {loading ? tSync('loginPage_logging_in') : tSync('loginPage_button')}
-          </button>
+          </Button>
         </form>
-      </div>
-    </div>
+      </SectionCard>
+    </PageWrapper>
   );
 };
 

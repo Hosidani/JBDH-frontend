@@ -113,8 +113,7 @@ const SettingsPage: React.FC = () => {
   return (
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
-      <PageWrapper>
-        <div className="max-w-xl mx-auto mt-10 card p-8 flex flex-col gap-10 relative z-10">
+      <PageWrapper className="card p-8 flex flex-col gap-10 relative z-10">
           <h2 className="text-2xl font-bold mb-4">{tSync('settingsPage_title')}</h2>
           <ProfileForm
             name={name}
@@ -146,7 +145,6 @@ const SettingsPage: React.FC = () => {
             onSubmit={handlePasswordSubmit}
             tSync={tSync}
           />
-        </div>
       </PageWrapper>
     </>
   );

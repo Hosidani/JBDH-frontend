@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageBackground } from '../../components/common';
+import { PageBackground, PageWrapper } from '../../components/common';
 import { SearchJobsCard } from '../../components/search';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -19,9 +19,9 @@ const SearchJobsPage: React.FC = () => {
   return (
     <>
       <PageBackground imageUrl="/searchJobsPage.png" opacity={1} blur={0} />
-      <div className="w-full mx-auto mt-8 px-6">
+      <PageWrapper>
         <SearchJobsCard />
-      </div>
+      </PageWrapper>
     </>
   );
 };

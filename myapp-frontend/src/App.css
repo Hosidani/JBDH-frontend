@@ -14,17 +14,6 @@ html, body, #root {
   padding: 0;
   box-sizing: border-box;
 }
-/* Global Card Styling */
-.card {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto 2rem auto;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(37, 99, 235, 0.08);
-  padding: 2rem;
-  box-sizing: border-box;
-}
 /* Navigation Bar Styling */
 .app-navbar {
   width: 100%;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper, PageBackground } from '../../components/common';
+import { SectionCard } from '../../components/common/SectionCard';
 import { SavedJobsList } from '../../components/common/cards';
 import { ApiService } from '../../services/ApiService';
 import type { SavedJob } from '../../components/common/cards';
@@ -119,7 +120,7 @@ const SavedJobsPage: React.FC = () => {
     <>
       <PageBackground imageUrl="/saved_jobs.png" opacity={1} blur={0} />
       <PageWrapper>
-        <div className="card relative z-10 p-6">
+        <SectionCard className="relative z-10">
           <h2 className="text-2xl font-bold mb-2" style={{ color: '#2563eb' }}>
             {tSync('savedJobsPage_title')}
           </h2>
@@ -172,7 +173,7 @@ const SavedJobsPage: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
+        </SectionCard>
       </PageWrapper>
     </>
   );
