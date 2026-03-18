@@ -14,6 +14,7 @@ const SearchJobsPage: React.FC = () => {
     }
   }, [user, navigate]);
 
+
   if (!user) return null;
 
   return (

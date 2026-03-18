@@ -280,6 +280,7 @@
   "savedJobCard_delete_tooltip": "Ta bort jobb",
   "savedJobsList_loading": "Laddar sparade jobb...",
   "savedJobsList_empty": "Inga sparade jobb hittades.",
+  "jobDetail_back_to_search": "Tillbaka till sökresultatet",
   "jobDetail_last_application_date": "Sista ansökning",
   "jobDetail_company": "Företag",
   "jobDetail_work_arrangement": "Arbetsplats",

@@ -7,3 +7,5 @@ export { Button } from './Button';
 export { Heading } from './Heading';
 export { Badge } from './Badge';
 export { FileDropZone } from './FileDropZone';
+export { DataList } from './DataList';
+export type { DataListColumn } from './DataList';

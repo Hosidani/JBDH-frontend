@@ -193,10 +193,20 @@ const JobDetailPage: React.FC = () => {
     );
   }
 
+  const fromSearch = sessionStorage.getItem('searchReturnFlag') === '1';
+
   return (
     <>
       <PageBackground imageUrl="/job_detail.png" opacity={1} blur={0} />
       <PageWrapper>
+        {fromSearch && (
+          <button
+            onClick={() => navigate('/search')}
+            className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 mb-3"
+          >
+            ← {tSync('jobDetail_back_to_search')}
+          </button>
+        )}
         <SectionCard className="relative z-10">
           <JobDetailCard
             job={job}
