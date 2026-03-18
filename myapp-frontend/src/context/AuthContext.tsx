@@ -32,12 +32,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const stored = localStorage.getItem("authUser");
       if (stored) {
         try {
-          // Try to validate the session by calling an auth-required endpoint
-          await ApiService.getMyProfile();
-          // If successful, session is valid - restore user
-          setUser(JSON.parse(stored));
+          const profile = await ApiService.getMyProfile();
+          const storedUser = JSON.parse(stored);
+          setUser({ ...storedUser, name: profile.name || storedUser.name });
         } catch (error) {
-          // Session is invalid/expired, clear stored user
           console.warn("Session validation failed - clearing stored user:", error);
           localStorage.removeItem("authUser");
           setUser(null);
@@ -59,6 +57,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   }, [user, loading]);
+
+  // Enrich user.name after login if backend didn't include it
+  useEffect(() => {
+    if (user && !user.name) {
+      ApiService.getMyProfile()
+        .then(profile => {
+          if (profile.name) setUser(prev => prev ? { ...prev, name: profile.name } : prev);
+        })
+        .catch(() => {});
+    }
+  }, [user?.email]);
 
   useEffect(() => {
     const handler = () => {
