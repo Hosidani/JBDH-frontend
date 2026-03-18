@@ -14,6 +14,6 @@ const levelClasses: Record<number, string> = {
 };
 
 export const Heading: React.FC<HeadingProps> = ({ level, children, className = '' }) => {
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  const Tag = `h${level}` as keyof React.JSX.IntrinsicElements;
   return <Tag className={`${levelClasses[level]} ${className}`}>{children}</Tag>;
 };

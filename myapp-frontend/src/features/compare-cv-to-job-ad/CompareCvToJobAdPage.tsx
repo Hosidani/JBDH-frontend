@@ -1,112 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { PageWrapper, PageBackground, FileDropZone } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import CvMatchingVisualization from '../../components/Features/CvMatchingVisualization';
+import { useSSE } from '../../hooks/useSSE';
 import IconCvDocument from '../../components/icon_library/IconCvDocument';
+import { useNavigate } from 'react-router-dom';
 
 const CompareCvToJobAdPage: React.FC = () => {
   const { user } = useAuth();
   const { tSync } = useTranslation();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent('requireLogin'));
+      navigate('/login');
+      return;
+    }
+  }, [user, navigate]);
 
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [jobAdText, setJobAdText] = useState('');
-  const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [sseFormData, setSseFormData] = useState<FormData | null>(null);
+  const [sseProgress, setSseProgress] = useState<{progress: number, message?: string, vectorResult?: any} | null>(null);
+  const [sseResult, setSseResult] = useState<any>(null);
+  const [sseError, setSseError] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (!user) window.dispatchEvent(new CustomEvent('requireLogin'));
-  }, [user]);
-
-
-  const handleSubmit = async (e: React.FormEvent, useV2 = false) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setResult(null);
-    
-    // Validate required fields
+    setSseError(null);
+    setSseResult(null);
+    setSseProgress(null);
     if (!cvFile) {
-      setError(tSync('compareCvToJobAdPage_error_cv_required'));
+      setSseError(tSync('compareCvToJobAdPage_error_cv_required'));
       return;
     }
-    
     if (!jobAdText.trim()) {
-      setError(tSync('compareCvToJobAdPage_error_jobad_required'));
+      setSseError(tSync('compareCvToJobAdPage_error_jobad_required'));
       return;
     }
-    
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append('CvPath', cvFile);
-      formData.append('JobAdText', jobAdText);
-      const endpoint = useV2 ? '/api/Home/CompareCvToJobAdV2' : '/api/Home/CompareCvToJobAd';
-      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-      let data = null;
-      try {
-        data = await response.json();
-      } catch (jsonErr) {
-        setError(tSync('compareCvToJobAdPage_error_parsing'));
-        return;
-      }
-      let parsed = null;
-      if (response.ok) {
-        // Check if this is V4 response format (with totalScore)
-        if (data.totalScore !== undefined) {
-          parsed = data;
-        }
-        // Check if this is V3 response format (with totalMatchPercentage)
-        else if (data.totalMatchPercentage !== undefined) {
-          parsed = data;
-        }
-        // Check if this is V2 response format (with matchPercentage)
-        else if (data.matchPercentage !== undefined) {
-          parsed = data;
-        } else if (data.analysis) {
-          parsed = data.analysis;
-        } else if (data.aiResponse) {
-          let aiText = data.aiResponse;
-          const match = aiText.match(/```json\n([\s\S]*?)```/);
-          if (match) {
-            aiText = match[1];
-          } else if (aiText.startsWith('```json')) {
-            aiText = aiText.replace(/^```json\s*/, '').replace(/```\s*$/, '');
-          }
-          try {
-            parsed = JSON.parse(aiText);
-          } catch {
-            parsed = aiText;
-          }
-        }
-        setResult(parsed);
-      } else {
-        // Check for quota/rate/embedding/limit errors in backend error message
-        const errorMsg = (data && data.error) ? data.error.toLowerCase() : '';
-        if (
-          errorMsg.includes('quota') ||
-          errorMsg.includes('rate limit') ||
-          errorMsg.includes('limit') ||
-          errorMsg.includes('embedding') ||
-          errorMsg.includes('exceeded') ||
-          errorMsg.includes('free tier')
-        ) {
-          setError(tSync('compareCvToJobAdPage_error_service_overloaded'));
-        } else {
-          setError(data.error || tSync('compareCvToJobAdPage_error_comparison_failed'));
-        }
-      }
-    } catch (err) {
-      setError(tSync('compareCvToJobAdPage_error_generic'));
-    } finally {
-      setLoading(false);
-    }
-  };
+    const formData = new FormData();
+    formData.append('CvPath', cvFile);
+    formData.append('JobAdText', jobAdText);
+    setSseFormData(formData);
+  }, [cvFile, jobAdText, tSync]);
+
+  useSSE(
+    '/home/CompareCvJobSSE',
+    sseFormData,
+    (data) => setSseProgress(data),
+    (result) => setSseResult(result),
+    (err) => setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'))
+  );
 
   return (
     <>
@@ -161,211 +108,79 @@ const CompareCvToJobAdPage: React.FC = () => {
                 placeholder={tSync('compareCvToJobAdPage_jobad_placeholder')}
               />
             </div>
-            {error && <div className="text-red-600 text-sm">{error}</div>}
+            {sseError && <div className="text-red-600 text-sm mt-2">{sseError}</div>}
             <div className="flex gap-3">
               <button
                 type="submit"
-                disabled={loading}
-                onClick={(e) => handleSubmit(e, false)}
-                className="flex-1 bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!!sseProgress && sseProgress.progress > 0 && sseProgress.progress < 100}
+                className="w-full bg-gradient-to-r from-blue-600 via-green-500 to-yellow-400 text-white py-2 rounded font-semibold hover:from-blue-700 hover:to-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? tSync('compareCvToJobAdPage_button_comparing') : tSync('compareCvToJobAdPage_button_v1')}
-              </button>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={(e) => handleSubmit(e, true)}
-                className="flex-1 bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? tSync('compareCvToJobAdPage_button_comparing') : tSync('compareCvToJobAdPage_button_v2')}
+                {sseProgress && sseProgress.progress > 0 && sseProgress.progress < 100
+                  ? tSync('compareCvToJobAdPage_button_comparing')
+                  : '🚀 Realtidsanalys'}
               </button>
             </div>
           </form>
-          {result && typeof result === 'object' && (result.matchPercentage !== undefined || result.totalMatchPercentage !== undefined || result.totalScore !== undefined) ? (
+          {/* SSE Progressbar & status */}
+          {sseProgress && (
+            <div className="mt-6">
+              <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden mb-2">
+                <div
+                  className="h-4 bg-gradient-to-r from-blue-600 via-green-500 to-yellow-400 transition-all"
+                  style={{ width: `${sseProgress.progress}%` }}
+                />
+              </div>
+              <div className="text-sm font-semibold mb-2">{sseProgress.message}</div>
+              {sseProgress.vectorResult && (
+                <div className="p-3 bg-blue-50 rounded flex flex-col gap-1">
+                  <div className="font-bold">Vektorjämförelse</div>
+                  <div>Similarity: {sseProgress.vectorResult.similarityScore}%</div>
+                  <div>CV Vector Size: {sseProgress.vectorResult.cvVectorSize}</div>
+                  <div>JobAd Vector Size: {sseProgress.vectorResult.jobAdVectorSize}</div>
+                </div>
+              )}
+            </div>
+          )}
+          {/* SSE slutresultat: visa CvMatchingVisualization om klart */}
+          {sseResult && (
             <div className="mt-6">
               <CvMatchingVisualization
-                matchPercentage={result.matchPercentage}
-                totalMatchPercentage={result.totalMatchPercentage}
-                skillsMatchPercentage={result.skillsMatchPercentage}
-                professionMatch={result.professionMatch}
-                breakdown={result.breakdown}
-                totalScore={result.totalScore}
-                skillsScore={result.skillsScore}
-                professionScore={result.professionScore}
-                cvProfession={result.cvProfession}
-                jobProfession={result.jobProfession}
-                totalRequirements={result.totalRequirements}
-                matches={result.matches || []}
-                topGaps={result.topGaps || []}
-                careerSummaryPitch={result.CareerSummaryPitch || result.careerSummaryPitch}
+                matchPercentage={sseResult.matchPercentage}
+                totalMatchPercentage={sseResult.totalMatchPercentage}
+                skillsMatchPercentage={sseResult.skillsMatchPercentage}
+                professionMatch={sseResult.professionMatch}
+                breakdown={sseResult.breakdown}
+                totalScore={sseResult.totalScore}
+                skillsScore={sseResult.skillsScore}
+                professionScore={sseResult.professionScore}
+                cvProfession={sseResult.cvProfession}
+                jobProfession={sseResult.jobProfession}
+                totalRequirements={sseResult.totalRequirements}
+                matches={sseResult.matches || []}
+                topGaps={sseResult.topGaps || []}
+                careerSummaryPitch={sseResult.CareerSummaryPitch || sseResult.careerSummaryPitch}
               />
-            </div>
-          ) : result && typeof result === 'object' ? (
-            <div className="mt-6 p-4 bg-slate-100 rounded flex flex-col gap-4">
-              <h3 className="font-bold mb-2">{tSync('compareCvToJobAdPage_result_ai_analysis')}</h3>
-              {typeof result.matchScore !== 'undefined' && (
-                <div className="mb-2 text-lg font-bold">{tSync('compareCvToJobAdPage_result_match_score')}: {result.matchScore}%</div>
-              )}
-              {result.fitAssessment && (
-                <>
-                  <div>
-                    <span className="font-semibold">{tSync('compareCvToJobAdPage_result_summary')}</span>
-                    <div className="text-slate-700 mt-1">{result.fitAssessment.overall}</div>
+              {/* Enkel rendering av FitSummary och MatchingSkills */}
+              <div className="mt-6 p-4 bg-slate-50 rounded shadow">
+                <h3 className="font-bold mb-2">AI-analys (rådata)</h3>
+                {sseResult.FitSummary && (
+                  <div className="mb-2"><b>FitSummary:</b> {sseResult.FitSummary}</div>
+                )}
+                {Array.isArray(sseResult.MatchingSkills) && (
+                  <div className="mb-2">
+                    <b>Matching Skills:</b>
+                    <ul className="list-disc ml-6">
+                      {sseResult.MatchingSkills.map((skill: string, i: number) => (
+                        <li key={i}>{skill}</li>
+                      ))}
+                    </ul>
                   </div>
-                  {result.fitAssessment.strengths && result.fitAssessment.strengths.length > 0 && (
-                    <div>
-                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_strengths')}</span>
-                      <ul className="list-disc ml-6 mt-1 text-slate-700">
-                        {result.fitAssessment.strengths.map((s: string, idx: number) => (
-                          <li key={idx}>{s}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {result.fitAssessment.concerns && result.fitAssessment.concerns.length > 0 && (
-                    <div>
-                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_concerns')}</span>
-                      <ul className="list-disc ml-6 mt-1 text-slate-700">
-                        {result.fitAssessment.concerns.map((c: string, idx: number) => (
-                          <li key={idx}>{c}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </>
-              )}
-              {result.detailedAnalysis && (
-                <div>
-                  <div className="font-bold mt-4 mb-2">{tSync('compareCvToJobAdPage_result_detailed_analysis')}</div>
-                  {result.detailedAnalysis.technicalSkills && (
-                    <div>
-                      <div className="font-semibold">{tSync('compareCvToJobAdPage_result_technical_skills')} {result.detailedAnalysis.technicalSkills.matchLevel}</div>
-                      {result.detailedAnalysis.technicalSkills.matches && (
-                        <div>
-                          <span className="font-semibold">{tSync('compareCvToJobAdPage_result_matching_technical_skills')}</span>
-                          <ul className="list-disc ml-6 mt-1 text-slate-700">
-                            {result.detailedAnalysis.technicalSkills.matches.map((m: string, idx: number) => (
-                              <li key={idx}>{m}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {result.detailedAnalysis.technicalSkills.gaps && (
-                        <div>
-                          <span className="font-semibold">{tSync('compareCvToJobAdPage_result_technical_gaps')}</span>
-                          <ul className="list-disc ml-6 mt-1 text-slate-700">
-                            {result.detailedAnalysis.technicalSkills.gaps.map((g: string, idx: number) => (
-                              <li key={idx}>{g}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {result.detailedAnalysis.experience && (
-                    <div>
-                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_matching_experience')}</span>
-                      <ul className="list-disc ml-6 mt-1 text-slate-700">
-                        {result.detailedAnalysis.experience.matches.map((m: string, idx: number) => (
-                          <li key={idx}>{m}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {result.detailedAnalysis.experience.gaps && (
-                    <div>
-                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_experience_gaps')}</span>
-                      <ul className="list-disc ml-6 mt-1 text-slate-700">
-                        {result.detailedAnalysis.experience.gaps.map((g: string, idx: number) => (
-                          <li key={idx}>{g}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {result.detailedAnalysis.education && (
-                    <div>
-                      <div className="font-semibold">{tSync('compareCvToJobAdPage_result_education')} {result.detailedAnalysis.education.matchLevel}</div>
-                      {result.detailedAnalysis.education.details && (
-                        <div>
-                          <span className="font-semibold">{tSync('compareCvToJobAdPage_result_education_details')}</span>
-                          <ul className="list-disc ml-6 mt-1 text-slate-700">
-                            {result.detailedAnalysis.education.details.map((d: string, idx: number) => (
-                              <li key={idx}>{d}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {result.detailedAnalysis.softSkills && (
-                    <div>
-                      <div className="font-semibold">{tSync('compareCvToJobAdPage_result_soft_skills')} {result.detailedAnalysis.softSkills.matchLevel}</div>
-                      {result.detailedAnalysis.softSkills.evidence && (
-                        <div>
-                          <span className="font-semibold">{tSync('compareCvToJobAdPage_result_soft_skills_evidence')}</span>
-                          <ul className="list-disc ml-6 mt-1 text-slate-700">
-                            {result.detailedAnalysis.softSkills.evidence.map((e: string, idx: number) => (
-                              <li key={idx}>{e}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-              {result.actionableRecommendations && (
-                <div>
-                  <div className="font-bold mt-4 mb-2">{tSync('compareCvToJobAdPage_result_recommendations')}</div>
-                  {result.actionableRecommendations.cvImprovements && (
-                    <div>
-                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_cv_improvements')}</span>
-                      <ul className="list-disc ml-6 mt-1 text-slate-700">
-                        {result.actionableRecommendations.cvImprovements.map((c: string, idx: number) => (
-                          <li key={idx}>{c}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {result.actionableRecommendations.skillDevelopment && (
-                    <div>
-                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_skill_development')}</span>
-                      <ul className="list-disc ml-6 mt-1 text-slate-700">
-                        {result.actionableRecommendations.skillDevelopment.map((s: string, idx: number) => (
-                          <li key={idx}>{s}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {result.actionableRecommendations.interviewPreparation && (
-                    <div>
-                      <span className="font-semibold">{tSync('compareCvToJobAdPage_result_interview_preparation')}</span>
-                      <ul className="list-disc ml-6 mt-1 text-slate-700">
-                        {result.actionableRecommendations.interviewPreparation.map((i: string, idx: number) => (
-                          <li key={idx}>{i}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-              {result.nextSteps && result.nextSteps.length > 0 && (
-                <div>
-                  <span className="font-semibold">{tSync('compareCvToJobAdPage_result_next_steps')}</span>
-                  <ul className="list-disc ml-6 mt-1 text-slate-700">
-                    {result.nextSteps.map((n: string, idx: number) => (
-                      <li key={idx}>{n}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                )}
+                {/* Lägg till fler fält om du vill */}
+              </div>
             </div>
-          ) : result ? (
-            <div className="mt-6 p-4 bg-slate-100 rounded">
-              <h3 className="font-bold mb-2">{tSync('compareCvToJobAdPage_result_ai_analysis')}</h3>
-              <pre className="whitespace-pre-wrap text-sm">{result}</pre>
-            </div>
-          ) : null}
+          )}
+                  {/* End of icon+checkmark */}
         </SectionCard>
       </PageWrapper>
     </>

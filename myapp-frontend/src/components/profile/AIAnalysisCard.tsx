@@ -180,7 +180,7 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
   );
 
   return (
-    <div className="bg-white border border-blue-200 rounded-xl shadow p-6 mt-4 max-w-2xl mx-auto flex flex-col gap-6 min-h-[200px]">
+    <div className="flex flex-col gap-6 min-h-[200px]">
       <h3 className="font-bold text-lg mb-2 text-blue-700">{tSync('profilePage_ai_analysis_title')}</h3>
       {polling ? (
         <div className="flex flex-col items-center justify-center py-8">
