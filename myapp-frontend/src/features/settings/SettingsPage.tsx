@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
 import { PageWrapper, PageBackground } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
@@ -9,7 +8,6 @@ import EmailConfirmModal from '../../components/settings/EmailConfirmModal';
 
 const SettingsPage: React.FC = () => {
   const { tSync } = useTranslation();
-  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -36,7 +34,6 @@ const SettingsPage: React.FC = () => {
       })
       .catch(error => {
         console.error('Error fetching profile:', error);
-        if (error?.message?.includes('401')) { navigate('/login'); return; }
         setProfileMessage('Error loading profile data');
       });
   }, []);
@@ -71,7 +68,6 @@ const SettingsPage: React.FC = () => {
       setProfileMessage(tSync('settingsPage_profile_updated'));
       window.location.href = '/profile';
     } catch (error: any) {
-      if (error?.message?.includes('401')) { navigate('/login'); return; }
       setProfileMessage(error?.message || 'Error updating profile');
     } finally {
       setLoading(false);
@@ -107,7 +103,6 @@ const SettingsPage: React.FC = () => {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: any) {
-      if (error?.message?.includes('401')) { navigate('/login'); return; }
       setPwMessage(error?.message || 'Error changing password');
     } finally {
       setLoading(false);

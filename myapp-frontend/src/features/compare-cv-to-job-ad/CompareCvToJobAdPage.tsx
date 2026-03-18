@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { PageWrapper, PageBackground, FileDropZone } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
@@ -9,7 +8,7 @@ import CvMatchingVisualization from '../../components/Features/CvMatchingVisuali
 const CompareCvToJobAdPage: React.FC = () => {
   const { user } = useAuth();
   const { tSync } = useTranslation();
-  const navigate = useNavigate();
+
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [jobAdText, setJobAdText] = useState('');
   const [result, setResult] = useState<any>(null);
@@ -17,12 +16,8 @@ const CompareCvToJobAdPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   React.useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    // Add any user-dependent logic here, guarded by null check
-  }, [user, navigate]);
+    if (!user) window.dispatchEvent(new CustomEvent('requireLogin'));
+  }, [user]);
 
 
   const handleSubmit = async (e: React.FormEvent, useV2 = false) => {

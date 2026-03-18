@@ -44,10 +44,6 @@ const SavedJobsPage: React.FC = () => {
         setJobs(mappedJobs);
       } catch (err) {
         console.error('Error fetching saved jobs:', err);
-        if (err instanceof Error && err.message.includes('401')) {
-          navigate('/login');
-          return;
-        }
         setError(tSync('savedJobsPage_error_loading'));
       } finally {
         setLoading(false);

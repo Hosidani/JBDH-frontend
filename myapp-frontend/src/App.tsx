@@ -30,9 +30,16 @@ function LogoutRedirect(props: LogoutRedirectProps) {
 }
 
 function App() {
-  const { user } = useAuth();
+  const { user, sessionExpired, clearSessionExpired } = useAuth();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setLoginModalOpen(true);
+    window.addEventListener('requireLogin', handler);
+    return () => window.removeEventListener('requireLogin', handler);
+  }, []);
   const { language, changeLanguage } = useTranslation();
 
   return (
@@ -75,6 +82,21 @@ function App() {
       {/* Login Modal */}
       {loginModalOpen && (
         <LoginModal onClose={() => setLoginModalOpen(false)} />
+      )}
+      {/* Session expired dialog */}
+      {sessionExpired && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 flex flex-col gap-4">
+            <h2 className="text-lg font-bold text-slate-800">Du har blivit utloggad</h2>
+            <p className="text-sm text-slate-600">Din session har gått ut. Logga in igen för att fortsätta.</p>
+            <button
+              onClick={() => { clearSessionExpired(); navigate('/'); }}
+              className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              OK
+            </button>
+          </div>
+        </div>
       )}
       <main className="flex-1 flex flex-col items-center justify-start py-8">
         <Routes>

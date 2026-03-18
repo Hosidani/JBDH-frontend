@@ -20,9 +20,9 @@ function ProfilePage() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      window.dispatchEvent(new CustomEvent('requireLogin'));
     }
-  }, [user, navigate]);
+  }, [user]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,10 +33,7 @@ function ProfilePage() {
         setProfile(data);
       } catch (err) {
         const msg = (err as any)?.message || '';
-        if (msg.includes('401')) {
-          navigate('/login');
-          return;
-        }
+        if (msg.includes('401')) return;
         setError(msg || 'Något gick fel.');
         setAnalysisResult(null);
       } finally {

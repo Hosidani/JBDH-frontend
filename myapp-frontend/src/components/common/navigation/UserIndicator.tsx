@@ -22,6 +22,7 @@ const UserIndicator: React.FC = () => {
       }}
     >
       <div
+        onClick={() => window.dispatchEvent(new CustomEvent('sessionExpired'))}
         style={{
           width: 36,
           height: 36,
@@ -34,8 +35,9 @@ const UserIndicator: React.FC = () => {
           fontWeight: 600,
           fontSize: 18,
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          cursor: 'pointer',
         }}
-        title={user.name || 'Namn Saknas'}
+        title={`${user.name || 'Namn Saknas'} — [TEST] Klicka för att simulera utloggning`}
       >
         {initials}
       </div>

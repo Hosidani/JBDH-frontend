@@ -105,10 +105,7 @@ const AccountPage: React.FC = () => {
         setOriginalData(initialFormData);
       } catch (err) {
         if (err instanceof Error) {
-          if (err.message.includes('401')) {
-            navigate('/login');
-            return;
-          } else if (err.message.includes('Account has been terminated')) {
+          if (err.message.includes('Account has been terminated')) {
             setError('Account has been terminated.');
           } else if (err.message.includes('404') || err.message.includes('No account found')) {
             setError('No account found for user.');
@@ -205,10 +202,7 @@ const AccountPage: React.FC = () => {
       setIsEditing(false);
     } catch (err) {
       if (err instanceof Error) {
-        if (err.message.includes('401')) {
-          navigate('/login');
-          return;
-        } else if (err.message.includes('Account has been terminated')) {
+        if (err.message.includes('Account has been terminated')) {
           setError('Account has been terminated.');
         } else if (err.message.includes('404') || err.message.includes('No account found')) {
           setError('No account found for user.');

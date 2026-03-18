@@ -13,6 +13,8 @@ interface AuthContextType {
   user: AuthUser | null;
   login: (user: AuthUser) => void;
   logout: () => void;
+  sessionExpired: boolean;
+  clearSessionExpired: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ export { AuthContext };
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // Restore user from localStorage on mount and validate session
   useEffect(() => {
@@ -57,21 +60,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, loading]);
 
+  useEffect(() => {
+    const handler = () => {
+      setUser(null);
+      localStorage.removeItem('authUser');
+      setSessionExpired(true);
+    };
+    window.addEventListener('sessionExpired', handler);
+    return () => window.removeEventListener('sessionExpired', handler);
+  }, []);
+
   const login = (user: AuthUser) => {
     setUser(user);
+    setSessionExpired(false);
     localStorage.setItem("authUser", JSON.stringify(user));
   };
   const logout = () => {
     setUser(null);
     localStorage.removeItem("authUser");
   };
+  const clearSessionExpired = () => setSessionExpired(false);
 
   if (loading) {
     return <div>Laddar...</div>;
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, sessionExpired, clearSessionExpired }}>
       {children}
     </AuthContext.Provider>
   );

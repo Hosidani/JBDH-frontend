@@ -108,8 +108,9 @@ export class ApiService {
       console.error('Failed to refresh token:', error);
     }
 
-    // If refresh fails, clear tokens
+    // If refresh fails, clear tokens and notify the app
     this.clearTokens();
+    window.dispatchEvent(new CustomEvent('sessionExpired'));
     return null;
   }
   // Get another user's profile by userId
