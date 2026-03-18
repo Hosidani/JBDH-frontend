@@ -200,7 +200,7 @@ export class ApiService {
     });
     return await response.json();
   }
-  private static async fetchWithAuth(url: string, options: RequestInit = {}) {
+  public static async fetchWithAuth(url: string, options: RequestInit = {}) {
     let accessToken = this.getAccessToken();
     const fullUrl = `${API_BASE_URL}${url}`;
     console.log(`🌐 [API CALL] ${options.method || 'GET'} ${fullUrl}`);
@@ -318,6 +318,10 @@ export class ApiService {
     return await response.text();
   }
 
+  // Compare CV to Job Ad V2 (med JWT via fetchWithAuth)
+  
+  
+
   // Upload CV for AI analysis
   static async uploadCVForAnalysis(cvFile: File, language?: string): Promise<{ success: boolean; message: string }> {
     const formData = new FormData();
@@ -366,6 +370,86 @@ export class ApiService {
       default:
         return 'English';
     }
+  }
+
+  /**
+   * Starta SSE-anrop för CV/Jobb-matchning med JWT och progress.
+   * @param formData FormData med CvPath och JobAdText
+   * @param onProgress Callback för progress (progress<100)
+   * @param onComplete Callback för slutresultat (progress=100)
+   * @param onError Callback för fel
+   * @returns cleanup-funktion för att avbryta SSE
+   */
+  static compareCvToJobAdSSE(
+    formData: FormData,
+    onProgress: (data: {progress: number, message?: string, vectorResult?: any}) => void,
+    onComplete: (result: any) => void,
+    onError: (error: string) => void
+  ): () => void {
+    const abortController = new AbortController();
+    // Use fetchWithAuth for DRY principle
+    this.fetchWithAuth('/home/CompareCvJobSSE', {
+      method: 'POST',
+      headers: {
+        'Accept': 'text/event-stream',
+      },
+      body: formData,
+      signal: abortController.signal,
+      credentials: 'include',
+    })
+      .then((response: Response) => {
+        if (!response.body) throw new Error('Ingen SSE-stream.');
+        const reader = response.body.getReader();
+        let buffer = '';
+        let done = false;
+        function read() {
+          reader.read().then(({ done: streamDone, value }) => {
+            if (streamDone) {
+              if (!done) {
+                done = true;
+                onError('SSE-anslutning stängdes oväntat.');
+              }
+              return;
+            }
+            buffer += new TextDecoder().decode(value);
+            let idx;
+            while ((idx = buffer.indexOf('\n\n')) !== -1) {
+              const event = buffer.slice(0, idx);
+              buffer = buffer.slice(idx + 2);
+              if (event.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(event.replace('data: ', ''));
+                  if (typeof data.progress === 'number') {
+                    if (data.progress < 100) {
+                      onProgress(data);
+                    } else if (data.result) {
+                      if (!done) {
+                        done = true;
+                        onComplete(data.result);
+                      }
+                    } else if (data.error) {
+                      if (!done) {
+                        done = true;
+                        onError(data.error);
+                      }
+                    }
+                  }
+                } catch (err) {
+                  onError('Kunde inte tolka SSE-data.');
+                }
+              }
+            }
+            if (!done) read();
+          });
+        }
+        read();
+      })
+      .catch(err => {
+        onError('Nätverksfel vid SSE: ' + (err?.message || err));
+      });
+
+    // Returnera cleanup-funktion för att kunna avbryta SSE från komponenten
+    return () => abortController.abort();
   }
 
   // === JOB API METHODS ===
