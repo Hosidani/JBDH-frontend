@@ -4,6 +4,7 @@ import { PageWrapper, PageBackground, FileDropZone } from '../../components/comm
 import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import CvMatchingVisualization from '../../components/Features/CvMatchingVisualization';
+import IconCvDocument from '../../components/icon_library/IconCvDocument';
 
 const CompareCvToJobAdPage: React.FC = () => {
   const { user } = useAuth();
@@ -124,18 +125,28 @@ const CompareCvToJobAdPage: React.FC = () => {
           </section>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="block mb-1 font-semibold">
-                {tSync('compareCvToJobAdPage_cv_label')}
-              </label>
               <FileDropZone
                 accept=".pdf,.doc,.docx"
                 onFileSelected={file => setCvFile(file)}
-                className="w-full p-4 mb-2 border-slate-200"
+                className="border border-slate-300 rounded-lg p-6 flex flex-col bg-white w-full max-w-[420px] justify-between cursor-pointer transition hover:shadow-md"
+                style={{ minHeight: 200 }}
               >
-                <div className="flex flex-col items-center justify-center text-slate-500">
-                  <span className="mb-2">{tSync('compareCvToJobAdPage_dropzone_label')}</span>
-                  {cvFile && <span className="text-blue-600 font-semibold">{cvFile.name}</span>}
+                <div className="flex flex-col items-center mb-2 pointer-events-none">
+                  <div className="relative mb-2">
+                    <IconCvDocument className="w-14 h-14" />
+                    {cvFile && (
+                      <span className="absolute -top-1 -right-1 bg-green-500 rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#22c55e"/><path d="M6 10.5l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </span>
+                    )}
+                  </div>
+                  <div className="font-bold text-xl text-center leading-tight">{tSync('compareCvToJobAdPage_cv_label')}</div>
+                  <div className="text-slate-400 text-sm mt-1 text-center">{tSync('compareCvToJobAdPage_dropzone_label')}</div>
                 </div>
+                <div className="flex-1" />
+                {cvFile && (
+                  <div className="text-blue-600 text-sm mt-4 font-semibold text-center pointer-events-none">{cvFile.name}</div>
+                )}
               </FileDropZone>
             </div>
             <div>
