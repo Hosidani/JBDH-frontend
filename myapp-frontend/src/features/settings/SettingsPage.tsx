@@ -46,10 +46,9 @@ const SettingsPage: React.FC = () => {
     setProfileMessage(null);
     // Prepare DTO for API
     const dto = {
-      Name: name,
-      Email: email,
-      PhoneNumber: phone
-      // Add other fields as needed
+      name,
+      email,
+      phone_number: phone,
     };
     if (email !== originalEmail) {
       setPendingDto(dto);
@@ -64,7 +63,7 @@ const SettingsPage: React.FC = () => {
     try {
       await ApiService.updateUserSettings(dto);
       // If email was changed, log out and redirect to login
-      if (dto.Email !== originalEmail) {
+      if (dto.email !== originalEmail) {
         // Optionally, call a logout API if needed
         window.location.href = '/login';
         return;

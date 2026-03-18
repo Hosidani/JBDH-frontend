@@ -61,37 +61,22 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   }, []);
 
   const currentDesiredWorkModes = (): string[] => {
-<<<<<<< HEAD
-    if (workplace.onSite) return ['På plats'];
-    if (workplace.hybrid) return ['Hybrid'];
-    if (workplace.remote) return ['Distans'];
-    return ['På plats'];
-=======
     const modes: string[] = [];
     if (workplace.onSite) modes.push('På plats');
     if (workplace.hybrid) modes.push('Hybrid');
     if (workplace.remote) modes.push('Distans');
     return modes;
->>>>>>> 9a28654 (Fix multi checkbox)
   };
 
   const saveSettings = async (overrides: Partial<{ searchable: boolean; travelAvailability: boolean; desiredWorkModes: string[] }>) => {
-<<<<<<< HEAD
-    await ApiService.updateUserSettings({
-=======
     const payload = {
       ...profileBase,
->>>>>>> 44fec95 (Fix - Multi checkbox save on change in /profile)
       searchable,
       travelAvailability: willingToTravel,
       desiredWorkModes: currentDesiredWorkModes(),
       ...overrides,
-<<<<<<< HEAD
-    });
-=======
     };
     await ApiService.updateUserSettings(payload);
->>>>>>> 9a28654 (Fix multi checkbox)
   };
 
   let registrationDate = tSync('profilePage_registration_unknown');
@@ -102,11 +87,15 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
     }
   }
 
-  const workplaceSelected = workplace.onSite ? 'onSite' : workplace.hybrid ? 'hybrid' : workplace.remote ? 'remote' : '';
+  const workplaceSelectedArr = [
+    ...(workplace.onSite ? ['onSite'] : []),
+    ...(workplace.hybrid ? ['hybrid'] : []),
+    ...(workplace.remote ? ['remote'] : []),
+  ];
   const workplaceOptions = [
-    { value: 'onSite',  label: tSync('profilePage_workplace_onsite_label') },
-    { value: 'hybrid',  label: tSync('profilePage_workplace_hybrid_label') },
-    { value: 'remote',  label: tSync('profilePage_workplace_remote_label') },
+    { value: 'onSite', label: tSync('profilePage_workplace_onsite_label') },
+    { value: 'hybrid', label: tSync('profilePage_workplace_hybrid_label') },
+    { value: 'remote', label: tSync('profilePage_workplace_remote_label') },
   ];
 
   const hard = tags.filter(tag => !/team|communication|leadership|collaboration|coaching|mentoring|conflict|process|planning|problem|stakeholder|cross/i.test(tag));
@@ -142,14 +131,14 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
 
       {/* Info grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <InfoRow label={tSync('settingsPage_name_label')}              value={name} />
-        <InfoRow label={tSync('profilePage_title_label')}              value={title} />
-        <InfoRow label={tSync('profilePage_employmentType_label')}     value={employmentType} />
-        <InfoRow label={tSync('profilePage_registration_date_label')}  value={registrationDate} />
-        <InfoRow label={tSync('settingsPage_phone_label')}             value={phone} />
-        <InfoRow label={tSync('settingsPage_email_label')}             value={email} type="email" />
-        <InfoRow label={tSync('profilePage_location_label')}           value={location} />
-        <InfoRow label={tSync('profilePage_region_label')}             value={region} />
+        <InfoRow label={tSync('settingsPage_name_label')}             value={name} />
+        <InfoRow label={tSync('profilePage_title_label')}             value={title} />
+        <InfoRow label={tSync('profilePage_employmentType_label')}    value={employmentType} />
+        <InfoRow label={tSync('profilePage_registration_date_label')} value={registrationDate} />
+        <InfoRow label={tSync('settingsPage_phone_label')}            value={phone} />
+        <InfoRow label={tSync('settingsPage_email_label')}            value={email} type="email" />
+        <InfoRow label={tSync('profilePage_location_label')}          value={location} />
+        <InfoRow label={tSync('profilePage_region_label')}            value={region} />
       </div>
 
       {/* Toggles + workplace */}
@@ -179,64 +168,18 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         <CheckboxGroup
           label={tSync('profilePage_workplace_label')}
           options={workplaceOptions}
-          selected={workplaceSelected ? [workplaceSelected] : []}
-          onChange={async ([val]) => {
-            const next = { onSite: val === 'onSite', hybrid: val === 'hybrid', remote: val === 'remote' };
+          selected={workplaceSelectedArr}
+          onChange={async (vals) => {
+            const next = { onSite: vals.includes('onSite'), hybrid: vals.includes('hybrid'), remote: vals.includes('remote') };
             setWorkplace(next);
-            await saveSettings({ desiredWorkModes: next.onSite ? ['På plats'] : next.hybrid ? ['Hybrid'] : ['Distans'] });
+            const modes: string[] = [];
+            if (next.onSite) modes.push('På plats');
+            if (next.hybrid) modes.push('Hybrid');
+            if (next.remote) modes.push('Distans');
+            await saveSettings({ desiredWorkModes: modes });
           }}
           layout="row"
         />
-<<<<<<< HEAD
-=======
-        <div className="relative flex flex-col items-center ml-8">
-          <span className="text-xs text-slate-400 font-normal mb-1 text-center absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap">{tSync('profilePage_workplace_label')}</span>
-          <div className="flex flex-row items-end gap-2 min-h-[48px]">
-            <OutlinedCheckbox
-              label={tSync('profilePage_workplace_onsite_label')}
-              checked={workplace.onSite}
-              onChange={async () => {
-                const next = { ...workplace, onSite: !workplace.onSite };
-                setWorkplace(next);
-                const modes: string[] = [];
-                if (next.onSite) modes.push('På plats');
-                if (next.hybrid) modes.push('Hybrid');
-                if (next.remote) modes.push('Distans');
-                await saveSettings({ desiredWorkModes: modes });
-              }}
-              stacked={false}
-            />
-            <OutlinedCheckbox
-              label={tSync('profilePage_workplace_hybrid_label')}
-              checked={workplace.hybrid}
-              onChange={async () => {
-                const next = { ...workplace, hybrid: !workplace.hybrid };
-                setWorkplace(next);
-                const modes: string[] = [];
-                if (next.onSite) modes.push('På plats');
-                if (next.hybrid) modes.push('Hybrid');
-                if (next.remote) modes.push('Distans');
-                await saveSettings({ desiredWorkModes: modes });
-              }}
-              stacked={false}
-            />
-            <OutlinedCheckbox
-              label={tSync('profilePage_workplace_remote_label')}
-              checked={workplace.remote}
-              onChange={async () => {
-                const next = { ...workplace, remote: !workplace.remote };
-                setWorkplace(next);
-                const modes: string[] = [];
-                if (next.onSite) modes.push('På plats');
-                if (next.hybrid) modes.push('Hybrid');
-                if (next.remote) modes.push('Distans');
-                await saveSettings({ desiredWorkModes: modes });
-              }}
-              stacked={false}
-            />
-          </div>
-        </div>
->>>>>>> 9a28654 (Fix multi checkbox)
       </div>
 
       {/* Kompetenser */}
