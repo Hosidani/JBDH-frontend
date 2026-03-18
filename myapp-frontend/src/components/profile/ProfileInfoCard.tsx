@@ -38,6 +38,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   const [searchable, setSearchable] = useState(false);
   const [willingToTravel, setWillingToTravel] = useState(false);
   const [workplace, setWorkplace] = useState({ onSite: false, hybrid: false, remote: false });
+  const [profileBase, setProfileBase] = useState<{ name: string; email: string; phone_number: string }>({ name: '', email: '', phone_number: '' });
   const { tSync } = useTranslation();
   const navigate = useNavigate();
 
@@ -45,6 +46,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
     ApiService.getMyProfile().then(profile => {
       setSearchable(!!profile.searchable);
       setWillingToTravel(!!profile.travelAvailability);
+      setProfileBase({ name: profile.name || '', email: profile.email || '', phone_number: profile.phoneNumber || '' });
       const modes: string[] = Array.isArray(profile.desiredWorkModes)
         ? profile.desiredWorkModes
         : profile.desiredWorkModes
@@ -74,7 +76,12 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   };
 
   const saveSettings = async (overrides: Partial<{ searchable: boolean; travelAvailability: boolean; desiredWorkModes: string[] }>) => {
+<<<<<<< HEAD
     await ApiService.updateUserSettings({
+=======
+    const payload = {
+      ...profileBase,
+>>>>>>> 44fec95 (Fix - Multi checkbox save on change in /profile)
       searchable,
       travelAvailability: willingToTravel,
       desiredWorkModes: currentDesiredWorkModes(),
