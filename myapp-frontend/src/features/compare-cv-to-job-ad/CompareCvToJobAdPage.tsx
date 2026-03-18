@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 import { PageWrapper, PageBackground, FileDropZone } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import CvMatchingVisualization from '../../components/Features/CvMatchingVisualization';
 import { useSSE } from '../../hooks/useSSE';
 import IconCvDocument from '../../components/icon_library/IconCvDocument';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +26,7 @@ const CompareCvToJobAdPage: React.FC = () => {
   const [sseProgress, setSseProgress] = useState<{progress: number, message?: string, vectorResult?: any} | null>(null);
   const [sseResult, setSseResult] = useState<any>(null);
   const [sseError, setSseError] = useState<string | null>(null);
+  const [vectorResult, setVectorResult] = useState<any>(null);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +50,20 @@ const CompareCvToJobAdPage: React.FC = () => {
   useSSE(
     '/home/CompareCvJobSSE',
     sseFormData,
-    (data) => setSseProgress(data),
-    (result) => setSseResult(result),
+    (data) => {
+      console.log('PROGRESS:', data); // ← Kolla vectorResult här
+      setSseProgress(data);
+      if (data.vectorResult) {
+        setVectorResult(data.vectorResult);
+      }
+    },
+    (result) => {
+      console.log('RESULT:', result); // ← Kolla vad som kommer HIT
+      setSseResult(result);
+      if (result.vectorResult) {
+        setVectorResult(result.vectorResult);
+      }
+    },
     (err) => setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'))
   );
 
@@ -121,8 +133,8 @@ const CompareCvToJobAdPage: React.FC = () => {
               </button>
             </div>
           </form>
-          {/* SSE Progressbar & status */}
-          {sseProgress && (
+          {/* SSE Progressbar & status - visas bara om inget resultat finns! */}
+          {!sseResult && sseProgress && (
             <div className="mt-6">
               <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden mb-2">
                 <div
@@ -131,60 +143,80 @@ const CompareCvToJobAdPage: React.FC = () => {
                 />
               </div>
               <div className="text-sm font-semibold mb-2">{sseProgress.message}</div>
-              {sseProgress.vectorResult && (
-                <div className="p-3 bg-blue-50 rounded flex flex-col gap-1">
-                  <div className="font-bold">Vektorjämförelse</div>
-                  <div>Similarity: {sseProgress.vectorResult.similarityScore}%</div>
-                  <div>CV Vector Size: {sseProgress.vectorResult.cvVectorSize}</div>
-                  <div>JobAd Vector Size: {sseProgress.vectorResult.jobAdVectorSize}</div>
+              {sseProgress.vectorResult && typeof sseProgress.vectorResult.similarityScore === 'number' && (
+                <div className="text-lg font-bold text-blue-700 mt-2">
+                  Likhetspoäng (vector): {sseProgress.vectorResult.similarityScore}%
                 </div>
               )}
             </div>
           )}
           {/* SSE slutresultat: visa CvMatchingVisualization om klart */}
           {sseResult && (
-            <div className="mt-6">
-              <CvMatchingVisualization
-                matchPercentage={sseResult.matchPercentage}
-                totalMatchPercentage={sseResult.totalMatchPercentage}
-                skillsMatchPercentage={sseResult.skillsMatchPercentage}
-                professionMatch={sseResult.professionMatch}
-                breakdown={sseResult.breakdown}
-                totalScore={sseResult.totalScore}
-                skillsScore={sseResult.skillsScore}
-                professionScore={sseResult.professionScore}
-                cvProfession={sseResult.cvProfession}
-                jobProfession={sseResult.jobProfession}
-                totalRequirements={sseResult.totalRequirements}
-                matches={sseResult.matches || []}
-                topGaps={sseResult.topGaps || []}
-                careerSummaryPitch={sseResult.CareerSummaryPitch || sseResult.careerSummaryPitch}
-              />
-              {/* Enkel rendering av FitSummary och MatchingSkills */}
-              <div className="mt-6 p-4 bg-slate-50 rounded shadow">
-                <h3 className="font-bold mb-2">AI-analys (rådata)</h3>
-                {sseResult.FitSummary && (
-                  <div className="mb-2"><b>FitSummary:</b> {sseResult.FitSummary}</div>
-                )}
-                {Array.isArray(sseResult.MatchingSkills) && (
-                  <div className="mb-2">
-                    <b>Matching Skills:</b>
-                    <ul className="list-disc ml-6">
-                      {sseResult.MatchingSkills.map((skill: string, i: number) => (
-                        <li key={i}>{skill}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {/* Lägg till fler fält om du vill */}
-              </div>
+            <div className="mt-8 p-6 bg-white rounded-xl shadow-lg border border-blue-100">
+              <h2 className="text-2xl font-bold text-blue-800 mb-4 border-b border-blue-200 pb-2">AI-analys – Sammanfattning</h2>
+              {/* Likhetspoäng överst, alltid från vectorResult om finns */}
+              {vectorResult?.similarityScore !== undefined && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border-l-4 border-emerald-400">
+                  <span className="text-4xl font-black text-emerald-700">{Number(vectorResult.similarityScore).toFixed(1)}%</span>
+                  <span className="ml-3 text-slate-700 font-semibold">Semantisk likhet</span>
+                </div>
+              )}
+              {/* FitSummary */}
+              {sseResult.FitSummary && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Sammanfattning</h3>
+                  <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100">{sseResult.FitSummary}</p>
+                </div>
+              )}
+              {/* Matching Skills */}
+              {Array.isArray(sseResult.MatchingSkills) && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Matchande kompetenser</h3>
+                  <ul className="list-disc ml-8 text-gray-900">
+                    {sseResult.MatchingSkills.map((skill: string, i: number) => (
+                      <li key={i} className="mb-1">{skill}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {/* Missing Requirements */}
+              {Array.isArray(sseResult.MissingRequirements) && sseResult.MissingRequirements.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Saknade krav</h3>
+                  <ul className="list-disc ml-8 text-gray-900">
+                    {sseResult.MissingRequirements.map((req: string, i: number) => (
+                      <li key={i} className="mb-1">{req}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {/* Relevant Experiences */}
+              {Array.isArray(sseResult.RelevantExperiences) && sseResult.RelevantExperiences.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Relevanta erfarenheter</h3>
+                  <ul className="list-disc ml-8 text-gray-900">
+                    {sseResult.RelevantExperiences.map((exp: string, i: number) => (
+                      <li key={i} className="mb-1">{exp}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {/* Education and Certifications */}
+              {Array.isArray(sseResult.EducationAndCertifications) && sseResult.EducationAndCertifications.length > 0 && (
+                <div className="mb-2">
+                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Utbildning & certifieringar</h3>
+                  <ul className="list-disc ml-8 text-gray-900">
+                    {sseResult.EducationAndCertifications.map((edu: string, i: number) => (
+                      <li key={i} className="mb-1">{edu}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
-                  {/* End of icon+checkmark */}
         </SectionCard>
       </PageWrapper>
     </>
   );
-};
-
+}
 export default CompareCvToJobAdPage;
