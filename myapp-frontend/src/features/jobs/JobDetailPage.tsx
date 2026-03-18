@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageWrapper, PageBackground } from '../../components/common';
+import { SectionCard } from '../../components/common/SectionCard';
 import JobDetailCard from '../../components/common/cards/JobDetailCard';
 import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
@@ -61,8 +62,9 @@ const JobDetailPage: React.FC = () => {
     title: jobData.title || '---',
     company: jobData.company || '---',
     location: jobData.location || '---',
-    workType: jobData.workType || jobData.employmentType || '---',
-    lastApplicationDate: jobData.applicationDeadline || '---',
+    workType: jobData.workType || '---',
+    employmentType: jobData.employmentType || '---',
+    lastApplicationDate: jobData.applicationDeadline ? new Date(jobData.applicationDeadline).toLocaleDateString('sv-SE') : '---',
     isActionItem: !jobData.hasApplied,
     saved: jobData.isSaved,
     competencies: jobData.requiredSkills || [],
@@ -156,11 +158,11 @@ const JobDetailPage: React.FC = () => {
       <>
         <PageBackground imageUrl="/job_detail.png" opacity={1} blur={0} />
         <PageWrapper>
-          <div className="card relative z-10 p-6">
+          <SectionCard className="relative z-10">
             <div className="text-center py-12">
               <p className="text-gray-500">Loading job details...</p>
             </div>
-          </div>
+          </SectionCard>
         </PageWrapper>
       </>
     );
@@ -171,28 +173,38 @@ const JobDetailPage: React.FC = () => {
       <>
         <PageBackground imageUrl="/job_detail.png" opacity={1} blur={0} />
         <PageWrapper>
-          <div className="card relative z-10 p-6">
+          <SectionCard className="relative z-10">
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
               {error}
             </div>
-            <button 
+            <button
               onClick={() => navigate(-1)}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Go Back
             </button>
-          </div>
+          </SectionCard>
         </PageWrapper>
       </>
     );
   }
 
+  const fromSearch = sessionStorage.getItem('searchReturnFlag') === '1';
+
   return (
     <>
       <PageBackground imageUrl="/job_detail.png" opacity={1} blur={0} />
       <PageWrapper>
-        <div className="card relative z-10 p-6">
-          <JobDetailCard 
+        {fromSearch && (
+          <button
+            onClick={() => navigate('/search')}
+            className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 mb-3"
+          >
+            ← {tSync('jobDetail_back_to_search')}
+          </button>
+        )}
+        <SectionCard className="relative z-10">
+          <JobDetailCard
             job={job}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -203,7 +215,7 @@ const JobDetailPage: React.FC = () => {
             isNotInterestedLoading={notInterestedLoading}
             countdown={countdown}
           />
-        </div>
+        </SectionCard>
       </PageWrapper>
     </>
   );

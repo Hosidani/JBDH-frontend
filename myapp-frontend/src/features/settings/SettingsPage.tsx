@@ -43,10 +43,9 @@ const SettingsPage: React.FC = () => {
     setProfileMessage(null);
     // Prepare DTO for API
     const dto = {
-      Name: name,
-      Email: email,
-      PhoneNumber: phone
-      // Add other fields as needed
+      name,
+      email,
+      phone_number: phone,
     };
     if (email !== originalEmail) {
       setPendingDto(dto);
@@ -61,7 +60,7 @@ const SettingsPage: React.FC = () => {
     try {
       await ApiService.updateUserSettings(dto);
       // If email was changed, log out and redirect to login
-      if (dto.Email !== originalEmail) {
+      if (dto.email !== originalEmail) {
         // Optionally, call a logout API if needed
         window.location.href = '/login';
         return;
@@ -113,8 +112,7 @@ const SettingsPage: React.FC = () => {
   return (
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
-      <PageWrapper>
-        <div className="max-w-xl mx-auto mt-10 card p-8 flex flex-col gap-10 relative z-10">
+      <PageWrapper className="card p-8 flex flex-col gap-10 relative z-10">
           <h2 className="text-2xl font-bold mb-4">{tSync('settingsPage_title')}</h2>
           <ProfileForm
             name={name}
@@ -146,7 +144,6 @@ const SettingsPage: React.FC = () => {
             onSubmit={handlePasswordSubmit}
             tSync={tSync}
           />
-        </div>
       </PageWrapper>
     </>
   );

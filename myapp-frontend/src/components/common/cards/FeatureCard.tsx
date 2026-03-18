@@ -9,7 +9,7 @@ interface FeatureCardProps {
 }
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ to, img, title, desc }) => (
-  <Link to={to} className="bg-slate-100 rounded-lg p-0 flex flex-col h-96 shadow-sm border border-slate-200 hover:bg-blue-50 transition cursor-pointer overflow-hidden">
+  <Link to={to} className="bg-slate-100 rounded-lg p-0 flex flex-col h-96 border border-slate-200 cursor-pointer overflow-hidden transition-all duration-200 ease-out shadow-[0_2px_8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.13),0_2px_6px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:bg-blue-50">
     {/* Image square */}
     <div className="flex items-center justify-center w-full bg-white" style={{ height: '55%', minHeight: 0, aspectRatio: '1/1', overflow: 'hidden' }}>
       {img ? (

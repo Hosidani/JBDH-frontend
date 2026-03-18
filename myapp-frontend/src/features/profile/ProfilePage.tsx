@@ -20,9 +20,9 @@ function ProfilePage() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      window.dispatchEvent(new CustomEvent('requireLogin'));
     }
-  }, [user, navigate]);
+  }, [user]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,7 +32,9 @@ function ProfilePage() {
         const data = await ApiService.getMyProfile();
         setProfile(data);
       } catch (err) {
-        setError((err as any)?.message || 'Något gick fel.');
+        const msg = (err as any)?.message || '';
+        if (msg.includes('401')) return;
+        setError(msg || 'Något gick fel.');
         setAnalysisResult(null);
       } finally {
         setLoading(false);
@@ -99,24 +101,22 @@ function ProfilePage() {
   return (
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
-      <PageWrapper>
-        <div className="relative z-10 max-w-2xl w-full mx-auto mt-8 flex flex-col gap-8">
-          <ProfileInfoCard {...profileCardProps} />
-          <AIAnalysisCard
-            polling={polling}
-            analysis={latestAIAnalysis}
-            aiResponse={latestAIResponse}
-            aiResponses={aiResponses}
-            tSync={tSync}
-            language={language}
-          />
-          <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
-          <ButtonsCard 
-            tSync={tSync}
-            onMatchNowClick={() => navigate('/matching')}
-            onManualSearchClick={() => navigate('/search')}
-          />
-        </div>
+      <PageWrapper className="relative z-10 flex flex-col gap-8">
+        <ProfileInfoCard {...profileCardProps} />
+        <AIAnalysisCard
+          polling={polling}
+          analysis={latestAIAnalysis}
+          aiResponse={latestAIResponse}
+          aiResponses={aiResponses}
+          tSync={tSync}
+          language={language}
+        />
+        <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
+        <ButtonsCard
+          tSync={tSync}
+          onMatchNowClick={() => navigate('/matching')}
+          onManualSearchClick={() => navigate('/search')}
+        />
       </PageWrapper>
     </>
   );

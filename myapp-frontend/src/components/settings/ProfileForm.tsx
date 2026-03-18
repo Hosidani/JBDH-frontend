@@ -1,4 +1,7 @@
 import React from 'react';
+import { TextInput } from '../ui/TextInput';
+import { Button } from '../ui/Button';
+import { Heading } from '../ui/Heading';
 
 interface ProfileFormProps {
   name: string;
@@ -14,51 +17,19 @@ interface ProfileFormProps {
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({
-  name,
-  email,
-  phone,
-  loading,
-  message,
-  onNameChange,
-  onEmailChange,
-  onPhoneChange,
-  onSubmit,
-  tSync,
-}) => {
-  return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <h3 className="font-semibold text-lg">{tSync('settingsPage_profile_section_title')}</h3>
-      <label>
-        {tSync('settingsPage_name_label')}
-        <span className="text-sm text-gray-500 ml-2">
-          ({tSync('settingsPage_current_label')} {name || tSync('settingsPage_not_set')})
-        </span>
-        <input className="w-full" value={name} onChange={e => onNameChange(e.target.value)} />
-      </label>
-      <label>
-        {tSync('settingsPage_email_label')}
-        <span className="text-sm text-gray-500 ml-2">
-          ({tSync('settingsPage_current_label')} {email || tSync('settingsPage_not_set')})
-        </span>
-        <input className="w-full" type="email" value={email} onChange={e => onEmailChange(e.target.value)} />
-      </label>
-      <label>
-        {tSync('settingsPage_phone_label')}
-        <span className="text-sm text-gray-500 ml-2">
-          ({tSync('settingsPage_current_label')} {phone || tSync('settingsPage_not_set')})
-        </span>
-        <input className="w-full" value={phone} onChange={e => onPhoneChange(e.target.value)} />
-      </label>
-      <button
-        type="submit"
-        className="bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition"
-        disabled={loading}
-      >
-        {tSync('settingsPage_save_button')}
-      </button>
-      {message && <div className="text-green-600 text-sm">{message}</div>}
-    </form>
-  );
-};
+  name, email, phone, loading, message,
+  onNameChange, onEmailChange, onPhoneChange, onSubmit, tSync,
+}) => (
+  <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <Heading level={3}>{tSync('settingsPage_profile_section_title')}</Heading>
+    <TextInput label={tSync('settingsPage_name_label')}  value={name}  onChange={onNameChange}  type="text" />
+    <TextInput label={tSync('settingsPage_email_label')} value={email} onChange={onEmailChange} type="email" />
+    <TextInput label={tSync('settingsPage_phone_label')} value={phone} onChange={onPhoneChange} type="tel" />
+    <Button type="submit" variant="primary" loading={loading}>
+      {tSync('settingsPage_save_button')}
+    </Button>
+    {message && <p className="text-green-600 text-sm">{message}</p>}
+  </form>
+);
 
 export default ProfileForm;

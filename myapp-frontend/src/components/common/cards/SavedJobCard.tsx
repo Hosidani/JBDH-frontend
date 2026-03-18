@@ -7,6 +7,7 @@ export interface SavedJob {
   company: string;
   location: string;
   workType?: string;
+  employmentType?: string;
   lastApplicationDate: string;
   isActionItem?: boolean;
   saved?: boolean;
