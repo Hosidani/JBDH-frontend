@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
 import { ProfileInfoCard, AIAnalysisCard, FileDropZoneCard, ButtonsCard } from '../../components/profile';
 import { PageWrapper, PageBackground } from '../../components/common';
+import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useAIResponsePolling } from '../../hooks/useAIResponsePolling';
 
@@ -20,9 +21,9 @@ function ProfilePage() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      window.dispatchEvent(new CustomEvent('requireLogin'));
     }
-  }, [user, navigate]);
+  }, [user]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,7 +33,9 @@ function ProfilePage() {
         const data = await ApiService.getMyProfile();
         setProfile(data);
       } catch (err) {
-        setError((err as any)?.message || 'Något gick fel.');
+        const msg = (err as any)?.message || '';
+        if (msg.includes('401')) return;
+        setError(msg || 'Något gick fel.');
         setAnalysisResult(null);
       } finally {
         setLoading(false);
@@ -99,9 +102,10 @@ function ProfilePage() {
   return (
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
-      <PageWrapper>
-        <div className="relative z-10 max-w-2xl w-full mx-auto mt-8 flex flex-col gap-8">
+      <PageWrapper className="relative z-10">
+        <SectionCard className="flex flex-col gap-8">
           <ProfileInfoCard {...profileCardProps} />
+          <hr className="border-slate-200" />
           <AIAnalysisCard
             polling={polling}
             analysis={latestAIAnalysis}
@@ -110,13 +114,15 @@ function ProfilePage() {
             tSync={tSync}
             language={language}
           />
+          <hr className="border-slate-200" />
           <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
-          <ButtonsCard 
+          <hr className="border-slate-200" />
+          <ButtonsCard
             tSync={tSync}
             onMatchNowClick={() => navigate('/matching')}
             onManualSearchClick={() => navigate('/search')}
           />
-        </div>
+        </SectionCard>
       </PageWrapper>
     </>
   );

@@ -77,7 +77,7 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
 
   function tSync(key: string): string {
     const messages = translationsCache[language];
-    return messages ? messages[key] || key : key;
+    return messages ? (key in messages ? messages[key] : key) : key;
   }
 
   function changeLanguage(lang: string) {

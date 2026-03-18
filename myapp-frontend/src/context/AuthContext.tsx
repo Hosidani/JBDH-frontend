@@ -13,6 +13,8 @@ interface AuthContextType {
   user: AuthUser | null;
   login: (user: AuthUser) => void;
   logout: () => void;
+  sessionExpired: boolean;
+  clearSessionExpired: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ export { AuthContext };
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // Restore user from localStorage on mount and validate session
   useEffect(() => {
@@ -29,12 +32,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const stored = localStorage.getItem("authUser");
       if (stored) {
         try {
-          // Try to validate the session by calling an auth-required endpoint
-          await ApiService.getMyProfile();
-          // If successful, session is valid - restore user
-          setUser(JSON.parse(stored));
+          const profile = await ApiService.getMyProfile();
+          const storedUser = JSON.parse(stored);
+          setUser({ ...storedUser, name: profile.name || storedUser.name });
         } catch (error) {
-          // Session is invalid/expired, clear stored user
           console.warn("Session validation failed - clearing stored user:", error);
           localStorage.removeItem("authUser");
           setUser(null);
@@ -57,21 +58,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, loading]);
 
+  // Enrich user.name after login if backend didn't include it
+  useEffect(() => {
+    if (user && !user.name) {
+      ApiService.getMyProfile()
+        .then(profile => {
+          if (profile.name) setUser(prev => prev ? { ...prev, name: profile.name } : prev);
+        })
+        .catch(() => {});
+    }
+  }, [user?.email]);
+
+  useEffect(() => {
+    const handler = () => {
+      setUser(null);
+      localStorage.removeItem('authUser');
+      setSessionExpired(true);
+    };
+    window.addEventListener('sessionExpired', handler);
+    return () => window.removeEventListener('sessionExpired', handler);
+  }, []);
+
   const login = (user: AuthUser) => {
     setUser(user);
+    setSessionExpired(false);
     localStorage.setItem("authUser", JSON.stringify(user));
   };
   const logout = () => {
     setUser(null);
     localStorage.removeItem("authUser");
   };
+  const clearSessionExpired = () => setSessionExpired(false);
 
   if (loading) {
     return <div>Laddar...</div>;
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, sessionExpired, clearSessionExpired }}>
       {children}
     </AuthContext.Provider>
   );

@@ -39,7 +39,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
           <Link to="/compare-cv-jobad" className="text-left hover:underline" onClick={onClose}>{tSync('menu_match_cv_jobad')}</Link>
           <Link to="/about" className="text-left hover:underline" onClick={onClose}>{tSync('menu_how_it_works')}</Link>
           {user && (
-            <button className="text-left text-red-600 mt-2 flex items-center gap-2 hover:underline" onClick={() => { logout(); navigate('/'); }}>
+            <button className="text-left text-red-600 mt-2 flex items-center gap-2 hover:underline" onClick={() => { logout(); onClose(); navigate('/'); }}>
               {tSync('menu_logout')} <span style={{ fontSize: 18 }}>&#8594;</span>
             </button>
           )}

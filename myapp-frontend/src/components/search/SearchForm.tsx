@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
 
-interface SearchFormProps {
-  onSubmit: (formData: SearchFormData) => void;
-  loading: boolean;
-}
-
 export interface SearchFormData {
   location: string;
   workArea: string;
@@ -15,14 +10,20 @@ export interface SearchFormData {
   useProfile: boolean;
 }
 
-const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading }) => {
+interface SearchFormProps {
+  onSubmit: (formData: SearchFormData) => void;
+  loading: boolean;
+  initialValues?: SearchFormData;
+}
+
+const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading, initialValues }) => {
   const { tSync } = useTranslation();
-  const [location, setLocation] = useState('');
-  const [workArea, setWorkArea] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
-  const [roles, setRoles] = useState('');
-  const [competencies, setCompetencies] = useState('');
-  const [useProfile, setUseProfile] = useState(false);
+  const [location, setLocation] = useState(initialValues?.location ?? '');
+  const [workArea, setWorkArea] = useState(initialValues?.workArea ?? '');
+  const [jobDescription, setJobDescription] = useState(initialValues?.jobDescription ?? '');
+  const [roles, setRoles] = useState(initialValues?.roles ?? '');
+  const [competencies, setCompetencies] = useState(initialValues?.competence ?? '');
+  const [useProfile, setUseProfile] = useState(initialValues?.useProfile ?? false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

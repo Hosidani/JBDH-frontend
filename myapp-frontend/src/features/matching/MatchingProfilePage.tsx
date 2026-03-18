@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper, PageBackground } from '../../components/common';
+import { SectionCard } from '../../components/common/SectionCard';
 import { MatchingAssignmentsList, MatchingAnalysisTab } from '../../components/common/cards';
 import { getMatchingJobs } from '../../services/mockData';
 import type { MatchingAssignment } from '../../components/common/cards';
@@ -43,7 +44,7 @@ const MatchingProfilePage: React.FC = () => {
     <>
       <PageBackground imageUrl="/match_profile.png" opacity={1} blur={0} />
       <PageWrapper>
-        <div className="card relative z-10 p-6">
+        <SectionCard className="relative z-10">
           <h2 className="text-2xl font-bold mb-2" style={{ color: '#2563eb' }}>
             {tSync('matchingProfilePage_title')}
           </h2>
@@ -108,7 +109,7 @@ const MatchingProfilePage: React.FC = () => {
               coachTips="Molkt instruit quis ultanso duis de tempos non exumot nonisul nuns. Nula ex ventum nili culba. Dus alscusing bro diance mim amet danz co ord mitui unse. Dus molkt molkt molkt molkt molkt molkt molkt molkt molkt."
             />
           )}
-        </div>
+        </SectionCard>
       </PageWrapper>
     </>
   );
