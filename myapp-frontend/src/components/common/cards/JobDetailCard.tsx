@@ -55,7 +55,7 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">{tSync('jobDetail_employment_type')}</p>
-            <p className="font-semibold text-gray-900">{tSync('jobDetail_employment_hybrid')}</p>
+            <p className="font-semibold text-gray-900">{job.employmentType}</p>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">{tSync('jobDetail_location')}</p>
