@@ -125,7 +125,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
 
   return (
     <div className="card relative z-10 p-8 mt-6 max-w-6xl mx-auto">
-      <h3 className="text-xl font-bold mb-4">{tSync('searchJobs_results_title')}</h3>
+      <h3 className="text-xl font-bold mb-4">{tSync('searchJobs_results_title')} ({results.length})</h3>
 
       {results.length === 0 ? (
         <div className="text-center py-8 text-gray-500">{tSync('searchJobs_no_results')}</div>
