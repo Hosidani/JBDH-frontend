@@ -104,7 +104,7 @@ function ProfilePage() {
   return (
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
-      <PageWrapper className="flex flex-col gap-8">
+      <PageWrapper className="relative z-10 flex flex-col gap-8">
         <ProfileInfoCard {...profileCardProps} />
         <AIAnalysisCard
           polling={polling}
