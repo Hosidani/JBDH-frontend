@@ -32,7 +32,12 @@ function ProfilePage() {
         const data = await ApiService.getMyProfile();
         setProfile(data);
       } catch (err) {
-        setError((err as any)?.message || 'Något gick fel.');
+        const msg = (err as any)?.message || '';
+        if (msg.includes('401')) {
+          navigate('/login');
+          return;
+        }
+        setError(msg || 'Något gick fel.');
         setAnalysisResult(null);
       } finally {
         setLoading(false);

@@ -38,6 +38,10 @@ const JobDetailPage: React.FC = () => {
         setJobData(jobDetails);
       } catch (err) {
         console.error('Error fetching job details:', err);
+        if (err instanceof Error && err.message.includes('401')) {
+          navigate('/login');
+          return;
+        }
         setError('Failed to load job details');
       } finally {
         setLoading(false);
