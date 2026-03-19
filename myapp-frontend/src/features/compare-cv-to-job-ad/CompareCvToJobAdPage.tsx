@@ -158,56 +158,96 @@ const CompareCvToJobAdPage: React.FC = () => {
               {vectorResult?.similarityScore !== undefined && (
                 <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border-l-4 border-emerald-400">
                   <span className="text-4xl font-black text-emerald-700">{Number(vectorResult.similarityScore).toFixed(1)}%</span>
-                  <span className="ml-3 text-slate-700 font-semibold">Semantisk likhet</span>
+                  <span className="ml-3 text-slate-700 font-semibold">Semantisk likhet(CV vs Jobbannons)</span>
                 </div>
               )}
-              {/* FitSummary */}
-              {sseResult.FitSummary && (
+
+              {/* Profession-likhet (vektor) */}
+              {typeof sseResult.profession_vector_similarity === 'number' && (
+                <div className="mb-2">
+                  <span className="font-semibold">Profession-likhet (vektor): </span>
+                  <span>{sseResult.profession_vector_similarity}%</span>
+                </div>
+              )}
+
+              {/* Kompetens-likhet (vektor) */}
+              {typeof sseResult.skills_vector_similarity === 'number' && (
+                <div className="mb-6">
+                  <span className="font-semibold">Kompetens-likhet (vektor): </span>
+                  <span>{sseResult.skills_vector_similarity}%</span>
+                </div>
+              )}
+              {/* Sammanfattning */}
+              {sseResult.summary && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Sammanfattning</h3>
-                  <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100">{sseResult.FitSummary}</p>
+                  <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100">{sseResult.summary}</p>
                 </div>
               )}
-              {/* Matching Skills */}
-              {Array.isArray(sseResult.MatchingSkills) && (
+              {/* Matchande kompetenser */}
+              {Array.isArray(sseResult.matching_skills) && sseResult.matching_skills.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Matchande kompetenser</h3>
                   <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.MatchingSkills.map((skill: string, i: number) => (
-                      <li key={i} className="mb-1">{skill}</li>
+                    {sseResult.matching_skills.map((skill: any, i: number) => (
+                      <li key={i} className="mb-1">{typeof skill === 'string' ? skill : skill.name}</li>
                     ))}
                   </ul>
                 </div>
               )}
-              {/* Missing Requirements */}
-              {Array.isArray(sseResult.MissingRequirements) && sseResult.MissingRequirements.length > 0 && (
+              {/* Saknade krav */}
+              {Array.isArray(sseResult.missing_requirements) && sseResult.missing_requirements.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Saknade krav</h3>
                   <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.MissingRequirements.map((req: string, i: number) => (
-                      <li key={i} className="mb-1">{req}</li>
+                    {sseResult.missing_requirements.map((req: any, i: number) => (
+                      <li key={i} className="mb-1">{typeof req === 'string' ? req : req.name}</li>
                     ))}
                   </ul>
                 </div>
               )}
-              {/* Relevant Experiences */}
-              {Array.isArray(sseResult.RelevantExperiences) && sseResult.RelevantExperiences.length > 0 && (
+              {/* Relevanta erfarenheter */}
+              {Array.isArray(sseResult.relevant_experiences) && sseResult.relevant_experiences.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Relevanta erfarenheter</h3>
                   <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.RelevantExperiences.map((exp: string, i: number) => (
+                    {sseResult.relevant_experiences.map((exp: any, i: number) => (
                       <li key={i} className="mb-1">{exp}</li>
                     ))}
                   </ul>
                 </div>
               )}
-              {/* Education and Certifications */}
-              {Array.isArray(sseResult.EducationAndCertifications) && sseResult.EducationAndCertifications.length > 0 && (
+              {/* Utbildning & certifieringar */}
+              {Array.isArray(sseResult.education_and_certifications) && sseResult.education_and_certifications.length > 0 && (
                 <div className="mb-2">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Utbildning & certifieringar</h3>
                   <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.EducationAndCertifications.map((edu: string, i: number) => (
+                    {sseResult.education_and_certifications.map((edu: any, i: number) => (
                       <li key={i} className="mb-1">{edu}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Styrkor */}
+              {Array.isArray(sseResult.strengths) && sseResult.strengths.length > 0 && (
+                <div className="mb-2">
+                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Styrkor</h3>
+                  <ul className="list-disc ml-8 text-gray-900">
+                    {sseResult.strengths.map((item: any, i: number) => (
+                      <li key={i} className="mb-1">{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Luckor */}
+              {Array.isArray(sseResult.gaps) && sseResult.gaps.length > 0 && (
+                <div className="mb-2">
+                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Luckor</h3>
+                  <ul className="list-disc ml-8 text-gray-900">
+                    {sseResult.gaps.map((item: any, i: number) => (
+                      <li key={i} className="mb-1">{item}</li>
                     ))}
                   </ul>
                 </div>
