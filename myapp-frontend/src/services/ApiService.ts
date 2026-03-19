@@ -26,7 +26,7 @@ interface JobDetailsDto {
 
 export type { JobDetailsDto };
 
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}`;
 
 export class ApiService {
   // JWT Token Management
@@ -51,7 +51,7 @@ export class ApiService {
 
   // Shared login method for DRY principle
   static async loginUser(email: string, password: string): Promise<{ user: any; access?: string; refresh?: string; error?: string }> {
-    const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+    const API_URL = `${import.meta.env.VITE_API_URL}`;
     try {
       const response = await fetch(`${API_URL}/auth/login/`, {
         method: 'POST',

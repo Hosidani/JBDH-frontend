@@ -162,7 +162,7 @@ const CvJobAdComparison: React.FC = () => {
     formData.append('cvPath', cvFile);
 
     try {
-      const response = await fetch(`${API_URL}/api/home/CompareCvToJobAd`, {
+      const response = await fetch(`${API_URL}/home/CompareCvToJobAd`, {
         method: 'POST',
         credentials: 'include',
         body: formData
