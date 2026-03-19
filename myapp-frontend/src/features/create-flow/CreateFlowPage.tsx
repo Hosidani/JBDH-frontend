@@ -27,7 +27,7 @@ const CreateFlowPage: React.FC<CreateFlowPageProps> = ({ onNavigateBack }) => {
       contentType: contentType
     };
     try {
-      const response = await fetch(`${API_URL}/api/home/CreateFlow`, {
+      const response = await fetch(`${API_URL}/home/CreateFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

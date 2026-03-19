@@ -24,7 +24,7 @@ const DataFlowThread: React.FC<DataFlowThreadProps> = ({ dataFlow, onCommentAdde
     };
 
     try {
-      const response = await fetch(`${API_URL}/api/home/CommentOnDataFlow`, {
+      const response = await fetch(`${API_URL}/home/CommentOnDataFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ const DataFlowThread: React.FC<DataFlowThreadProps> = ({ dataFlow, onCommentAdde
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
-        const response = await fetch(`${API_URL}/api/home/Delete/${dataFlow.id}`, {
+        const response = await fetch(`${API_URL}/home/Delete/${dataFlow.id}`, {
           method: 'DELETE',
           credentials: 'include',
         });

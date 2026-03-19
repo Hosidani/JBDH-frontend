@@ -28,7 +28,7 @@ const CreateFlowForm: React.FC<CreateFlowFormProps> = ({ onPostCreated }) => {
     };
 
     try {
-      const response = await fetch(`${API_URL}/api/home/CreateFlow`, {
+      const response = await fetch(`${API_URL}/home/CreateFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

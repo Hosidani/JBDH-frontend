@@ -31,7 +31,7 @@ const DataFlowPost: React.FC<DataFlowPostProps> = ({ post, onPostDeleted, onComm
     };
 
     try {
-      const response = await fetch(`${API_URL}/api/home/ReportDataFlow`, {
+      const response = await fetch(`${API_URL}/home/ReportDataFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ const DataFlowPost: React.FC<DataFlowPostProps> = ({ post, onPostDeleted, onComm
     };
 
     try {
-      const response = await fetch(`${API_URL}/api/home/CommentOnDataFlow`, {
+      const response = await fetch(`${API_URL}/home/CommentOnDataFlow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ const DataFlowPost: React.FC<DataFlowPostProps> = ({ post, onPostDeleted, onComm
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        const response = await fetch(`${API_URL}/api/home/Delete/${post.id}`, {
+        const response = await fetch(`${API_URL}/home/Delete/${post.id}`, {
           method: 'DELETE',
           credentials: 'include',
         });
