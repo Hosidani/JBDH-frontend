@@ -330,7 +330,7 @@ export class ApiService {
     if (language) {
       formData.append('language', ApiService.mapLanguageToBackend(language));
     }
-    const response = await fetch(`${API_BASE_URL}/profile/analyzecv`, {
+    const response = await fetch(`${API_BASE_URL}/profile/analyzecv/`, {
       method: 'POST',
       credentials: 'include',
       body: formData,
