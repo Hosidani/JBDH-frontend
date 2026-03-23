@@ -126,7 +126,12 @@ export class ApiService {
     const response = await this.fetchWithAuth('/profile/getmyprofile', {
       method: 'GET',
     });
-    return await response.json();
+    const data = await response.json();
+    // Map ai_responses to aiResponses for frontend compatibility
+    if (data && data.ai_responses && !data.aiResponses) {
+      data.aiResponses = data.ai_responses;
+    }
+    return data;
   }
 
   // Update current user's settings
@@ -326,19 +331,15 @@ export class ApiService {
   // Upload CV for AI analysis
   static async uploadCVForAnalysis(cvFile: File, language?: string): Promise<{ success: boolean; message: string }> {
     const formData = new FormData();
-    formData.append('cvFile', cvFile);
+    formData.append('cv_file', cvFile); // Use backend-expected key
     if (language) {
       formData.append('language', ApiService.mapLanguageToBackend(language));
     }
-    const response = await fetch(`${API_BASE_URL}/profile/analyzecv`, {
+    // Use fetchWithAuth for DRY and JWT
+    const response = await this.fetchWithAuth('/profile/analyzecv/', {
       method: 'POST',
-      credentials: 'include',
       body: formData,
     });
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || `HTTP error! status: ${response.status}`);
-    }
     return await response.json();
   }
 
