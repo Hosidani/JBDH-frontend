@@ -22,6 +22,10 @@ export const useAIResponsePolling = () => {
       while (attempts < maxAttempts) {
         try {
           const data = await ApiService.getMyProfile();
+          // Compatibility: support both aiResponses and ai_responses.
+          if (data?.ai_responses && !data.aiResponses) {
+            data.aiResponses = data.ai_responses;
+          }
           onProfileUpdate(data);
           const newLatestId = getLatestAIResponseId(data.aiResponses);
           if (newLatestId && newLatestId !== initialLatestId) {
