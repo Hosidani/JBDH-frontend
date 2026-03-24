@@ -81,6 +81,13 @@ const AccountPage: React.FC = () => {
     acceptedTermsAndConditions: false,
   });
 
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwMessage, setPwMessage] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchAccountSettings = async () => {
       if (!user) {
@@ -134,12 +141,12 @@ const AccountPage: React.FC = () => {
 
   const handleSave = async () => {
     if (!accountSettings || !originalData || accountSettings.isTerminated) return;
-    
+
     setIsSaving(true);
     try {
       // Build update request with only changed fields
       const updateRequest: any = {};
-      
+
       // Check basic fields for changes
       if (formData.accountName !== originalData.accountName) {
         updateRequest.accountName = formData.accountName;
@@ -159,33 +166,33 @@ const AccountPage: React.FC = () => {
       if (formData.acceptedTermsAndConditions !== originalData.acceptedTermsAndConditions) {
         updateRequest.acceptedTermsAndConditions = formData.acceptedTermsAndConditions;
       }
-      
+
       // Check roles for changes
       const rolesChanged = JSON.stringify(formData.roles.sort()) !== JSON.stringify(originalData.roles.sort());
       if (rolesChanged) {
-        updateRequest.updateRoles = formData.roles;
+        updateRequest.roles = formData.roles;
       }
-      
+
       // For organisations, we'll need to calculate join/leave operations
       // For now, let's send all current organisation IDs as joinOrganisationIds
       const originalOrgIds = originalData.organisations.map(o => o.id).filter(id => id > 0);
       const currentOrgIds = formData.organisations.map(o => o.id).filter(id => id > 0);
-      
+
       const joinIds = currentOrgIds.filter(id => !originalOrgIds.includes(id));
       const leaveIds = originalOrgIds.filter(id => !currentOrgIds.includes(id));
-      
+
       if (joinIds.length > 0) {
         updateRequest.joinOrganisationIds = joinIds;
       }
       if (leaveIds.length > 0) {
         updateRequest.leaveOrganisationIds = leaveIds;
       }
-      
+
       // Only send request if there are changes
       if (Object.keys(updateRequest).length > 0) {
         await ApiService.updateAccountSettings(updateRequest);
       }
-      
+
       // Refresh account settings
       const updatedData = await ApiService.getAccountSettings();
       setAccountSettings(updatedData);
@@ -259,7 +266,7 @@ const AccountPage: React.FC = () => {
     if (query.trim() === '') {
       setFilteredOrgs([]);
     } else {
-      const filtered = availableOrgs.filter(org => 
+      const filtered = availableOrgs.filter(org =>
         org.name.toLowerCase().startsWith(query.toLowerCase())
       );
       setFilteredOrgs(filtered);
@@ -270,13 +277,13 @@ const AccountPage: React.FC = () => {
     setIsSaving(true);
     try {
       await ApiService.updateAccountSettings({ joinOrganisationIds: [orgId] });
-      
+
       // Add a small delay to ensure backend has processed the request
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Refresh account settings
       const updatedData = await ApiService.getAccountSettings();
-      
+
       // Force re-render by updating accountSettings first
       setAccountSettings(updatedData);
       const newFormData = {
@@ -291,12 +298,12 @@ const AccountPage: React.FC = () => {
       };
       setFormData(newFormData);
       setOriginalData(newFormData); // This is crucial - update the original data too
-      
+
       // Force a complete re-render
       setShowOrgPicker(false);
       setOrgSearchQuery(''); // Reset search when modal closes
       setFilteredOrgs([]);
-      
+
       // If still no organisations showing, force reload the page data
       if (!updatedData.organisations || updatedData.organisations.length === 0) {
         // Let's try one more API call after a longer delay
@@ -327,6 +334,27 @@ const AccountPage: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Failed to join organisation');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwMessage(null);
+    if (newPassword !== confirmPassword) {
+      setPwMessage(tSync('settingsPage_passwords_no_match'));
+      return;
+    }
+    setPwLoading(true);
+    try {
+      await ApiService.changePassword(currentPassword, newPassword, confirmPassword);
+      setPwMessage(tSync('settingsPage_password_updated'));
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setPwMessage(err?.message || 'Error changing password');
+    } finally {
+      setPwLoading(false);
     }
   };
 
@@ -454,6 +482,28 @@ const AccountPage: React.FC = () => {
               <Button variant="secondary" disabled={isSaving} onClick={handleCancel}>{tSync('button_cancel')}</Button>
             </div>
           )}
+        </PageCard>
+
+        {/* Change Password */}
+        <PageCard title={tSync('settingsPage_password_section_title')}>
+          <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <TextInput label={tSync('settingsPage_current_password_label')} value={currentPassword} onChange={setCurrentPassword} type="password" />
+              <div />
+              <TextInput label={tSync('settingsPage_new_password_label')}     value={newPassword}     onChange={setNewPassword}     type="password" />
+              <TextInput label={tSync('settingsPage_confirm_password_label')} value={confirmPassword} onChange={setConfirmPassword} type="password" />
+            </div>
+            {pwMessage && (
+              <p className={pwMessage.includes('Error') || pwMessage.includes('match') ? 'text-red-600 text-sm' : 'text-green-600 text-sm'}>
+                {pwMessage}
+              </p>
+            )}
+            <div className="pt-6 border-t border-slate-200">
+              <Button type="submit" variant="primary" loading={pwLoading}>
+                {tSync('settingsPage_change_password_button')}
+              </Button>
+            </div>
+          </form>
         </PageCard>
 
         {/* Account Status */}

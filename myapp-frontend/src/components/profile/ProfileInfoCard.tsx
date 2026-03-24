@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService } from '../../services/ApiService';
 import { useNavigate } from 'react-router-dom';
-import IconSettings from '../icon_library/IconSettings';
 import IconEditPen from '../icon_library/IconEditPen';
 import { Toggle } from '../ui/Toggle';
 import { CheckboxGroup } from '../ui/CheckboxGroup';
@@ -116,19 +115,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         <div className="text-xs text-slate-400">{tSync('profilePage_registration_label')}: {registrationDate}</div>
       </div>
 
-      {/* Settings gear */}
-      <div className="flex justify-end -mt-4">
-        <button
-          type="button"
-          aria-label="Inställningar"
-          onClick={() => navigate('/settings')}
-          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-        >
-          <IconSettings className="w-[22px] h-[22px] opacity-70 hover:opacity-100" />
-        </button>
-      </div>
-
-      {/* Two-column layout */}
+{/* Two-column layout */}
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Column 1: Namn, Anst.form, Telefon, Ort + Sökbar + Resbar */}
         <div className="flex-1 flex flex-col gap-4">

@@ -30,8 +30,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
           {user && (
             <>
               <Link to="/profile" className="text-left hover:underline" onClick={onClose}>{tSync('menu_profile')}</Link>
-              <Link to="/settings" className="text-left hover:underline" onClick={onClose}>{tSync('menu_settings')}</Link>
-              <Link to="/account" className="text-left hover:underline" onClick={onClose}>{tSync('menu_account_settings')}</Link>
+<Link to="/account" className="text-left hover:underline" onClick={onClose}>{tSync('menu_account_settings')}</Link>
             </>
           )}
           <Link to="/search" className="text-left hover:underline" onClick={onClose}>{tSync('menu_match_cv_ads')}</Link>

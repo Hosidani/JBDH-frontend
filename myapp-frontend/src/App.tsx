@@ -10,7 +10,6 @@ import { SavedJobsPage } from './features/saved-jobs';
 import { LoginPage, RegisterPage } from './features/auth';
 import { SearchJobsPage, MatchAdToCvsPage } from './features/search';
 import { ProfilePage } from './features/profile';
-import { SettingsPage } from './features/settings';
 import { AccountPage } from './features/account';
 import { AddJobAdPage } from './features/boards';
 import { MatchingProfilePage } from './features/matching';
@@ -106,7 +105,6 @@ function App() {
           <Route path="/search" element={<SearchJobsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/matching" element={<MatchingProfilePage />} />
           <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
