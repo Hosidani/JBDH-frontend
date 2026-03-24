@@ -40,7 +40,7 @@ function App() {
     window.addEventListener('requireLogin', handler);
     return () => window.removeEventListener('requireLogin', handler);
   }, []);
-  const { language, changeLanguage } = useTranslation();
+  const { language, changeLanguage, tSync } = useTranslation();
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -48,10 +48,10 @@ function App() {
       <header className="sticky top-0 w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20">
         <div className="flex items-center gap-3">
           <Link to="/">
-            <img src="/SMATCH_64X64.png" alt="SMATCH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
+            <img src="/JBDH_64X64.png" alt="JBDH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
           </Link>
-          <span className="font-bold text-xl tracking-tight">SMATCH</span>
-          <span className="text-slate-500 text-sm ml-2">Onödigt enkelt</span>
+          <span className="font-bold text-xl tracking-tight">JBDH</span>
+          <span className="text-slate-500 text-sm ml-2">{tSync('app_tagline')}</span>
         </div>
         <div className="flex items-center gap-4">
           {user && <UserIndicator />}
