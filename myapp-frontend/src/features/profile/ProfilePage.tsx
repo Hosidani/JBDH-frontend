@@ -67,7 +67,7 @@ function ProfilePage() {
     name: profileData.name || tSync('profilePage_name_missing'),
     createdAt: profileData.createdAt,
     title: profileData.desiredEmploymentType || tSync('profilePage_default_title'),
-    employmentType: profileData.desiredEmploymentType || tSync('profilePage_default_employmentType'),
+    employmentTypes: Array.isArray(profileData.desiredEmploymentTypes) ? profileData.desiredEmploymentTypes : [],
     location: profileData.location || tSync('profilePage_default_location'),
     region: profileData.desiredCity || tSync('profilePage_default_region'),
     phone: profileData.phoneNumber || tSync('profilePage_default_phone'),
