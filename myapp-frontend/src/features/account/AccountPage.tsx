@@ -11,12 +11,6 @@ import { Modal } from '../../components/common/Modal';
 import { PageWrapper, PageBackground } from '../../components/common';
 import accountSettingsBg from '../../assets/img/account_settings.png';
 
-interface Organisation {
-  id: number;
-  name: string;
-  role: string;
-}
-
 interface AccountSettings {
   id: number;
   userId: number;
@@ -28,7 +22,6 @@ interface AccountSettings {
   isTerminated: boolean;
   acceptedTermsAndConditions: boolean;
   roles: string[];
-  organisations: Organisation[];
 }
 
 // Helper function to convert backend AccountType enum to string
@@ -50,7 +43,6 @@ interface FormData {
   preferredLanguage: string;
   accountType: string;
   roles: string[];
-  organisations: Organisation[];
   acceptedTermsAndConditions: boolean;
 }
 
@@ -66,10 +58,6 @@ const AccountPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isTerminating, setIsTerminating] = useState(false);
   const [showTerminateConfirm, setShowTerminateConfirm] = useState(false);
-  const [showOrgPicker, setShowOrgPicker] = useState(false);
-  const [availableOrgs, setAvailableOrgs] = useState<Organisation[]>([]);
-  const [orgSearchQuery, setOrgSearchQuery] = useState('');
-  const [filteredOrgs, setFilteredOrgs] = useState<Organisation[]>([]);
   const [formData, setFormData] = useState<FormData>({
     accountName: '',
     accountEmail: '',
@@ -77,7 +65,6 @@ const AccountPage: React.FC = () => {
     preferredLanguage: 'en',
     accountType: 'Basic',
     roles: [],
-    organisations: [],
     acceptedTermsAndConditions: false,
   });
 
@@ -100,7 +87,6 @@ const AccountPage: React.FC = () => {
           preferredLanguage: data.preferredLanguage || 'en',
           accountType: mapAccountTypeToString(data.accountType),
           roles: data.roles || [],
-          organisations: data.organisations || [],
           acceptedTermsAndConditions: data.acceptedTermsAndConditions || false,
         };
         setFormData(initialFormData);
@@ -125,7 +111,7 @@ const AccountPage: React.FC = () => {
     fetchAccountSettings();
   }, [user]);
 
-  const handleInputChange = (field: keyof FormData, value: string | boolean | string[] | Organisation[]) => {
+  const handleInputChange = (field: keyof FormData, value: string | boolean | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -163,24 +149,9 @@ const AccountPage: React.FC = () => {
       // Check roles for changes
       const rolesChanged = JSON.stringify(formData.roles.sort()) !== JSON.stringify(originalData.roles.sort());
       if (rolesChanged) {
-        updateRequest.updateRoles = formData.roles;
+        updateRequest.roles = formData.roles;
       }
-      
-      // For organisations, we'll need to calculate join/leave operations
-      // For now, let's send all current organisation IDs as joinOrganisationIds
-      const originalOrgIds = originalData.organisations.map(o => o.id).filter(id => id > 0);
-      const currentOrgIds = formData.organisations.map(o => o.id).filter(id => id > 0);
-      
-      const joinIds = currentOrgIds.filter(id => !originalOrgIds.includes(id));
-      const leaveIds = originalOrgIds.filter(id => !currentOrgIds.includes(id));
-      
-      if (joinIds.length > 0) {
-        updateRequest.joinOrganisationIds = joinIds;
-      }
-      if (leaveIds.length > 0) {
-        updateRequest.leaveOrganisationIds = leaveIds;
-      }
-      
+
       // Only send request if there are changes
       if (Object.keys(updateRequest).length > 0) {
         await ApiService.updateAccountSettings(updateRequest);
@@ -196,7 +167,6 @@ const AccountPage: React.FC = () => {
         preferredLanguage: updatedData.preferredLanguage || 'en',
         accountType: mapAccountTypeToString(updatedData.accountType),
         roles: updatedData.roles || [],
-        organisations: updatedData.organisations || [],
         acceptedTermsAndConditions: updatedData.acceptedTermsAndConditions || false,
       };
       setFormData(newFormData);
@@ -237,96 +207,6 @@ const AccountPage: React.FC = () => {
     } finally {
       setIsTerminating(false);
       setShowTerminateConfirm(false);
-    }
-  };
-
-  const handleAddOrgClick = async () => {
-    try {
-      const response = await ApiService.getAvailableOrganisations();
-      // Only show organisations where user is not already a member (role === "")
-      const joinableOrgs = response.filter((org: Organisation) => org.role === "");
-      setAvailableOrgs(joinableOrgs);
-      setFilteredOrgs([]); // Start with empty filtered list
-      setOrgSearchQuery(''); // Reset search query
-      setShowOrgPicker(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load available organisations');
-    }
-  };
-
-  const handleOrgSearch = (query: string) => {
-    setOrgSearchQuery(query);
-    if (query.trim() === '') {
-      setFilteredOrgs([]);
-    } else {
-      const filtered = availableOrgs.filter(org => 
-        org.name.toLowerCase().startsWith(query.toLowerCase())
-      );
-      setFilteredOrgs(filtered);
-    }
-  };
-
-  const joinOrganisation = async (orgId: number) => {
-    setIsSaving(true);
-    try {
-      await ApiService.updateAccountSettings({ joinOrganisationIds: [orgId] });
-      
-      // Add a small delay to ensure backend has processed the request
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Refresh account settings
-      const updatedData = await ApiService.getAccountSettings();
-      
-      // Force re-render by updating accountSettings first
-      setAccountSettings(updatedData);
-      const newFormData = {
-        accountName: updatedData.accountName || '',
-        accountEmail: updatedData.accountEmail || '',
-        accountPhone: updatedData.accountPhone || '',
-        preferredLanguage: updatedData.preferredLanguage || 'en',
-        accountType: mapAccountTypeToString(updatedData.accountType),
-        roles: updatedData.roles || [],
-        organisations: updatedData.organisations || [],
-        acceptedTermsAndConditions: updatedData.acceptedTermsAndConditions || false,
-      };
-      setFormData(newFormData);
-      setOriginalData(newFormData); // This is crucial - update the original data too
-      
-      // Force a complete re-render
-      setShowOrgPicker(false);
-      setOrgSearchQuery(''); // Reset search when modal closes
-      setFilteredOrgs([]);
-      
-      // If still no organisations showing, force reload the page data
-      if (!updatedData.organisations || updatedData.organisations.length === 0) {
-        // Let's try one more API call after a longer delay
-        setTimeout(async () => {
-          try {
-            const finalCheck = await ApiService.getAccountSettings();
-            if (finalCheck.organisations && finalCheck.organisations.length > 0) {
-              setAccountSettings(finalCheck);
-              const finalFormData = {
-                accountName: finalCheck.accountName || '',
-                accountEmail: finalCheck.accountEmail || '',
-                accountPhone: finalCheck.accountPhone || '',
-                preferredLanguage: finalCheck.preferredLanguage || 'en',
-                accountType: mapAccountTypeToString(finalCheck.accountType),
-                roles: finalCheck.roles || [],
-                organisations: finalCheck.organisations || [],
-                acceptedTermsAndConditions: finalCheck.acceptedTermsAndConditions || false,
-              };
-              setFormData(finalFormData);
-              setOriginalData(finalFormData);
-            }
-          } catch (err) {
-            console.error('Final check failed:', err);
-          }
-        }, 2000);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join organisation');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -393,40 +273,6 @@ const AccountPage: React.FC = () => {
             <TextInput label={tSync('account_name')}  value={isEditing ? formData.accountName  : accountSettings.accountName  || tSync('not_provided')} readOnly={!isEditing || accountSettings.isTerminated} onChange={v => handleInputChange('accountName', v)}  placeholder="Förnamn Efternamn" />
             <TextInput label={tSync('account_phone')} value={isEditing ? formData.accountPhone : accountSettings.accountPhone || tSync('not_provided')} readOnly={!isEditing || accountSettings.isTerminated} onChange={v => handleInputChange('accountPhone', v)} type="tel" placeholder="0709638741" />
             <TextInput label={tSync('account_email')} value={isEditing ? formData.accountEmail : accountSettings.accountEmail || tSync('not_provided')} readOnly={!isEditing || accountSettings.isTerminated} onChange={v => handleInputChange('accountEmail', v)} type="email" placeholder="email@service.com" />
-
-            {/* Organisations */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-slate-700">{tSync('account_company')}</label>
-              {isEditing && !accountSettings.isTerminated ? (
-                <div>
-                  {formData.organisations.map((org, index) => (
-                    <div key={org.id || index} className="flex items-center justify-between p-2 border border-slate-200 rounded-md mb-2">
-                      <span className="text-sm text-slate-900">{org.name} <span className="text-slate-400">({org.role})</span></span>
-                      <Button variant="danger" size="sm" disabled={isSaving} onClick={async () => {
-                        setIsSaving(true);
-                        try {
-                          await ApiService.updateAccountSettings({ leaveOrganisationIds: [org.id] });
-                          const updatedData = await ApiService.getAccountSettings();
-                          setAccountSettings(updatedData);
-                          const newFormData = { accountName: updatedData.accountName || '', accountEmail: updatedData.accountEmail || '', accountPhone: updatedData.accountPhone || '', preferredLanguage: updatedData.preferredLanguage || 'en', accountType: mapAccountTypeToString(updatedData.accountType), roles: updatedData.roles || [], organisations: updatedData.organisations || [], acceptedTermsAndConditions: updatedData.acceptedTermsAndConditions || false };
-                          setFormData(newFormData);
-                          setOriginalData(newFormData);
-                        } catch (err) {
-                          setError(err instanceof Error ? err.message : 'Failed to leave organisation');
-                        } finally { setIsSaving(false); }
-                      }}>Leave</Button>
-                    </div>
-                  ))}
-                  <button type="button" onClick={handleAddOrgClick} disabled={isSaving} className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50">+ Add Organisation</button>
-                </div>
-              ) : (
-                <div className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-slate-900 text-sm">
-                  {accountSettings.organisations?.length > 0
-                    ? accountSettings.organisations.map(org => <div key={org.id}>{org.name} ({org.role})</div>)
-                    : <span className="text-slate-400">{tSync('no_organisations')}</span>}
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Roles */}
@@ -482,28 +328,6 @@ const AccountPage: React.FC = () => {
         </PageCard>
 
       </PageWrapper>
-
-      {/* Organisation Picker Modal */}
-      <Modal open={showOrgPicker} onClose={() => { setShowOrgPicker(false); setOrgSearchQuery(''); setFilteredOrgs([]); }} title="Join Organisation">
-        <TextInput value={orgSearchQuery} onChange={handleOrgSearch} placeholder="Search organisations by name..." />
-        <div className="space-y-2 max-h-60 overflow-y-auto mt-4">
-          {orgSearchQuery.trim() === '' ? (
-            <p className="text-slate-500 text-center py-4 text-sm">Type to search for organisations...</p>
-          ) : filteredOrgs.length > 0 ? (
-            filteredOrgs.map(org => (
-              <button key={org.id} onClick={() => joinOrganisation(org.id)} disabled={isSaving} className="w-full text-left p-3 border border-slate-200 rounded-md hover:bg-slate-50 text-sm disabled:opacity-50">
-                <div className="font-medium">{org.name}</div>
-                <div className="text-slate-400">Click to join as Member</div>
-              </button>
-            ))
-          ) : (
-            <p className="text-slate-500 text-center py-4 text-sm">{tSync('no_organisations_search_match')} "{orgSearchQuery}"</p>
-          )}
-        </div>
-        <div className="flex justify-end mt-6">
-          <Button variant="secondary" disabled={isSaving} onClick={() => { setShowOrgPicker(false); setOrgSearchQuery(''); setFilteredOrgs([]); }}>Cancel</Button>
-        </div>
-      </Modal>
 
       {/* Terminate Confirmation Modal */}
       <Modal open={showTerminateConfirm} onClose={() => setShowTerminateConfirm(false)} title={tSync('terminate_confirm_title')}>
