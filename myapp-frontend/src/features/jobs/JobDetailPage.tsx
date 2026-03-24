@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PageWrapper, PageBackground } from '../../components/common';
+import { PageWrapper, PageBackground, ConfirmModal } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import JobDetailCard from '../../components/common/cards/JobDetailCard';
 import { ApiService } from '../../services/ApiService';
@@ -18,7 +18,7 @@ const JobDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [notInterestedLoading, setNotInterestedLoading] = useState(false);
-  const [countdown, setCountdown] = useState(0);
+  const [hideConfirm, setHideConfirm] = useState(false);
 
   // Fetch job details from API
   useEffect(() => {
@@ -111,46 +111,24 @@ const JobDetailPage: React.FC = () => {
     }
   };
 
-  const handleNotInterested = async () => {
+  const handleNotInterested = () => {
     if (!jobData) return;
-    
-    // If already loading, cancel the action
-    if (notInterestedLoading) {
-      setNotInterestedLoading(false);
-      setCountdown(0);
-      // Clear the timer
-      if ((window as any).notInterestedTimer) {
-        clearInterval((window as any).notInterestedTimer);
-        (window as any).notInterestedTimer = null;
-      }
-      return;
-    }
-    
+    setHideConfirm(true);
+  };
+
+  const handleHideConfirmed = async () => {
+    if (!jobData) return;
+    setHideConfirm(false);
     setNotInterestedLoading(true);
-    setCountdown(5);
-    
-    // Start countdown timer - API call happens ONLY when countdown reaches 0
-    const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          // NOW call the API and navigate to search page
-          ApiService.markNotInterested(jobData.jobId)
-            .then(() => {
-              navigate('/search');
-            })
-            .catch((err) => {
-              console.error('Error marking job as not interested:', err);
-              navigate('/search');
-            });
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    // Store timer reference to clear it if cancelled
-    (window as any).notInterestedTimer = timer;
+    try {
+      await ApiService.markNotInterested(jobData.jobId);
+      navigate('/search');
+    } catch (err) {
+      console.error('Error marking job as not interested:', err);
+      navigate('/search');
+    } finally {
+      setNotInterestedLoading(false);
+    }
   };
 
   if (loading) {
@@ -213,10 +191,20 @@ const JobDetailPage: React.FC = () => {
             onNotInterested={handleNotInterested}
             isLoading={saveLoading}
             isNotInterestedLoading={notInterestedLoading}
-            countdown={countdown}
           />
         </SectionCard>
       </PageWrapper>
+
+      <ConfirmModal
+        open={hideConfirm}
+        title={tSync('hideJob_confirm_title')}
+        message={tSync('hideJob_confirm_message')}
+        confirmLabel={tSync('hideJob_confirm_ok')}
+        cancelLabel={tSync('hideJob_confirm_cancel')}
+        onConfirm={handleHideConfirmed}
+        onCancel={() => setHideConfirm(false)}
+        loading={notInterestedLoading}
+      />
     </>
   );
 };

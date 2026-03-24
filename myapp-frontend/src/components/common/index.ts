@@ -10,3 +10,4 @@ export { PageCard } from './PageCard';
 export { FormField } from './FormField';
 export { InfoRow } from './InfoRow';
 export { Modal } from './Modal';
+export { ConfirmModal } from './ConfirmModal';
