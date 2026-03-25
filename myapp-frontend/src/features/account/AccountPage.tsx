@@ -160,24 +160,6 @@ const AccountPage: React.FC = () => {
         updateRequest.roles = formData.roles;
       }
 
-<<<<<<< HEAD
-=======
-      // For organisations, we'll need to calculate join/leave operations
-      // For now, let's send all current organisation IDs as joinOrganisationIds
-      const originalOrgIds = originalData.organisations.map(o => o.id).filter(id => id > 0);
-      const currentOrgIds = formData.organisations.map(o => o.id).filter(id => id > 0);
-
-      const joinIds = currentOrgIds.filter(id => !originalOrgIds.includes(id));
-      const leaveIds = originalOrgIds.filter(id => !currentOrgIds.includes(id));
-
-      if (joinIds.length > 0) {
-        updateRequest.joinOrganisationIds = joinIds;
-      }
-      if (leaveIds.length > 0) {
-        updateRequest.leaveOrganisationIds = leaveIds;
-      }
-
->>>>>>> hencar/wi/#299-Move-change-pwd-to-view-/account
       // Only send request if there are changes
       if (Object.keys(updateRequest).length > 0) {
         await ApiService.updateAccountSettings(updateRequest);
@@ -222,112 +204,6 @@ const AccountPage: React.FC = () => {
     setIsEditing(false);
   };
 
-  const handleTerminate = async () => {
-    setIsTerminating(true);
-    try {
-      await ApiService.terminateAccount();
-      logout();
-      navigate('/');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to terminate account');
-    } finally {
-      setIsTerminating(false);
-      setShowTerminateConfirm(false);
-    }
-  };
-
-<<<<<<< HEAD
-=======
-  const handleAddOrgClick = async () => {
-    try {
-      const response = await ApiService.getAvailableOrganisations();
-      // Only show organisations where user is not already a member (role === "")
-      const joinableOrgs = response.filter((org: Organisation) => org.role === "");
-      setAvailableOrgs(joinableOrgs);
-      setFilteredOrgs([]); // Start with empty filtered list
-      setOrgSearchQuery(''); // Reset search query
-      setShowOrgPicker(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load available organisations');
-    }
-  };
-
-  const handleOrgSearch = (query: string) => {
-    setOrgSearchQuery(query);
-    if (query.trim() === '') {
-      setFilteredOrgs([]);
-    } else {
-      const filtered = availableOrgs.filter(org =>
-        org.name.toLowerCase().startsWith(query.toLowerCase())
-      );
-      setFilteredOrgs(filtered);
-    }
-  };
-
-  const joinOrganisation = async (orgId: number) => {
-    setIsSaving(true);
-    try {
-      await ApiService.updateAccountSettings({ joinOrganisationIds: [orgId] });
-
-      // Add a small delay to ensure backend has processed the request
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Refresh account settings
-      const updatedData = await ApiService.getAccountSettings();
-
-      // Force re-render by updating accountSettings first
-      setAccountSettings(updatedData);
-      const newFormData = {
-        accountName: updatedData.accountName || '',
-        accountEmail: updatedData.accountEmail || '',
-        accountPhone: updatedData.accountPhone || '',
-        preferredLanguage: updatedData.preferredLanguage || 'en',
-        accountType: mapAccountTypeToString(updatedData.accountType),
-        roles: updatedData.roles || [],
-        organisations: updatedData.organisations || [],
-        acceptedTermsAndConditions: updatedData.acceptedTermsAndConditions || false,
-      };
-      setFormData(newFormData);
-      setOriginalData(newFormData); // This is crucial - update the original data too
-
-      // Force a complete re-render
-      setShowOrgPicker(false);
-      setOrgSearchQuery(''); // Reset search when modal closes
-      setFilteredOrgs([]);
-
-      // If still no organisations showing, force reload the page data
-      if (!updatedData.organisations || updatedData.organisations.length === 0) {
-        // Let's try one more API call after a longer delay
-        setTimeout(async () => {
-          try {
-            const finalCheck = await ApiService.getAccountSettings();
-            if (finalCheck.organisations && finalCheck.organisations.length > 0) {
-              setAccountSettings(finalCheck);
-              const finalFormData = {
-                accountName: finalCheck.accountName || '',
-                accountEmail: finalCheck.accountEmail || '',
-                accountPhone: finalCheck.accountPhone || '',
-                preferredLanguage: finalCheck.preferredLanguage || 'en',
-                accountType: mapAccountTypeToString(finalCheck.accountType),
-                roles: finalCheck.roles || [],
-                organisations: finalCheck.organisations || [],
-                acceptedTermsAndConditions: finalCheck.acceptedTermsAndConditions || false,
-              };
-              setFormData(finalFormData);
-              setOriginalData(finalFormData);
-            }
-          } catch (err) {
-            console.error('Final check failed:', err);
-          }
-        }, 2000);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join organisation');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPwMessage(null);
@@ -349,7 +225,20 @@ const AccountPage: React.FC = () => {
     }
   };
 
->>>>>>> hencar/wi/#299-Move-change-pwd-to-view-/account
+  const handleTerminate = async () => {
+    setIsTerminating(true);
+    try {
+      await ApiService.terminateAccount();
+      logout();
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to terminate account');
+    } finally {
+      setIsTerminating(false);
+      setShowTerminateConfirm(false);
+    }
+  };
+
   if (loading) {
     return (
       <>
