@@ -185,7 +185,11 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
       {polling ? (
         <div className="flex flex-col items-center justify-center py-8">
           <div className="text-blue-600 text-lg font-semibold mb-2">{tSync('profilePage_polling_waiting')}</div>
-          <div className="animate-spin text-4xl">🔄</div>
+          <div className="flex gap-1 mt-1">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
           <div className="text-slate-500 text-sm mt-4">{tSync('profilePage_polling_hint')}</div>
         </div>
       ) : primary && Object.keys(primary).length > 0 ? (

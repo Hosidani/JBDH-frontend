@@ -8,14 +8,15 @@ interface FileDropZoneCardProps {
   handleCVUpload: (file: File) => void;
   cvUploaded?: boolean;
   coverLetterUploaded?: boolean;
+  processing?: boolean;
 }
 
 
 
-const FileDropZoneCard: React.FC<FileDropZoneCardProps> = ({ tSync, handleCVUpload, cvUploaded = false, coverLetterUploaded = false }) => (
+const FileDropZoneCard: React.FC<FileDropZoneCardProps> = ({ tSync, handleCVUpload, cvUploaded = false, coverLetterUploaded = false, processing = false }) => (
   <div className="flex flex-col md:flex-row gap-8 w-full justify-center">
     {/* CV Card */}
-    <FileDropZone accept=".pdf" onFileSelected={handleCVUpload} className="flex-1 border border-slate-300 rounded-lg p-6 flex flex-col bg-white min-w-[340px] max-w-[420px] justify-between cursor-pointer transition hover:shadow-md" style={{ minHeight: 340 }}>
+    <FileDropZone accept=".pdf" onFileSelected={handleCVUpload} disabled={processing} className="flex-1 border border-slate-300 rounded-lg p-6 flex flex-col bg-white min-w-[340px] max-w-[420px] justify-between cursor-pointer transition hover:shadow-md" style={{ minHeight: 340 }}>
       <div className="flex flex-col items-center mb-2 pointer-events-none">
         {/* Icon with check if uploaded */}
         <div className="relative mb-2">
