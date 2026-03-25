@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import { PageWrapper, PageBackground } from '../../components/common';
+import { PageWrapper, PageBackground, ConfirmModal } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import { SavedJobsList } from '../../components/common/cards';
 import { ApiService } from '../../services/ApiService';
@@ -16,6 +16,7 @@ const SavedJobsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notesModal, setNotesModal] = useState<{ isOpen: boolean; jobId: number; notes: string }>({ isOpen: false, jobId: 0, notes: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; jobId: number }>({ isOpen: false, jobId: 0 });
 
   // Function to map JobDetailsDto to SavedJob
   const mapJobDetailsToSavedJob = (jobDetails: JobDetailsDto): SavedJob => ({
@@ -74,13 +75,18 @@ const SavedJobsPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
+    setDeleteConfirm({ isOpen: true, jobId: id });
+  };
+
+  const handleDeleteConfirmed = async () => {
     try {
-      await ApiService.unsaveJob(id);
-      setJobs(jobs.filter(j => j.id !== id));
+      await ApiService.unsaveJob(deleteConfirm.jobId);
+      setJobs(jobs.filter(j => j.id !== deleteConfirm.jobId));
     } catch (err) {
       console.error('Error removing saved job:', err);
-      // You could show a toast notification here
+    } finally {
+      setDeleteConfirm({ isOpen: false, jobId: 0 });
     }
   };
 
@@ -141,6 +147,16 @@ const SavedJobsPage: React.FC = () => {
             onClick={handleCardClick}
             onNotes={handleNotes}
             loading={loading}
+          />
+
+          <ConfirmModal
+            open={deleteConfirm.isOpen}
+            title={tSync('hideJob_confirm_title')}
+            message={tSync('hideJob_confirm_message')}
+            confirmLabel={tSync('hideJob_confirm_ok')}
+            cancelLabel={tSync('hideJob_confirm_cancel')}
+            onConfirm={handleDeleteConfirmed}
+            onCancel={() => setDeleteConfirm({ isOpen: false, jobId: 0 })}
           />
 
           {/* Notes Modal */}
