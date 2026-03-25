@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService } from '../../services/ApiService';
-import IconEditPen from '../icon_library/IconEditPen';
 import { Toggle } from '../ui/Toggle';
 import { CheckboxGroup } from '../ui/CheckboxGroup';
 import { InfoRow } from '../common/InfoRow';
-import { Badge } from '../ui/Badge';
 
 interface ProfileInfoCardProps {
   name: string;
@@ -16,7 +14,6 @@ interface ProfileInfoCardProps {
   region: string;
   phone: string;
   email: string;
-  tags: string[];
 }
 
 const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -29,7 +26,6 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   region,
   phone,
   email,
-  tags,
 }) => {
   const [searchable, setSearchable] = useState(false);
   const [willingToTravel, setWillingToTravel] = useState(false);
@@ -93,15 +89,6 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
     { value: 'hybrid', label: tSync('profilePage_workplace_hybrid_label') },
     { value: 'remote', label: tSync('profilePage_workplace_remote_label') },
   ];
-
-  const hard = tags.filter(tag => !/team|communication|leadership|collaboration|coaching|mentoring|conflict|process|planning|problem|stakeholder|cross/i.test(tag));
-  const soft = tags.filter(tag => /team|communication|leadership|collaboration|coaching|mentoring|conflict|process|planning|problem|stakeholder|cross/i.test(tag));
-  const maxLen = Math.max(hard.length, soft.length);
-  const interleaved: { value: string; type: 'hard' | 'soft' }[] = [];
-  for (let i = 0; i < maxLen; i++) {
-    if (i < hard.length) interleaved.push({ value: hard[i], type: 'hard' });
-    if (i < soft.length) interleaved.push({ value: soft[i], type: 'soft' });
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -215,22 +202,6 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         </div>
       </div>
 
-      {/* Kompetenser */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="font-bold text-slate-700 text-sm">{tSync('profilePage_competencies_label')}</span>
-          <IconEditPen className="opacity-60" />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {interleaved.map((tag, idx) => (
-            <Badge
-              key={tag.value + idx}
-              label={tag.value}
-              color={tag.type === 'hard' ? 'blue' : 'green'}
-            />
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
