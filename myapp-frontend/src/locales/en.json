@@ -133,8 +133,8 @@
   "home_feature_match_cv_jobad_desc": "Let AI analyze how well your CV matches a specific job ad.",
   "home_feature_match_cv_ads_title": "Search jobs manually that match your CV",
   "home_feature_match_cv_ads_desc": "Find job ads that match your profile with a single click!",
-  "aboutPage_title": "About SMATCH",
-  "aboutPage_comingSoon": "Information about SMATCH is coming soon.",
+  "aboutPage_title": "About JBDH",
+  "aboutPage_comingSoon": "Information about JBDH is coming soon.",
   "home_feature_edit_profile_title": "Edit your profile",
   "home_feature_edit_profile_desc": "Make sure your profile and CV are up-to-date or create a new one",
   "home_feature_match_ad_cv_title": "Match ad to CVs",
@@ -295,6 +295,6 @@
   "jobDetail_job_disappearing": "Job will disappear in {seconds} sec",
   "jobDetail_cancel_action": "Click to cancel",
   "jobDetail_tab_description": "Description",
-  "jobDetail_tab_matching": "Matching"
-
+  "jobDetail_tab_matching": "Matching",
+  "app_tagline": "Ridiculously simple"
 }

@@ -133,8 +133,8 @@
   "home_feature_match_cv_jobad_desc": "Låt AI analysera hur väl ditt CV matchar en specifik jobbannons.",
   "home_feature_match_cv_ads_title": "Sök efter jobbannonser som matchar ditt CV",
   "home_feature_match_cv_ads_desc": "Hitta jobbannonser som matchar din profil med ett enkelt klick!",
-  "aboutPage_title": "Om SMATCH",
-  "aboutPage_comingSoon": "Information om SMATCH kommer snart.",
+  "aboutPage_title": "Om JBDH",
+  "aboutPage_comingSoon": "Information om JBDH kommer snart.",
   "home_feature_edit_profile_title": "Redigera din profil",
   "home_feature_edit_profile_desc": "Se till att din profil och CV är up-to-date eller skapa en ny",
   "home_feature_match_ad_cv_title": "Matcha annons mot CV:n",
@@ -299,5 +299,6 @@
   "jobDetail_job_disappearing": "Jobbet försvinner om {seconds} sek",
   "jobDetail_cancel_action": "Klicka för att ångra",
   "jobDetail_tab_description": "Beskrivning",
-  "jobDetail_tab_matching": "Matchning"
+  "jobDetail_tab_matching": "Matchning",
+  "app_tagline": "Onödigt enkelt"
 }
