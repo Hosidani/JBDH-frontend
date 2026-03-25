@@ -6,6 +6,7 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 import { useSSE } from '../../hooks/useSSE';
 import IconCvDocument from '../../components/icon_library/IconCvDocument';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '../../components/ui/Button';
 
 const CompareCvToJobAdPage: React.FC = () => {
   const { user } = useAuth();
@@ -122,15 +123,16 @@ const CompareCvToJobAdPage: React.FC = () => {
             </div>
             {sseError && <div className="text-red-600 text-sm mt-2">{sseError}</div>}
             <div className="flex gap-3">
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                size="lg"
                 disabled={!!sseProgress && sseProgress.progress > 0 && sseProgress.progress < 100}
-                className="w-full bg-gradient-to-r from-blue-600 via-green-500 to-yellow-400 text-white py-2 rounded font-semibold hover:from-blue-700 hover:to-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sseProgress && sseProgress.progress > 0 && sseProgress.progress < 100
                   ? tSync('compareCvToJobAdPage_button_comparing')
-                  : '🚀 Realtidsanalys'}
-              </button>
+                  : 'Realtidsanalys'}
+              </Button>
             </div>
           </form>
           {/* SSE Progressbar & status - visas bara om inget resultat finns! */}

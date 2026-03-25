@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { Button } from '../ui/Button';
 
 export interface SearchFormData {
   location: string;
@@ -164,13 +165,9 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading, initialValue
         </div>
 
         {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <Button type="submit" variant="primary" size="lg" disabled={loading} className="self-start">
           {loading ? tSync('searchForm_searching') : tSync('searchForm_search_button')}
-        </button>
+        </Button>
       </form>
     </div>
   );
