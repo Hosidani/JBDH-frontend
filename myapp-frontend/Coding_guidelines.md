@@ -40,6 +40,8 @@ import { TextInput, Button, Heading, Badge, Toggle, CheckboxGroup, FileDropZone 
 | `FormField` | Label + input + felmeddelande |
 | `InfoRow` | Etikett + visningsvärde (readonly `TextInput`) |
 | `Modal` | Dialogruta med backdrop och stängknapp |
+| `ConfirmModal` | Bekräftelsedialog med Bekräfta/Avbryt-knappar |
+| `RoleGate` | Döljer eller inaktiverar UI-element baserat på användarens roll |
 | `PageBackground` | Bakgrundsbild med opacity/blur |
 
 ```tsx
@@ -99,7 +101,7 @@ The app supports three user roles. A logged-in user can hold any combination of 
 | `Recruiter`   | Rekryterare   | Recruiter                 |
 | `Manager`     | Säljare       | Sales / account manager   |
 
-Roles are stored in `UserRoleAssignment` rows in the backend and returned as `selected_roles: string[]` from `GET /api/users/profile/me/`. They are loaded into React context on login and kept live via `refreshRoles()`.
+Roles are stored in the backend and fetched client-side from `GET /api/account/getaccountsettings` (via `ApiService.getAccountSettings()`). They are enriched into React context automatically after login — if the login response does not include roles, the context fetches them from account settings. Roles are kept live via `refreshRoles()` from `useAuth()`.
 
 ---
 
@@ -146,8 +148,8 @@ Wraps any JSX and either hides it or renders it disabled based on role.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `roles` | `string[]` | required | Show content if user has ANY of these roles. `[]` = visible to all logged-in users. |
-| `mode` | `'hide' \| 'disable'` | `'hide'` | `hide` removes the element entirely; `disable` renders it with `pointer-events-none opacity-40`. |
+| `roles` | `string[]` | required | Show content if user has ANY of these roles. `[]` = visible to all **authenticated** users. |
+| `mode` | `'hide' \| 'disable'` | `'hide'` | `hide` removes the element entirely; `disable` renders it wrapped in `pointer-events-none opacity-40`. |
 | `fallback` | `ReactNode` | `null` | Rendered when access is denied and `mode='hide'`. |
 
 **Examples**
@@ -227,16 +229,24 @@ The route itself (`App.tsx`) needs no role check — the page component handles 
 
 ### Role-gated navigation
 
-Menu items in `HamburgerMenu.tsx` use a `MENU_ITEMS` config array. Each entry has a `roles` field that follows the same rule as `<RoleGate>`:
+Menu items in `HamburgerMenu.tsx` use a `MENU_ITEMS` config array. Each entry has a `roles` field:
+
+| `roles` value | Visibility |
+|---|---|
+| `null` | Always visible — even to unauthenticated users |
+| `[]` | Visible to all authenticated users |
+| `['Recruiter']` | Visible only if user has that role |
 
 ```ts
 // src/components/common/navigation/HamburgerMenu.tsx
 const MENU_ITEMS: MenuItem[] = [
-  { to: '/profile',        labelKey: 'menu_profile',        roles: ['User'] },
-  { to: '/seller-profile', labelKey: 'menu_seller_profile', roles: ['Manager'] },
-  // roles: [] means visible to all authenticated users
-  { to: '/settings',       labelKey: 'menu_settings',       roles: [] },
-  ...
+  { to: '/profile',          labelKey: 'menu_profile',          roles: [] },
+  { to: '/account',          labelKey: 'menu_account_settings', roles: [] },
+  { to: '/search',           labelKey: 'menu_match_cv_ads',     roles: null },
+  { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',       roles: [] },
+  { to: '/add-job-ad',       labelKey: 'menu_post_ad',          roles: ['Recruiter'] },
+  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',   roles: null },
+  { to: '/about',            labelKey: 'menu_how_it_works',     roles: null },
 ];
 ```
 
@@ -246,7 +256,7 @@ To add a new menu item, append an entry to `MENU_ITEMS`. Do not add separate `{u
 
 ### Changing roles at runtime
 
-Roles are managed by the user in `/settings` (checkbox group) and in `/account` (edit form). Any successful role change calls `refreshRoles()` from `useAuth()`, which re-fetches roles from the API and updates the context. All `useRoles()` consumers and `<RoleGate>` wrappers react immediately — no page reload needed.
+Roles are managed in `/account` (edit form). Any successful role change should call `refreshRoles()` from `useAuth()`, which re-fetches roles from `getAccountSettings()` and updates the context. All `useRoles()` consumers and `<RoleGate>` wrappers react immediately — no page reload needed.
 
 If you add a new place in the UI where roles can be changed, follow this pattern:
 
@@ -254,7 +264,7 @@ If you add a new place in the UI where roles can be changed, follow this pattern
 const { refreshRoles } = useAuth();
 
 // After a successful role-update API call:
-await ApiService.updateAccountSettings({ updateRoles: newRoles });
+await ApiService.updateAccountSettings({ roles: newRoles });
 await refreshRoles();
 ```
 
@@ -262,10 +272,11 @@ await refreshRoles();
 
 ### Adding a new role (future)
 
-1. Add the value to `UserRole` choices in the Django model (`JBDH-backend/apps/users/models/roles.py`).
+1. Add the value to `UserRole` choices in the Django model (`JBDH-backend`).
 2. Add a locale key for the display name in `sv.json` and `en.json`.
-3. Add a checkbox option to the `CheckboxGroup` in `SettingsPage.tsx`.
+3. Add a checkbox option to the `CheckboxGroup` in `/account` (AccountPage.tsx).
 4. Gate any UI elements with `<RoleGate roles={['NewRole']}>` or `hasRole('NewRole')`.
+5. Add a shortcut boolean to `useRoles.ts` if the role will be checked frequently (e.g. `isNewRole: roles.includes('NewRole')`).
 
 > Note: `ADMIN` role is **out of scope** for this web app's UI gating. Do not add it to the frontend role list.
 
@@ -278,5 +289,5 @@ await refreshRoles();
 | Conditionally render a JSX block | `<RoleGate roles={[...]}>` |
 | Render but visually disable a control | `<RoleGate roles={[...]} mode="disable">` |
 | Conditional logic in component code | `useRoles()` |
-| Gate a menu item | Add entry to `MENU_ITEMS` in `HamburgerMenu.tsx` |
-| Persist a role change and update the UI | `updateAccountSettings({ updateRoles })` + `refreshRoles()` |
+| Gate a menu item | Add entry to `MENU_ITEMS` in `HamburgerMenu.tsx` with correct `roles` value |
+| Persist a role change and update the UI | `updateAccountSettings({ roles })` + `refreshRoles()` from `useAuth()` |

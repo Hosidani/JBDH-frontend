@@ -15,6 +15,7 @@ interface AuthContextType {
   logout: () => void;
   sessionExpired: boolean;
   clearSessionExpired: () => void;
+  refreshRoles: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,6 +70,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user?.email]);
 
+  // Enrich user.roles after login if backend didn't include them
+  useEffect(() => {
+    if (user && user.roles === undefined) {
+      ApiService.getAccountSettings()
+        .then(settings => {
+          setUser(prev => prev ? { ...prev, roles: settings.roles ?? [] } : prev);
+        })
+        .catch(() => {
+          setUser(prev => prev ? { ...prev, roles: [] } : prev);
+        });
+    }
+  }, [user?.email]);
+
   useEffect(() => {
     const handler = () => {
       setUser(null);
@@ -90,12 +104,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   const clearSessionExpired = () => setSessionExpired(false);
 
+  const refreshRoles = async () => {
+    try {
+      const settings = await ApiService.getAccountSettings();
+      setUser(prev => prev ? { ...prev, roles: settings.roles ?? [] } : prev);
+    } catch {
+      // silently ignore — roles remain as-is
+    }
+  };
+
   if (loading) {
     return <div>Laddar...</div>;
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, sessionExpired, clearSessionExpired }}>
+    <AuthContext.Provider value={{ user, login, logout, sessionExpired, clearSessionExpired, refreshRoles }}>
       {children}
     </AuthContext.Provider>
   );
