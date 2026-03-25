@@ -24,6 +24,7 @@ const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpp
 const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   name,
   createdAt,
+  title,
   employmentTypes,
   location,
   region,
@@ -113,48 +114,22 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         <div className="text-xs text-slate-400">{tSync('profilePage_registration_label')}: {registrationDate}</div>
       </div>
 
-{/* Two-column layout */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        {/* Column 1: Namn, Anst.form, Telefon, Ort + Sökbar + Resbar */}
-        <div className="flex-1 flex flex-col gap-4">
-          <InfoRow label={tSync('settingsPage_name_label')}          value={name} />
-          <InfoRow label={tSync('settingsPage_phone_label')}         value={phone} />
-          <InfoRow label={tSync('profilePage_location_label')}       value={location} />
-          <div className="flex flex-row gap-6">
-            <Toggle
-              label={tSync('profilePage_searchable_label')}
-              checked={searchable}
-              yesLabel={tSync('profilePage_yes_label')}
-              noLabel={tSync('profilePage_no_label')}
-              onChange={async () => {
-                const v = !searchable;
-                setSearchable(v);
-                await saveSettings({ searchable: v });
-              }}
-            />
-            <Toggle
-              label={tSync('profilePage_travel_label')}
-              checked={willingToTravel}
-              yesLabel={tSync('profilePage_yes_label')}
-              noLabel={tSync('profilePage_no_label')}
-              onChange={async () => {
-                const v = !willingToTravel;
-                setWillingToTravel(v);
-                await saveSettings({ travelAvailability: v });
-              }}
-            />
-          </div>
-        </div>
+      {/* 5-row × 2-column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-        {/* Rad 2: E-post + Telefon */}
-        <InfoRow label={tSync('settingsPage_email_label')} value={email} type="email" />
-        <InfoRow label={tSync('settingsPage_phone_label')} value={phone} />
+        {/* Rad 1: Namn | Titel */}
+        <InfoRow label={tSync('settingsPage_name_label')}     value={name} />
+        <InfoRow label={tSync('profilePage_title_label')}     value={title} />
 
-        {/* Rad 3: Önskad Ort + Område */}
-        <InfoRow label={tSync('profilePage_location_label')} value={location} />
-        <InfoRow label={tSync('profilePage_region_label')}   value={region} />
+        {/* Rad 2: E-post | Telefon */}
+        <InfoRow label={tSync('settingsPage_email_label')}    value={email} type="email" />
+        <InfoRow label={tSync('settingsPage_phone_label')}    value={phone} />
 
-        {/* Rad 4: Önskad arbetsplats + Önskad anställningsform */}
+        {/* Rad 3: Önskad ort | Område */}
+        <InfoRow label={tSync('profilePage_location_label')}  value={location} />
+        <InfoRow label={tSync('profilePage_region_label')}    value={region} />
+
+        {/* Rad 4: Önskad arbetsplats | Önskad anställningsform */}
         <CheckboxGroup
           label={tSync('profilePage_workplace_label')}
           options={workplaceOptions}
@@ -187,7 +162,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           layout="row"
         />
 
-        {/* Rad 5: Tillgänglig från + Sökbar & Resbar */}
+        {/* Rad 5: Tillgänglig från | Sökbar + Resbar */}
         <InfoRow label={tSync('profilePage_registration_date_label')} value={registrationDate} />
         <div className="flex flex-row gap-6">
           <Toggle
@@ -213,6 +188,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
             }}
           />
         </div>
+
       </div>
 
       {/* Kompetenser */}
