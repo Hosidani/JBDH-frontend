@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { TextInput } from '../../components/ui/TextInput';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { CheckboxGroup } from '../../components/ui/CheckboxGroup';
 import { PageCard } from '../../components/common/PageCard';
 import { Modal } from '../../components/common/Modal';
 import { PageWrapper, PageBackground } from '../../components/common';
@@ -163,7 +164,7 @@ const AccountPage: React.FC = () => {
       // Check roles for changes
       const rolesChanged = JSON.stringify(formData.roles.sort()) !== JSON.stringify(originalData.roles.sort());
       if (rolesChanged) {
-        updateRequest.updateRoles = formData.roles;
+        updateRequest.roles = formData.roles;
       }
       
       // For organisations, we'll need to calculate join/leave operations
@@ -375,7 +376,7 @@ const AccountPage: React.FC = () => {
     role === 'User' ? tSync('role_candidate') :
     role === 'Recruiter' ? tSync('role_recruiter') :
     role === 'Sales' ? tSync('role_sales') :
-    role === 'Manager' ? tSync('role_admin') : role;
+    role === 'Manager' ? tSync('role_sales') : role;
 
   return (
     <>
@@ -431,12 +432,28 @@ const AccountPage: React.FC = () => {
 
           {/* Roles */}
           <div className="mt-6">
-            <p className="text-sm font-medium text-slate-700 mb-2">{tSync('account_roles')}</p>
-            <div className="flex flex-wrap gap-2">
-              {accountSettings.roles?.length > 0
-                ? accountSettings.roles.map(role => <Badge key={role} label={roleLabel(role)} color="blue" />)
-                : <span className="text-slate-400 text-sm">No roles assigned</span>}
-            </div>
+            {isEditing && !accountSettings.isTerminated ? (
+              <CheckboxGroup
+                label={tSync('account_roles')}
+                options={[
+                  { value: 'User',      label: tSync('role_candidate') },
+                  { value: 'Recruiter', label: tSync('role_recruiter') },
+                  { value: 'Manager',   label: tSync('role_sales') },
+                ]}
+                selected={formData.roles}
+                onChange={vals => handleInputChange('roles', vals)}
+                layout="row"
+              />
+            ) : (
+              <>
+                <p className="text-sm font-medium text-slate-700 mb-2">{tSync('account_roles')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {accountSettings.roles?.length > 0
+                    ? accountSettings.roles.map(role => <Badge key={role} label={roleLabel(role)} color="blue" />)
+                    : <span className="text-slate-400 text-sm">No roles assigned</span>}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Terms */}
