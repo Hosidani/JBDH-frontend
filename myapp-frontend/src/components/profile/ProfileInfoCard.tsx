@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService } from '../../services/ApiService';
-import IconEditPen from '../icon_library/IconEditPen';
 import { Toggle } from '../ui/Toggle';
 import { CheckboxGroup } from '../ui/CheckboxGroup';
 import { InfoRow } from '../common/InfoRow';
@@ -22,37 +21,43 @@ interface ProfileInfoCardProps {
 const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
 
 const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
-  name,
+  name: nameProp,
   createdAt,
+  title: titleProp,
   employmentTypes,
-  location,
-  region,
-  phone,
-  email,
+  location: locationProp,
+  region: regionProp,
+  phone: phoneProp,
+  email: emailProp,
   tags,
 }) => {
+  const [name, setName] = useState(nameProp);
+  const [email, setEmail] = useState(emailProp);
+  const [phone, setPhone] = useState(phoneProp);
+  const [title, setTitle] = useState(titleProp);
+  const [location, setLocation] = useState(locationProp);
+  const [region, setRegion] = useState(regionProp);
   const [searchable, setSearchable] = useState(false);
   const [willingToTravel, setWillingToTravel] = useState(false);
   const [workplace, setWorkplace] = useState({ onSite: false, hybrid: false, remote: false });
   const [selectedEmploymentTypes, setSelectedEmploymentTypes] = useState<string[]>(employmentTypes);
-  const [profileBase, setProfileBase] = useState<{ name: string; email: string; phone_number: string }>({ name: '', email: '', phone_number: '' });
   const { tSync } = useTranslation();
 
   React.useEffect(() => {
     ApiService.getMyProfile().then(profile => {
+      setName(profile.name || '');
+      setEmail(profile.email || '');
+      setPhone(profile.phoneNumber || '');
+      setTitle(profile.desiredEmploymentType || '');
+      setLocation(profile.location || '');
+      setRegion(profile.desiredCity || '');
       setSearchable(!!profile.searchable);
       setWillingToTravel(!!profile.travelAvailability);
-      setProfileBase({ name: profile.name || '', email: profile.email || '', phone_number: profile.phoneNumber || '' });
+      setSelectedEmploymentTypes(Array.isArray(profile.desiredEmploymentTypes) ? profile.desiredEmploymentTypes : []);
       const modes: string[] = Array.isArray(profile.desiredWorkModes)
         ? profile.desiredWorkModes
-        : profile.desiredWorkModes
-        ? [profile.desiredWorkModes]
-        : [];
-      setWorkplace({
-        onSite: modes.includes('På plats'),
-        hybrid: modes.includes('Hybrid'),
-        remote: modes.includes('Distans'),
-      });
+        : profile.desiredWorkModes ? [profile.desiredWorkModes] : [];
+      setWorkplace({ onSite: modes.includes('På plats'), hybrid: modes.includes('Hybrid'), remote: modes.includes('Distans') });
     }).catch(() => {});
   }, []);
 
@@ -64,12 +69,18 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
     return modes;
   };
 
-  const saveSettings = async (overrides: Partial<{ searchable: boolean; travelAvailability: boolean; desiredWorkModes: string[]; desiredEmploymentTypes: string[] }>) => {
+  const saveSettings = async (overrides: Record<string, any> = {}) => {
     const payload = {
-      ...profileBase,
+      name,
+      email,
+      phone_number: phone,
+      location,
+      desiredCity: region,
+      desiredEmploymentType: title,
       searchable,
       travelAvailability: willingToTravel,
       desiredWorkModes: currentDesiredWorkModes(),
+      desiredEmploymentTypes: selectedEmploymentTypes,
       ...overrides,
     };
     await ApiService.updateUserSettings(payload);
@@ -108,53 +119,64 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
       {/* Avatar */}
       <div className="flex flex-col items-center">
         <div className="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-3xl font-bold text-slate-600 mb-2">
-          {initials(name)}
+          {initials(name || ' ')}
         </div>
         <div className="text-xs text-slate-400">{tSync('profilePage_registration_label')}: {registrationDate}</div>
       </div>
 
-{/* Two-column layout */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        {/* Column 1: Namn, Anst.form, Telefon, Ort + Sökbar + Resbar */}
-        <div className="flex-1 flex flex-col gap-4">
-          <InfoRow label={tSync('settingsPage_name_label')}          value={name} />
-          <InfoRow label={tSync('settingsPage_phone_label')}         value={phone} />
-          <InfoRow label={tSync('profilePage_location_label')}       value={location} />
-          <div className="flex flex-row gap-6">
-            <Toggle
-              label={tSync('profilePage_searchable_label')}
-              checked={searchable}
-              yesLabel={tSync('profilePage_yes_label')}
-              noLabel={tSync('profilePage_no_label')}
-              onChange={async () => {
-                const v = !searchable;
-                setSearchable(v);
-                await saveSettings({ searchable: v });
-              }}
-            />
-            <Toggle
-              label={tSync('profilePage_travel_label')}
-              checked={willingToTravel}
-              yesLabel={tSync('profilePage_yes_label')}
-              noLabel={tSync('profilePage_no_label')}
-              onChange={async () => {
-                const v = !willingToTravel;
-                setWillingToTravel(v);
-                await saveSettings({ travelAvailability: v });
-              }}
-            />
-          </div>
-        </div>
+      {/* 5-row × 2-column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Row 1: Name | Title */}
+        <InfoRow
+          label={tSync('settingsPage_name_label')}
+          value={name}
+          readOnly={false}
+          onChange={setName}
+          onBlur={() => saveSettings()}
+        />
+        <InfoRow
+          label={tSync('profilePage_title_label')}
+          value={title}
+          readOnly={false}
+          onChange={setTitle}
+          onBlur={() => saveSettings()}
+        />
 
-        {/* Rad 2: E-post + Telefon */}
-        <InfoRow label={tSync('settingsPage_email_label')} value={email} type="email" />
-        <InfoRow label={tSync('settingsPage_phone_label')} value={phone} />
+        {/* Row 2: Email | Phone */}
+        <InfoRow
+          label={tSync('settingsPage_email_label')}
+          value={email}
+          type="email"
+          readOnly={false}
+          onChange={setEmail}
+          onBlur={() => saveSettings()}
+        />
+        <InfoRow
+          label={tSync('settingsPage_phone_label')}
+          value={phone}
+          type="tel"
+          readOnly={false}
+          onChange={setPhone}
+          onBlur={() => saveSettings()}
+        />
 
-        {/* Rad 3: Önskad Ort + Område */}
-        <InfoRow label={tSync('profilePage_location_label')} value={location} />
-        <InfoRow label={tSync('profilePage_region_label')}   value={region} />
+        {/* Row 3: Location | Region */}
+        <InfoRow
+          label={tSync('profilePage_location_label')}
+          value={location}
+          readOnly={false}
+          onChange={setLocation}
+          onBlur={() => saveSettings()}
+        />
+        <InfoRow
+          label={tSync('profilePage_region_label')}
+          value={region}
+          readOnly={false}
+          onChange={setRegion}
+          onBlur={() => saveSettings()}
+        />
 
-        {/* Rad 4: Önskad arbetsplats + Önskad anställningsform */}
+        {/* Row 4: Workplace | Employment type */}
         <CheckboxGroup
           label={tSync('profilePage_workplace_label')}
           options={workplaceOptions}
@@ -187,8 +209,11 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           layout="row"
         />
 
-        {/* Rad 5: Tillgänglig från + Sökbar & Resbar */}
-        <InfoRow label={tSync('profilePage_registration_date_label')} value={registrationDate} />
+        {/* Row 5: Registration date | Searchable + Travel */}
+        <InfoRow
+          label={tSync('profilePage_registration_date_label')}
+          value={registrationDate}
+        />
         <div className="flex flex-row gap-6">
           <Toggle
             label={tSync('profilePage_searchable_label')}
@@ -215,13 +240,10 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         </div>
       </div>
 
-      {/* Kompetenser */}
+      {/* Competencies */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="font-bold text-slate-700 text-sm">{tSync('profilePage_competencies_label')}</span>
-          <IconEditPen className="opacity-60" />
-        </div>
-        <div className="flex flex-wrap gap-2">
+        <span className="font-bold text-slate-700 text-sm">{tSync('profilePage_competencies_label')}</span>
+        <div className="flex flex-wrap gap-2 mt-2">
           {interleaved.map((tag, idx) => (
             <Badge
               key={tag.value + idx}
