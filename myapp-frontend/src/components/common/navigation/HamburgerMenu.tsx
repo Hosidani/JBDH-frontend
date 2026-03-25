@@ -34,6 +34,9 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
             </>
           )}
           <Link to="/search" className="text-left hover:underline" onClick={onClose}>{tSync('menu_match_cv_ads')}</Link>
+          {user && (
+            <Link to="/saved-jobs" className="text-left hover:underline" onClick={onClose}>{tSync('menu_saved_jobs')}</Link>
+          )}
           <Link to="/add-job-ad" className="text-left hover:underline" onClick={onClose}>{tSync('menu_post_ad')}</Link>
           <Link to="/compare-cv-jobad" className="text-left hover:underline" onClick={onClose}>{tSync('menu_match_cv_jobad')}</Link>
           <Link to="/about" className="text-left hover:underline" onClick={onClose}>{tSync('menu_how_it_works')}</Link>
