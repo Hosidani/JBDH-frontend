@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService } from '../../services/ApiService';
-import { useNavigate } from 'react-router-dom';
 import IconEditPen from '../icon_library/IconEditPen';
 import { Toggle } from '../ui/Toggle';
 import { CheckboxGroup } from '../ui/CheckboxGroup';
@@ -25,7 +24,6 @@ const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpp
 const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   name,
   createdAt,
-  title,
   employmentTypes,
   location,
   region,
@@ -39,7 +37,6 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   const [selectedEmploymentTypes, setSelectedEmploymentTypes] = useState<string[]>(employmentTypes);
   const [profileBase, setProfileBase] = useState<{ name: string; email: string; phone_number: string }>({ name: '', email: '', phone_number: '' });
   const { tSync } = useTranslation();
-  const navigate = useNavigate();
 
   React.useEffect(() => {
     ApiService.getMyProfile().then(profile => {
@@ -121,7 +118,6 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         {/* Column 1: Namn, Anst.form, Telefon, Ort + Sökbar + Resbar */}
         <div className="flex-1 flex flex-col gap-4">
           <InfoRow label={tSync('settingsPage_name_label')}          value={name} />
-          <InfoRow label={tSync('profilePage_employmentType_label')} value={employmentType} />
           <InfoRow label={tSync('settingsPage_phone_label')}         value={phone} />
           <InfoRow label={tSync('profilePage_location_label')}       value={location} />
           <div className="flex flex-row gap-6">
