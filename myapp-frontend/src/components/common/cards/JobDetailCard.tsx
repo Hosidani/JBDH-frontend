@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from '../../../hooks/TranslationProvider';
 import MatchingAnalysisTab from './MatchingAnalysisTab';
 import type { SavedJob } from './SavedJobCard';
+import { Icon } from '../../ui/Icon';
 
 interface JobDetailCardProps {
   job: SavedJob & {
@@ -111,7 +112,7 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
                 : 'text-gray-700'
             } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isLoading ? '⏳' : (job.saved ? '🖤' : '🤍')} {tSync('jobDetail_save_button')}
+            {isLoading ? <Icon name="sync" size={18} className="animate-spin" /> : <Icon name="bookmark" filled={job.saved} size={18} />} {tSync('jobDetail_save_button')}
           </button>
           <button
             onClick={onNotInterested}
@@ -122,7 +123,7 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
                 : 'text-gray-700'
             } ${isNotInterestedLoading ? 'cursor-pointer' : ''}`}
           >
-            🗑️ {isNotInterestedLoading && countdown > 0 
+            <Icon name="delete" size={18} /> {isNotInterestedLoading && countdown > 0 
               ? tSync('jobDetail_job_disappearing').replace('{seconds}', countdown.toString())
               : tSync('jobDetail_not_interested_button')}
           </button>
