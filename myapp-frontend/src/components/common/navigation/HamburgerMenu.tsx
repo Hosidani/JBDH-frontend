@@ -22,10 +22,10 @@ interface MenuItem {
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { to: '/profile',          labelKey: 'menu_profile',          roles: [] },
+  { to: '/profile',          labelKey: 'menu_profile',          roles: ['User'] },
   { to: '/account',          labelKey: 'menu_account_settings', roles: [] },
-  { to: '/search',           labelKey: 'menu_match_cv_ads',     roles: null },
-  { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',       roles: [] },
+  { to: '/search',           labelKey: 'menu_match_cv_ads',     roles: ['User'] },
+  { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',       roles: ['User'] },
   { to: '/add-job-ad',       labelKey: 'menu_post_ad',          roles: ['Recruiter'] },
   { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',   roles: null },
   { to: '/about',            labelKey: 'menu_how_it_works',     roles: null },

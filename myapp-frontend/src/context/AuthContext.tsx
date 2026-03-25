@@ -70,15 +70,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user?.email]);
 
-  // Enrich user.roles after login if backend didn't include them
+  // Always fetch roles from account settings on login — account settings is source of truth
   useEffect(() => {
-    if (user && user.roles === undefined) {
+    if (user) {
       ApiService.getAccountSettings()
         .then(settings => {
           setUser(prev => prev ? { ...prev, roles: settings.roles ?? [] } : prev);
         })
         .catch(() => {
-          setUser(prev => prev ? { ...prev, roles: [] } : prev);
+          setUser(prev => prev ? { ...prev, roles: prev.roles ?? [] } : prev);
         });
     }
   }, [user?.email]);

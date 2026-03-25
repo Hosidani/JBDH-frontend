@@ -48,7 +48,7 @@ interface FormData {
 }
 
 const AccountPage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshRoles } = useAuth();
   const { tSync } = useTranslation();
   const navigate = useNavigate();
   const [accountSettings, setAccountSettings] = useState<AccountSettings | null>(null);
@@ -180,6 +180,7 @@ const AccountPage: React.FC = () => {
       setFormData(newFormData);
       setOriginalData(newFormData);
       setIsEditing(false);
+      await refreshRoles();
     } catch (err) {
       if (err instanceof Error) {
         if (err.message.includes('Account has been terminated')) {
