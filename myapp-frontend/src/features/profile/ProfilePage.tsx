@@ -46,10 +46,10 @@ function ProfilePage() {
 
   const handleCVUpload = async (file: File) => {
     setAnalysisResult(null);
+    setPolling(true);
     try {
       const initialLatestId = getLatestAIResponseId(profile?.aiResponses);
       await ApiService.uploadCVForAnalysis(file, language);
-      setPolling(true);
       pollForLatestAIResponse(initialLatestId, setProfile);
     } catch (err: any) {
       setPolling(false);
@@ -99,7 +99,7 @@ function ProfilePage() {
             language={language}
           />
           <hr className="border-slate-200" />
-          <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} />
+          <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} processing={polling} />
           <hr className="border-slate-200" />
           <ButtonsCard
             tSync={tSync}
