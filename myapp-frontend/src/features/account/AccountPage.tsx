@@ -25,16 +25,17 @@ interface AccountSettings {
   roles: string[];
 }
 
-// Helper function to convert backend AccountType enum to string
+const ACCOUNT_TYPE_MAP: Record<number, string> = { 0: 'free', 1: 'basic', 2: 'silver', 3: 'gold' };
+const ACCOUNT_TYPE_REVERSE: Record<string, number> = { free: 0, basic: 1, silver: 2, gold: 3 };
+
 const mapAccountTypeToString = (accountType: number | string): string => {
-  if (typeof accountType === 'number') {
-    return accountType === 0 ? 'Basic' : accountType === 1 ? 'Premium' : 'Basic';
-  }
-  return accountType || 'Basic';
+  if (typeof accountType === 'number') return ACCOUNT_TYPE_MAP[accountType] ?? 'free';
+  const normalized = String(accountType).toLowerCase();
+  return ACCOUNT_TYPE_REVERSE[normalized] !== undefined ? normalized : 'free';
 };
 
 const mapStringToAccountType = (accountTypeString: string): number => {
-  return accountTypeString === 'Premium' ? 1 : 0;
+  return ACCOUNT_TYPE_REVERSE[accountTypeString.toLowerCase()] ?? 0;
 };
 
 interface FormData {
@@ -376,7 +377,11 @@ const AccountPage: React.FC = () => {
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-slate-700">{tSync('account_type')}</span>
               <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-md">
-                <Badge label={String(accountSettings.accountType)} color={accountSettings.accountType === 'Premium' ? 'yellow' : 'gray'} />
+                {(() => {
+                  const key = mapAccountTypeToString(accountSettings.accountType);
+                  const colorMap: Record<string, 'gray' | 'blue' | 'purple' | 'yellow'> = { free: 'gray', basic: 'blue', silver: 'purple', gold: 'yellow' };
+                  return <Badge label={tSync(`accountType_${key}`)} color={colorMap[key] ?? 'gray'} />;
+                })()}
               </div>
             </div>
             <div className="flex flex-col gap-1">
