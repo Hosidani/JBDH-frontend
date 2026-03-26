@@ -26,16 +26,16 @@ interface AccountSettings {
 }
 
 const ACCOUNT_TYPE_MAP: Record<number, string> = { 0: 'free', 1: 'basic', 2: 'silver', 3: 'gold' };
-const ACCOUNT_TYPE_REVERSE: Record<string, number> = { free: 0, basic: 1, silver: 2, gold: 3 };
 
 const mapAccountTypeToString = (accountType: number | string): string => {
   if (typeof accountType === 'number') return ACCOUNT_TYPE_MAP[accountType] ?? 'free';
   const normalized = String(accountType).toLowerCase();
-  return ACCOUNT_TYPE_REVERSE[normalized] !== undefined ? normalized : 'free';
+  return Object.values(ACCOUNT_TYPE_MAP).includes(normalized) ? normalized : 'free';
 };
 
 const mapStringToAccountType = (accountTypeString: string): number => {
-  return ACCOUNT_TYPE_REVERSE[accountTypeString.toLowerCase()] ?? 0;
+  const entry = Object.entries(ACCOUNT_TYPE_MAP).find(([, v]) => v === accountTypeString.toLowerCase());
+  return entry ? Number(entry[0]) : 0;
 };
 
 interface FormData {
