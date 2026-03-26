@@ -5,6 +5,7 @@ interface TextInputProps {
   helpText?: string;
   value: string;
   onChange?: (value: string) => void;
+  onBlur?: () => void;
   readOnly?: boolean;
   placeholder?: string;
   error?: string;
@@ -17,6 +18,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   helpText,
   value,
   onChange,
+  onBlur,
   readOnly = false,
   placeholder,
   error,
@@ -34,6 +36,7 @@ export const TextInput: React.FC<TextInputProps> = ({
         type={type}
         value={value}
         onChange={e => onChange?.(e.target.value)}
+        onBlur={onBlur}
         placeholder={placeholder}
         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       />

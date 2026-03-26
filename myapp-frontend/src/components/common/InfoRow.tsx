@@ -6,6 +6,7 @@ interface InfoRowProps {
   value: string;
   readOnly?: boolean;
   onChange?: (value: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   type?: 'text' | 'email' | 'tel';
 }
@@ -15,6 +16,7 @@ export const InfoRow: React.FC<InfoRowProps> = ({
   value,
   readOnly = true,
   onChange,
+  onBlur,
   placeholder,
   type = 'text',
 }) => (
@@ -23,6 +25,7 @@ export const InfoRow: React.FC<InfoRowProps> = ({
     value={value}
     readOnly={readOnly}
     onChange={onChange}
+    onBlur={onBlur}
     placeholder={placeholder}
     type={type}
   />
