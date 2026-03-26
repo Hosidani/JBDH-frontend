@@ -297,7 +297,7 @@ const AccountPage: React.FC = () => {
         <PageCard
           title={tSync('account_information')}
           action={!accountSettings.isTerminated && !isEditing
-            ? <Button variant="primary" size="sm" onClick={() => setIsEditing(true)}>{tSync('button_edit')}</Button>
+            ? <Button variant="secondary" size="sm" onClick={() => setIsEditing(true)}>{tSync('button_edit')}</Button>
             : undefined}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -343,8 +343,8 @@ const AccountPage: React.FC = () => {
           {/* Save / Cancel */}
           {isEditing && !accountSettings.isTerminated && (
             <div className="flex gap-3 pt-6 border-t border-slate-200 mt-6">
-              <Button variant="primary" loading={isSaving} onClick={handleSave}>{tSync('button_save')}</Button>
-              <Button variant="secondary" disabled={isSaving} onClick={handleCancel}>{tSync('button_cancel')}</Button>
+              <Button variant="primary" size="lg" loading={isSaving} onClick={handleSave}>{tSync('button_save')}</Button>
+              <Button variant="secondary" size="lg" disabled={isSaving} onClick={handleCancel}>{tSync('button_cancel')}</Button>
             </div>
           )}
         </PageCard>
@@ -364,7 +364,7 @@ const AccountPage: React.FC = () => {
               </p>
             )}
             <div className="pt-6 border-t border-slate-200">
-              <Button type="submit" variant="primary" loading={pwLoading}>
+              <Button type="submit" variant="primary" size="lg" loading={pwLoading} disabled={!newPassword || newPassword !== confirmPassword}>
                 {tSync('settingsPage_change_password_button')}
               </Button>
             </div>
@@ -393,7 +393,7 @@ const AccountPage: React.FC = () => {
           </div>
           {!accountSettings.isTerminated && (
             <div className="pt-6 border-t border-slate-200 mt-6">
-              <Button variant="danger" loading={isTerminating} onClick={() => setShowTerminateConfirm(true)}>
+              <Button variant="danger" size="lg" loading={isTerminating} onClick={() => setShowTerminateConfirm(true)}>
                 {tSync('button_terminate')}
               </Button>
             </div>
@@ -406,8 +406,8 @@ const AccountPage: React.FC = () => {
       <Modal open={showTerminateConfirm} onClose={() => setShowTerminateConfirm(false)} title={tSync('terminate_confirm_title')}>
         <p className="text-slate-700 mb-6 text-sm">{tSync('terminate_confirm_message')}</p>
         <div className="flex gap-3">
-          <Button variant="danger" loading={isTerminating} onClick={handleTerminate} className="flex-1">{isTerminating ? 'Stänger...' : 'Ja, stäng'}</Button>
-          <Button variant="secondary" disabled={isTerminating} onClick={() => setShowTerminateConfirm(false)} className="flex-1">{tSync('button_cancel')}</Button>
+          <Button variant="danger" size="lg" loading={isTerminating} onClick={handleTerminate}>{isTerminating ? 'Stänger...' : 'Ja, stäng'}</Button>
+          <Button variant="secondary" size="lg" disabled={isTerminating} onClick={() => setShowTerminateConfirm(false)}>{tSync('button_cancel')}</Button>
         </div>
       </Modal>
     </>

@@ -85,21 +85,26 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading, initialValue
           />
         </FormField>
 
-        {/* Use Profile — checkbox */}
-        <FormField
-          label={tSync('searchForm_use_profile_label')}
-          helpText={tSync('searchForm_use_profile_help')}
-        >
-          <input
-            type="checkbox"
-            checked={useProfile}
-            onChange={(e) => setUseProfile(e.target.checked)}
-            className="w-5 h-5 rounded cursor-pointer"
-          />
-        </FormField>
+        {/* Use Profile Toggle */}
+        <div className="flex items-center gap-3">
+          <label htmlFor="useProfile" className="flex items-center gap-2 cursor-pointer">
+            <input
+              id="useProfile"
+              type="checkbox"
+              checked={useProfile}
+              onChange={(e) => setUseProfile(e.target.checked)}
+              className="w-5 h-5 rounded"
+            />
+            <span className="font-semibold">{tSync('searchForm_use_profile_label')}</span>
+          </label>
+          <span className="text-gray-400 text-sm cursor-help" title={tSync('searchForm_use_profile_help')}>
+            ℹ️
+          </span>
+        </div>
 
-        <Button type="submit" variant="primary" loading={loading} className="w-full">
-          {tSync('searchForm_search_button')}
+        {/* Submit Button */}
+        <Button type="submit" variant="primary" size="lg" disabled={loading} className="self-start">
+          {loading ? tSync('searchForm_searching') : tSync('searchForm_search_button')}
         </Button>
       </form>
     </div>

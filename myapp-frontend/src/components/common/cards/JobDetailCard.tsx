@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from '../../../hooks/TranslationProvider';
 import MatchingAnalysisTab from './MatchingAnalysisTab';
 import type { SavedJob } from './SavedJobCard';
+import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/Icon';
 
 interface JobDetailCardProps {
@@ -96,37 +97,19 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <button
-            onClick={onApply}
-            className="px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition font-semibold"
-          >
+          <Button variant="primary" size="lg" onClick={onApply}>
             {tSync('jobDetail_apply_button')}
-          </button>
-          <button
-            onClick={onSave}
-            disabled={isLoading}
-            title={tSync('jobDetail_save_tooltip')}
-            className={`px-6 py-2 border border-gray-300 rounded hover:bg-gray-50 transition ${
-              job.saved 
-                ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
-                : 'text-gray-700'
-            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {isLoading ? <Icon name="sync" size={18} className="animate-spin" /> : <Icon name="bookmark" filled={job.saved} size={18} />} {tSync('jobDetail_save_button')}
-          </button>
-          <button
-            onClick={onNotInterested}
-            title={isNotInterestedLoading ? tSync('jobDetail_cancel_action') : undefined}
-            className={`px-6 py-2 border border-gray-300 rounded hover:bg-gray-50 transition ${
-              isNotInterestedLoading 
-                ? 'text-red-600 bg-red-50 hover:bg-red-100' 
-                : 'text-gray-700'
-            } ${isNotInterestedLoading ? 'cursor-pointer' : ''}`}
-          >
-            <Icon name="delete" size={18} /> {isNotInterestedLoading && countdown > 0 
+          </Button>
+          <Button variant="secondary" size="lg" disabled={isLoading} onClick={onSave}>
+            <Icon name="bookmark" filled={!!job.saved} size={18} className="mr-1" />
+            {tSync('jobDetail_save_button')}
+          </Button>
+          <Button variant="secondary" size="lg" onClick={onNotInterested}>
+            <Icon name="delete" size={18} className="mr-1" />
+            {isNotInterestedLoading && countdown > 0
               ? tSync('jobDetail_job_disappearing').replace('{seconds}', countdown.toString())
               : tSync('jobDetail_not_interested_button')}
-          </button>
+          </Button>
         </div>
       </div>
 

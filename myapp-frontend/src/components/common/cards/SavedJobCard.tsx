@@ -23,9 +23,9 @@ interface SavedJobCardProps {
   onNotes?: (id: number) => void;
 }
 
-const SavedJobCard: React.FC<SavedJobCardProps> = ({ 
-  job, 
-  onSave, 
+const SavedJobCard: React.FC<SavedJobCardProps> = ({
+  job,
+  onSave,
   onDelete,
   onClick,
   onNotes,
@@ -41,11 +41,11 @@ const SavedJobCard: React.FC<SavedJobCardProps> = ({
   };
 
   return (
-    <div 
+    <div
       className="border border-gray-300 rounded-lg p-6 bg-white hover:shadow-md transition cursor-pointer"
       onClick={handleCardClick}
     >
-      {/* Header with title and action item badge */}
+      {/* Header with title */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <h3 className="text-lg font-bold text-gray-900">{job.title}</h3>
@@ -54,11 +54,6 @@ const SavedJobCard: React.FC<SavedJobCardProps> = ({
             {job.workType && ` | ${job.workType}`}
           </p>
         </div>
-        {job.isActionItem && (
-          <span className="ml-4 px-3 py-1 bg-purple-600 text-white text-sm font-semibold rounded-full whitespace-nowrap">
-            {tSync('savedJobCard_action_item')}
-          </span>
-        )}
       </div>
 
       {/* Last application date */}
@@ -93,9 +88,13 @@ const SavedJobCard: React.FC<SavedJobCardProps> = ({
         <button
           onClick={() => onSave?.(job.id)}
           title={tSync('savedJobCard_save_tooltip')}
-          className="p-2 text-gray-400 hover:bg-gray-100 rounded transition"
+          className={`p-2 rounded transition ${
+            job.saved
+              ? 'text-gray-400 hover:bg-gray-100'
+              : 'text-gray-400 hover:bg-gray-100'
+          }`}
         >
-          <Icon name="bookmark" filled={job.saved} size={20} />
+          <Icon name="bookmark" filled={!!job.saved} size={20} />
         </button>
         <button
           onClick={() => onDelete?.(job.id)}
