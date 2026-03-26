@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useTranslation } from '../../../hooks/TranslationProvider';
+import { useRoles } from '../../../hooks/useRoles';
 
 interface HamburgerMenuProps {
   isOpen: boolean;
@@ -9,12 +10,40 @@ interface HamburgerMenuProps {
   onOpenLogin: () => void;
 }
 
+interface MenuItem {
+  to: string;
+  labelKey: string;
+  /**
+   * null  = visible to everyone including unauthenticated users
+   * []    = visible to all authenticated users
+   * [...] = visible only if user has at least one of these roles
+   */
+  roles: string[] | null;
+}
+
+const MENU_ITEMS: MenuItem[] = [
+  { to: '/profile',          labelKey: 'menu_profile',          roles: ['User'] },
+  { to: '/account',          labelKey: 'menu_account_settings', roles: [] },
+  { to: '/search',           labelKey: 'menu_match_cv_ads',     roles: ['User'] },
+  { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',       roles: ['User'] },
+  { to: '/add-job-ad',       labelKey: 'menu_post_ad',          roles: ['Recruiter'] },
+  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',   roles: null },
+  { to: '/about',            labelKey: 'menu_how_it_works',     roles: null },
+];
+
 const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLogin }) => {
   const { user, logout } = useAuth();
   const { tSync } = useTranslation();
+  const { hasAnyRole, isLoggedIn } = useRoles();
   const navigate = useNavigate();
 
   if (!isOpen) return null;
+
+  const isVisible = (item: MenuItem): boolean => {
+    if (item.roles === null) return true;
+    if (item.roles.length === 0) return isLoggedIn;
+    return hasAnyRole(item.roles);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end bg-black bg-opacity-30" onClick={onClose}>
@@ -25,23 +54,22 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
         </div>
         <nav className="flex flex-col gap-3">
           {!user && (
-            <button className="text-left hover:underline" onClick={() => { onClose(); onOpenLogin(); }}>{tSync('menu_login')}</button>
+            <button className="text-left hover:underline" onClick={() => { onClose(); onOpenLogin(); }}>
+              {tSync('menu_login')}
+            </button>
           )}
+
+          {MENU_ITEMS.filter(isVisible).map(item => (
+            <Link key={item.to} to={item.to} className="text-left hover:underline" onClick={onClose}>
+              {tSync(item.labelKey)}
+            </Link>
+          ))}
+
           {user && (
-            <>
-              <Link to="/profile" className="text-left hover:underline" onClick={onClose}>{tSync('menu_profile')}</Link>
-<Link to="/account" className="text-left hover:underline" onClick={onClose}>{tSync('menu_account_settings')}</Link>
-            </>
-          )}
-          <Link to="/search" className="text-left hover:underline" onClick={onClose}>{tSync('menu_match_cv_ads')}</Link>
-          {user && (
-            <Link to="/saved-jobs" className="text-left hover:underline" onClick={onClose}>{tSync('menu_saved_jobs')}</Link>
-          )}
-          <Link to="/add-job-ad" className="text-left hover:underline" onClick={onClose}>{tSync('menu_post_ad')}</Link>
-          <Link to="/compare-cv-jobad" className="text-left hover:underline" onClick={onClose}>{tSync('menu_match_cv_jobad')}</Link>
-          <Link to="/about" className="text-left hover:underline" onClick={onClose}>{tSync('menu_how_it_works')}</Link>
-          {user && (
-            <button className="text-left text-red-600 mt-2 flex items-center gap-2 hover:underline" onClick={() => { logout(); onClose(); navigate('/'); }}>
+            <button
+              className="text-left text-red-600 mt-2 flex items-center gap-2 hover:underline"
+              onClick={() => { logout(); onClose(); navigate('/'); }}
+            >
               {tSync('menu_logout')} <span style={{ fontSize: 18 }}>&#8594;</span>
             </button>
           )}

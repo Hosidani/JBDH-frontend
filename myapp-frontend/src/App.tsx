@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from './hooks/TranslationProvider';
-import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary } from './components/common';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth } from './components/common';
+import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage } from './features/home';
 import { AboutPage } from './features/about';
@@ -16,17 +16,6 @@ import { MatchingProfilePage } from './features/matching';
 import { JobDetailPage } from './features/jobs';
 import './App.css';
 
-type LogoutRedirectProps = { user: any; setMenuOpen: (v: boolean) => void };
-function LogoutRedirect(props: LogoutRedirectProps) {
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (!props.user) {
-      props.setMenuOpen(false);
-      navigate('/');
-    }
-  }, [props.user, navigate, props.setMenuOpen]);
-  return null;
-}
 
 function App() {
   const { user, sessionExpired, clearSessionExpired } = useAuth();
@@ -99,21 +88,27 @@ function App() {
       )}
       <main className="flex-1 flex flex-col items-center justify-start py-8">
         <Routes>
+          {/* Public */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/search" element={<SearchJobsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/search" element={<RequireAuth><SearchJobsPage /></RequireAuth>} />
           <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
-          <Route path="/account" element={<AccountPage />} />
-          <Route path="/matching" element={<MatchingProfilePage />} />
-          <Route path="/match-ad-cvs" element={<MatchAdToCvsPage />} />
-          <Route path="/add-job-ad" element={<AddJobAdPage />} />
-          <Route path="/saved-jobs" element={<SavedJobsPage />} />
-          <Route path="/job/:id" element={<JobDetailPage />} />
           <Route path="/about" element={<AboutPage />} />
-          {/* Add a route for logout redirect */}
-          <Route path="*" element={<LogoutRedirect user={user} setMenuOpen={setMenuOpen} />} />
+
+          {/* Requires login */}
+          <Route path="/profile"    element={<RequireAuth roles={['User']}><ProfilePage /></RequireAuth>} />
+          <Route path="/account"    element={<RequireAuth><AccountPage /></RequireAuth>} />
+          <Route path="/saved-jobs" element={<RequireAuth roles={['User']}><SavedJobsPage /></RequireAuth>} />
+          <Route path="/job/:id"    element={<RequireAuth roles={['User']}><JobDetailPage /></RequireAuth>} />
+          <Route path="/matching"   element={<RequireAuth><MatchingProfilePage /></RequireAuth>} />
+
+          {/* Requires Recruiter role */}
+          <Route path="/add-job-ad"   element={<RequireAuth roles={['Recruiter']}><AddJobAdPage /></RequireAuth>} />
+          <Route path="/match-ad-cvs" element={<RequireAuth roles={['Recruiter']}><MatchAdToCvsPage /></RequireAuth>} />
+
+          {/* 404 / unknown → root */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>

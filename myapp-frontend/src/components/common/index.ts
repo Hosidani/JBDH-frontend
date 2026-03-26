@@ -11,3 +11,5 @@ export { FormField } from './FormField';
 export { InfoRow } from './InfoRow';
 export { Modal } from './Modal';
 export { ConfirmModal } from './ConfirmModal';
+export { RoleGate } from './RoleGate';
+export { RequireAuth } from './RequireAuth';
