@@ -15,7 +15,7 @@ function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [setAnalysisResult] = useState<any>(null);
   const { tSync, language, ready } = useTranslation();
   const { polling, setPolling, getLatestAIResponseId, pollForLatestAIResponse } = useAIResponsePolling();
 
