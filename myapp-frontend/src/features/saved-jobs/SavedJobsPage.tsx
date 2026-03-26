@@ -61,14 +61,11 @@ const SavedJobsPage: React.FC = () => {
 
       if (job.saved) {
         await ApiService.unsaveJob(id);
+        setJobs(jobs.filter(j => j.id !== id));
       } else {
         await ApiService.saveJob(id);
+        setJobs(jobs.map(j => j.id === id ? { ...j, saved: true } : j));
       }
-
-      // Update local state
-      setJobs(jobs.map(j => 
-        j.id === id ? { ...j, saved: !j.saved } : j
-      ));
     } catch (err) {
       console.error('Error toggling save status:', err);
       // You could show a toast notification here

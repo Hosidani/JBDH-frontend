@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from '../../../hooks/TranslationProvider';
+import { Icon } from '../../ui/Icon';
 
 export interface SavedJob {
   id: number;
@@ -87,25 +88,21 @@ const SavedJobCard: React.FC<SavedJobCardProps> = ({
               : 'text-gray-400 hover:bg-gray-100'
           }`}
         >
-          📝
+          <Icon name="edit_note" size={20} />
         </button>
         <button
           onClick={() => onSave?.(job.id)}
           title={tSync('savedJobCard_save_tooltip')}
-          className={`p-2 rounded transition ${
-            job.saved
-              ? 'bg-blue-100 text-blue-600'
-              : 'text-gray-400 hover:bg-gray-100'
-          }`}
+          className="p-2 text-gray-400 hover:bg-gray-100 rounded transition"
         >
-          🔖
+          <Icon name="bookmark" filled={job.saved} size={20} />
         </button>
         <button
           onClick={() => onDelete?.(job.id)}
           title={tSync('savedJobCard_delete_tooltip')}
           className="p-2 text-gray-400 hover:bg-gray-100 rounded transition"
         >
-          🗑️
+          <Icon name="delete" size={20} />
         </button>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService, type JobDetailsDto } from '../../services/ApiService';
 import { DataList, type DataListColumn } from '../ui/DataList';
+import { Icon } from '../ui/Icon';
 
 interface SearchResultsProps {
   results: JobDetailsDto[] | null;
@@ -143,7 +144,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
                 ${job.isSaved ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' : 'text-slate-500 hover:bg-blue-50 hover:text-blue-600'}
                 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {isLoading ? '⏳' : job.isSaved ? '🖤' : '🤍'}
+              {isLoading
+                ? <Icon name="sync" size={18} className="animate-spin" />
+                : <Icon name="bookmark" filled={job.isSaved} size={18} />}
             </button>
             {!job.isSaved && (
               <button
@@ -152,7 +155,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
                 className={`p-1 rounded text-sm transition cursor-pointer
                   ${countdown > 0 ? 'text-red-600 bg-red-50 hover:bg-red-100' : 'text-slate-500 hover:bg-slate-100'}`}
               >
-                {countdown > 0 ? `🗑️ ${countdown}` : isLoading ? '⏳' : '🗑️'}
+                {countdown > 0
+                  ? <><Icon name="delete" size={18} /><span className="text-xs font-mono">{countdown}</span></>
+                  : isLoading
+                    ? <Icon name="sync" size={18} className="animate-spin" />
+                    : <Icon name="delete" size={18} />}
               </button>
             )}
           </div>
