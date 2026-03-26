@@ -73,6 +73,7 @@ const CompareCvToJobAdPage: React.FC = () => {
       <PageWrapper>
         <SectionCard className="relative z-10">
           <h2 className="text-2xl font-bold mb-4">{tSync('compareCvToJobAdPage_title') || 'Matcha CV mot jobbannons'}</h2>
+          <p className="text-sm text-slate-600 mb-6">{tSync('compareCvToJobAdPage_about')}</p>
           <section className="mb-6">
             <h3 className="font-semibold mb-2">{tSync('compareCvToJobAdPage_howto_title')}</h3>
             <ol className="list-decimal ml-6 text-slate-700 space-y-1">
