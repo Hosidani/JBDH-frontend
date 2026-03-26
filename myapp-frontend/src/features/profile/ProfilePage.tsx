@@ -72,22 +72,6 @@ function ProfilePage() {
     region: profileData.desiredCity || tSync('profilePage_default_region'),
     phone: profileData.phoneNumber || tSync('profilePage_default_phone'),
     email: profileData.email,
-    tags:
-      analysisResult && (analysisResult.hardSkills || analysisResult.softSkills)
-        ? [
-            ...(analysisResult.hardSkills || []),
-            ...(analysisResult.softSkills || [])
-          ]
-        : profileData.competencies || [
-            tSync('profilePage_tag_reactNative'),
-            tSync('profilePage_tag_angular'),
-            tSync('profilePage_tag_php'),
-            tSync('profilePage_tag_csharp'),
-            tSync('profilePage_tag_typescript'),
-            tSync('profilePage_tag_ux'),
-            tSync('profilePage_tag_java'),
-            tSync('profilePage_tag_aiPrompting')
-          ]
   };
 
   let latestAIResponse: any = null;
