@@ -34,6 +34,7 @@
   "menu_match_cv_ads": "Sök jobb",
   "menu_post_ad": "Lägg in annons",
   "menu_match_cv_jobad": "Matcha CV mot jobbannons",
+  "menu_messages": "Meddelanden",
   "menu_how_it_works": "Hur funkar JBDH?",
   "menu_saved_jobs": "Sparade jobb",
   "menu_logout": "Logga ut",
@@ -314,5 +315,15 @@
   "jobDetail_cancel_action": "Klicka för att ångra",
   "jobDetail_tab_description": "Beskrivning",
   "jobDetail_tab_matching": "Matchning",
-  "app_tagline": "Onödigt enkelt"
+  "app_tagline": "Onödigt enkelt",
+  "serviceMessages_acknowledge_button": "Jag förstår",
+  "serviceMessages_dont_show_again": "Visa inte igen",
+  "serviceMessages_page_title": "Meddelanden",
+  "serviceMessages_page_empty": "Inga meddelanden.",
+  "serviceMessages_unread_badge": "Oläst",
+  "serviceMessages_mark_read": "Markera som läst",
+  "serviceMessages_category_beta": "Beta",
+  "serviceMessages_category_ai": "AI",
+  "serviceMessages_category_update": "Uppdatering",
+  "serviceMessages_category_maintenance": "Underhåll"
 }
