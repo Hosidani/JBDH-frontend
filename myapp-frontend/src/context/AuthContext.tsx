@@ -59,23 +59,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, loading]);
 
-  // Enrich user.name after login if backend didn't include it
-  useEffect(() => {
-    if (user && !user.name) {
-      ApiService.getMyProfile()
-        .then(profile => {
-          if (profile.name) setUser(prev => prev ? { ...prev, name: profile.name } : prev);
-        })
-        .catch(() => {});
-    }
-  }, [user?.email]);
-
-  // Always fetch roles from account settings on login — account settings is source of truth
+  // Always fetch roles and name from account settings on login — account settings is source of truth
   useEffect(() => {
     if (user) {
       ApiService.getAccountSettings()
         .then(settings => {
-          setUser(prev => prev ? { ...prev, roles: settings.roles ?? [] } : prev);
+          setUser(prev => prev ? {
+            ...prev,
+            roles: settings.roles ?? [],
+            name: settings.accountName || prev.name,
+          } : prev);
         })
         .catch(() => {
           setUser(prev => prev ? { ...prev, roles: prev.roles ?? [] } : prev);
@@ -107,7 +100,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const refreshRoles = async () => {
     try {
       const settings = await ApiService.getAccountSettings();
-      setUser(prev => prev ? { ...prev, roles: settings.roles ?? [] } : prev);
+      setUser(prev => prev ? {
+        ...prev,
+        roles: settings.roles ?? [],
+        name: settings.accountName || prev.name,
+      } : prev);
     } catch {
       // silently ignore — roles remain as-is
     }
