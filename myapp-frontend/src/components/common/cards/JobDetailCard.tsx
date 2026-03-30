@@ -101,11 +101,11 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
             {tSync('jobDetail_apply_button')}
           </Button>
           <Button variant="secondary" size="lg" disabled={isLoading} onClick={onSave}>
-            <Icon name="bookmark" filled={!!job.saved} size={18} className="mr-1" />
+            <Icon name="bookmark" filled={!!job.saved} size={24} className="mr-1" />
             {tSync('jobDetail_save_button')}
           </Button>
           <Button variant="secondary" size="lg" onClick={onNotInterested}>
-            <Icon name="delete" size={18} className="mr-1" />
+            <Icon name="delete" size={24} className="mr-1" />
             {isNotInterestedLoading && countdown > 0
               ? tSync('jobDetail_job_disappearing').replace('{seconds}', countdown.toString())
               : tSync('jobDetail_not_interested_button')}

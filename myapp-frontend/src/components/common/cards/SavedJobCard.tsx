@@ -83,7 +83,7 @@ const SavedJobCard: React.FC<SavedJobCardProps> = ({
               : 'text-gray-400 hover:bg-gray-100'
           }`}
         >
-          <Icon name="edit_note" size={20} />
+          <Icon name="edit_note" size={24} />
         </button>
         <button
           onClick={() => onSave?.(job.id)}
@@ -94,14 +94,14 @@ const SavedJobCard: React.FC<SavedJobCardProps> = ({
               : 'text-gray-400 hover:bg-gray-100'
           }`}
         >
-          <Icon name="bookmark" filled={!!job.saved} size={20} />
+          <Icon name="bookmark" filled={!!job.saved} size={24} />
         </button>
         <button
           onClick={() => onDelete?.(job.id)}
           title={tSync('savedJobCard_delete_tooltip')}
           className="p-2 text-gray-400 hover:bg-gray-100 rounded transition"
         >
-          <Icon name="delete" size={20} />
+          <Icon name="delete" size={24} />
         </button>
       </div>
     </div>
