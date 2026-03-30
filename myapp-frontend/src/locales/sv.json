@@ -314,5 +314,28 @@
   "jobDetail_cancel_action": "Klicka för att ångra",
   "jobDetail_tab_description": "Beskrivning",
   "jobDetail_tab_matching": "Matchning",
-  "app_tagline": "Onödigt enkelt"
+  "app_tagline": "Onödigt enkelt",
+
+  "footer_group_jbdh": "JBDH",
+  "footer_group_loghouse": "Log House",
+  "footer_group_legal": "Juridik",
+  "footer_link_about": "Om JBDH",
+  "footer_link_contact": "Kontakt",
+  "footer_link_loghouse": "Om Log House",
+  "footer_link_terms": "Användarvillkor",
+  "footer_link_privacy": "Integritetspolicy",
+  "footer_link_eula": "EULA",
+
+  "contactPage_title": "Kontakt",
+  "contactPage_comingSoon": "Kontaktinformation kommer snart.",
+  "contactPage_visit": "Besök oss",
+  "contactPage_contact": "Kontakta oss",
+  "contactPage_work": "Jobba hos oss",
+  "contactPage_follow": "Följ oss",
+  "termsPage_title": "Användarvillkor",
+  "termsPage_comingSoon": "Användarvillkor kommer snart.",
+  "privacyPage_title": "Integritetspolicy",
+  "privacyPage_comingSoon": "Integritetspolicy kommer snart.",
+  "eulaPage_title": "EULA",
+  "eulaPage_comingSoon": "Slutanvändarlicensavtal kommer snart."
 }

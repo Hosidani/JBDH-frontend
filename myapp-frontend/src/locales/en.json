@@ -310,5 +310,28 @@
   "jobDetail_cancel_action": "Click to cancel",
   "jobDetail_tab_description": "Description",
   "jobDetail_tab_matching": "Matching",
-  "app_tagline": "Ridiculously simple"
+  "app_tagline": "Ridiculously simple",
+
+  "footer_group_jbdh": "JBDH",
+  "footer_group_loghouse": "Log House",
+  "footer_group_legal": "Legal",
+  "footer_link_about": "About JBDH",
+  "footer_link_contact": "Contact",
+  "footer_link_loghouse": "About Log House",
+  "footer_link_terms": "Terms of Use",
+  "footer_link_privacy": "Privacy Policy",
+  "footer_link_eula": "EULA",
+
+  "contactPage_title": "Contact",
+  "contactPage_comingSoon": "Contact information coming soon.",
+  "contactPage_visit": "Visit us",
+  "contactPage_contact": "Contact us",
+  "contactPage_work": "Work with us",
+  "contactPage_follow": "Follow us",
+  "termsPage_title": "Terms of Use",
+  "termsPage_comingSoon": "Terms of use coming soon.",
+  "privacyPage_title": "Privacy Policy",
+  "privacyPage_comingSoon": "Privacy policy coming soon.",
+  "eulaPage_title": "EULA",
+  "eulaPage_comingSoon": "End User License Agreement coming soon."
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from './hooks/TranslationProvider';
-import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth } from './components/common';
+import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth, Footer } from './components/common';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage } from './features/home';
@@ -14,6 +14,10 @@ import { AccountPage } from './features/account';
 import { AddJobAdPage } from './features/boards';
 import { MatchingProfilePage } from './features/matching';
 import { JobDetailPage } from './features/jobs';
+import { ContactPage } from './features/contact';
+import { TermsPage } from './features/terms';
+import { PrivacyPage } from './features/privacy';
+import { EulaPage } from './features/eula';
 import './App.css';
 
 
@@ -107,10 +111,17 @@ function App() {
           <Route path="/add-job-ad"   element={<RequireAuth roles={['Recruiter']}><AddJobAdPage /></RequireAuth>} />
           <Route path="/match-ad-cvs" element={<RequireAuth roles={['Recruiter']}><MatchAdToCvsPage /></RequireAuth>} />
 
+          {/* Footer pages */}
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms"   element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/eula"    element={<EulaPage />} />
+
           {/* 404 / unknown → root */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 }
