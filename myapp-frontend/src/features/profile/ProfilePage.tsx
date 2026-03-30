@@ -15,7 +15,6 @@ function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [setAnalysisResult] = useState<any>(null);
   const { tSync, language, ready } = useTranslation();
   const { polling, setPolling, getLatestAIResponseId, pollForLatestAIResponse } = useAIResponsePolling();
 
@@ -45,7 +44,6 @@ function ProfilePage() {
   }, []);
 
   const handleCVUpload = async (file: File) => {
-    setAnalysisResult(null);
     setPolling(true);
     try {
       const initialLatestId = getLatestAIResponseId(profile?.aiResponses);
