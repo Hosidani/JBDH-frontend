@@ -1,16 +1,24 @@
 import React from 'react';
-import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
-import { Heading } from '../../components/ui/Heading';
+import MarkdownRenderer from '../../components/common/MarkdownRenderer';
+import { useTranslation } from '../../hooks/TranslationProvider';
+import aboutSv from '../../content/about.sv.md?raw';
+import aboutEn from '../../content/about.en.md?raw';
+
+const contentByLanguage: Record<string, string> = {
+  sv: aboutSv,
+  en: aboutEn,
+};
 
 const AboutPage: React.FC = () => {
-  const { tSync } = useTranslation();
+  const { language } = useTranslation();
+  const content = contentByLanguage[language] ?? aboutSv;
+
   return (
     <PageWrapper>
       <SectionCard>
-        <Heading level={2} className="mb-4">{tSync('aboutPage_title')}</Heading>
-        <p>{tSync('aboutPage_comingSoon')}</p>
+        <MarkdownRenderer content={content} />
       </SectionCard>
     </PageWrapper>
   );

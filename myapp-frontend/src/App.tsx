@@ -4,7 +4,8 @@ import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth } 
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage } from './features/home';
-import { AboutPage } from './features/about';
+import { lazy, Suspense } from 'react';
+const AboutPage = lazy(() => import('./features/about/AboutPage'));
 import { CompareCvToJobAdPage } from './features/compare-cv-to-job-ad';
 import { SavedJobsPage } from './features/saved-jobs';
 import { LoginPage, RegisterPage } from './features/auth';
@@ -94,7 +95,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/search" element={<RequireAuth><SearchJobsPage /></RequireAuth>} />
           <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
-          <Route path="/about" element={<AboutPage />} />
+          <Route path="/about" element={<Suspense fallback={null}><AboutPage /></Suspense>} />
 
           {/* Requires login */}
           <Route path="/profile"    element={<RequireAuth roles={['User']}><ProfilePage /></RequireAuth>} />
