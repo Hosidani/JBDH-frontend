@@ -314,5 +314,9 @@
   "jobDetail_cancel_action": "Klicka för att ångra",
   "jobDetail_tab_description": "Beskrivning",
   "jobDetail_tab_matching": "Matchning",
-  "app_tagline": "Onödigt enkelt"
+  "app_tagline": "Onödigt enkelt",
+
+  "profilePage_title": "Min profil",
+  "profilePage_basic_info_heading": "Grundinformation",
+  "profilePage_description": "Detta är sidan för din profil. Din profil används av JBDH till att bedöma hur väl en jobbeskrivning passar dig. Du kan också leta efter jobb och använda din profil i sökningen. Dessutom kan rekryterare hitta din profil om du sagt \"ja\" till Sökbar. Det är då informationen i din profil som visas och inte informationen på kontoinställningarna."
 }

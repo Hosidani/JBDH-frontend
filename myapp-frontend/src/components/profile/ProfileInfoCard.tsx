@@ -104,14 +104,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Avatar */}
-      <div className="flex flex-col items-center">
-        <div className="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-3xl font-bold text-slate-600 mb-2">
-          {initials(name || ' ')}
-        </div>
-        <div className="text-xs text-slate-400">{tSync('profilePage_registration_label')}: {registrationDate}</div>
-      </div>
-
+      <h3 className="text-base font-semibold text-slate-700">{tSync('profilePage_basic_info_heading')}</h3>
       {/* 5-row × 2-column grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Row 1: Name | Title */}
