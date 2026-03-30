@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from './hooks/TranslationProvider';
-import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth } from './components/common';
+import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth, FeedbackButton } from './components/common';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage } from './features/home';
@@ -86,6 +86,7 @@ function App() {
           </div>
         </div>
       )}
+      <FeedbackButton />
       <main className="flex-1 flex flex-col items-center justify-start py-8">
         <Routes>
           {/* Public */}

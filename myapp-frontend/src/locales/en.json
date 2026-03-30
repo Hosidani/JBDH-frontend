@@ -310,5 +310,11 @@
   "jobDetail_cancel_action": "Click to cancel",
   "jobDetail_tab_description": "Description",
   "jobDetail_tab_matching": "Matching",
-  "app_tagline": "Ridiculously simple"
+  "app_tagline": "Ridiculously simple",
+
+  "feedback_button_label": "Leave feedback",
+  "feedback_modal_title": "Feedback",
+  "feedback_modal_description": "Here you can share what you think works well or what needs improvement.",
+  "feedback_placeholder": "Write your feedback here...",
+  "feedback_submit_button": "Submit"
 }
