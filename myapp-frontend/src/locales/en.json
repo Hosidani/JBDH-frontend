@@ -34,6 +34,7 @@
   "menu_match_cv_ads": "Search jobs",
   "menu_post_ad": "Post a job ad",
   "menu_match_cv_jobad": "Match CV to job ad",
+  "menu_messages": "Messages",
   "menu_how_it_works": "How does JBDH work?",
   "menu_saved_jobs": "Saved jobs",
   "menu_logout": "Log out",
@@ -310,5 +311,15 @@
   "jobDetail_cancel_action": "Click to cancel",
   "jobDetail_tab_description": "Description",
   "jobDetail_tab_matching": "Matching",
-  "app_tagline": "Ridiculously simple"
+  "app_tagline": "Ridiculously simple",
+  "serviceMessages_acknowledge_button": "I understand",
+  "serviceMessages_dont_show_again": "Don't show again",
+  "serviceMessages_page_title": "Messages",
+  "serviceMessages_page_empty": "No messages.",
+  "serviceMessages_unread_badge": "Unread",
+  "serviceMessages_mark_read": "Mark as read",
+  "serviceMessages_category_beta": "Beta",
+  "serviceMessages_category_ai": "AI",
+  "serviceMessages_category_update": "Update",
+  "serviceMessages_category_maintenance": "Maintenance"
 }

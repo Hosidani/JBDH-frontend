@@ -15,6 +15,9 @@ import { AccountPage } from './features/account';
 import { AddJobAdPage } from './features/boards';
 import { MatchingProfilePage } from './features/matching';
 import { JobDetailPage } from './features/jobs';
+import { MessagesPage } from './features/messages';
+import ServiceMessageModal from './components/common/ServiceMessageModal';
+import { useServiceMessages } from './hooks/useServiceMessages';
 import './App.css';
 
 
@@ -23,12 +26,18 @@ function App() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const { currentMessage, acknowledge } = useServiceMessages(user?.email);
+  const [sessionDismissed, setSessionDismissed] = useState<string[]>([]);
 
   useEffect(() => {
     const handler = () => setLoginModalOpen(true);
     window.addEventListener('requireLogin', handler);
     return () => window.removeEventListener('requireLogin', handler);
   }, []);
+
+  useEffect(() => {
+    if (user) setSessionDismissed([]);
+  }, [user]);
   const { language, changeLanguage, tSync } = useTranslation();
 
   return (
@@ -72,6 +81,14 @@ function App() {
       {loginModalOpen && (
         <LoginModal onClose={() => setLoginModalOpen(false)} />
       )}
+      {/* Service message modal — requires acknowledgement before using the app */}
+      {user && currentMessage && !sessionDismissed.includes(currentMessage.id) && (
+        <ServiceMessageModal
+          message={currentMessage}
+          onAcknowledge={acknowledge}
+          onDismiss={() => setSessionDismissed(prev => [...prev, currentMessage.id])}
+        />
+      )}
       {/* Session expired dialog */}
       {sessionExpired && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -96,6 +113,7 @@ function App() {
           <Route path="/search" element={<RequireAuth><SearchJobsPage /></RequireAuth>} />
           <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
           <Route path="/about" element={<Suspense fallback={null}><AboutPage /></Suspense>} />
+          <Route path="/messages" element={<MessagesPage />} />
 
           {/* Requires login */}
           <Route path="/profile"    element={<RequireAuth roles={['User']}><ProfilePage /></RequireAuth>} />
