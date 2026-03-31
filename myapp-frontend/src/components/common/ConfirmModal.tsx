@@ -19,10 +19,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   <Modal open={open} onClose={onCancel} title={title}>
     <p className="text-slate-600 text-sm mb-6">{message}</p>
     <div className="flex gap-3 justify-end">
-      <Button variant="secondary" disabled={loading} onClick={onCancel}>
+      <Button variant="secondary" size="lg" disabled={loading} onClick={onCancel}>
         {cancelLabel}
       </Button>
-      <Button variant="danger" loading={loading} onClick={onConfirm}>
+      <Button variant="danger" size="lg" loading={loading} onClick={onConfirm}>
         {confirmLabel}
       </Button>
     </div>

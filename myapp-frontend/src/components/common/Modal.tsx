@@ -16,7 +16,7 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children }) 
       <div className="relative bg-white rounded-2xl shadow-xl p-8 w-full max-w-md mx-4 z-10">
         {title && (
           <div className="flex items-center justify-between mb-6">
-            <Heading level={3}>{title}</Heading>
+            <Heading level={2}>{title}</Heading>
             <button
               onClick={onClose}
               className="text-slate-400 hover:text-slate-600 text-xl leading-none"
