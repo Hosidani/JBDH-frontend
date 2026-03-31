@@ -121,12 +121,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
       render: job => <span className="text-slate-600">{job.location || '-'}</span>,
     },
     {
-      key: 'compensation',
-      label: tSync('searchResults_compensation'),
-      width: '80px',
-      render: () => <span className="text-slate-400">-</span>,
-    },
-    {
       key: '_actions',
       label: tSync('searchResults_actions'),
       width: '80px',
