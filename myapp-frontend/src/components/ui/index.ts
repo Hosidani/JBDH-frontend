@@ -12,3 +12,4 @@ export type { DataListColumn } from './DataList';
 export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';
 export { default as UserAvatar } from './UserAvatar';
+export { ItemList } from './ItemList';

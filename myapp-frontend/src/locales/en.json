@@ -342,5 +342,8 @@
   "privacyPage_title": "Privacy Policy",
   "privacyPage_comingSoon": "Privacy policy coming soon.",
   "eulaPage_title": "EULA",
-  "eulaPage_comingSoon": "End User License Agreement coming soon."
+  "eulaPage_comingSoon": "End User License Agreement coming soon.",
+  "profilePage_title": "My Profile",
+  "profilePage_basic_info_heading": "Basic information",
+  "profilePage_description": "This is your profile page. Your profile is used by JBDH to assess how well a job description matches you. You can also search for jobs and use your profile in the search. Additionally, recruiters can find your profile if you have said \"yes\" to Searchable. It is then the information in your profile that is shown, not the information in your account settings."
 }

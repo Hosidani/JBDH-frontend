@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
 import { ProfileInfoCard, AIAnalysisCard, FileDropZoneCard, ButtonsCard } from '../../components/profile';
 import { PageWrapper, PageBackground } from '../../components/common';
+import { PageCard } from '../../components/common/PageCard';
 import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useAIResponsePolling } from '../../hooks/useAIResponsePolling';
@@ -85,26 +86,34 @@ function ProfilePage() {
     <>
       <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
       <PageWrapper className="relative z-10">
-        <SectionCard className="flex flex-col gap-8">
-          <ProfileInfoCard {...profileCardProps} />
-          <hr className="border-slate-200" />
-          <AIAnalysisCard
-            polling={polling}
-            analysis={latestAIAnalysis}
-            aiResponse={latestAIResponse}
-            aiResponses={aiResponses}
-            tSync={tSync}
-            language={language}
-          />
-          <hr className="border-slate-200" />
-          <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} processing={polling} />
-          <hr className="border-slate-200" />
-          <ButtonsCard
-            tSync={tSync}
-            onMatchNowClick={() => navigate('/matching')}
-            onManualSearchClick={() => navigate('/search')}
-          />
-        </SectionCard>
+        <div className="flex flex-col gap-6">
+          <PageCard title={tSync('profilePage_title')}>
+            <p className="mb-6 text-sm text-slate-600">{tSync('profilePage_description')}</p>
+            <ProfileInfoCard {...profileCardProps} />
+          </PageCard>
+
+          <PageCard title={tSync('profilePage_ai_analysis_title')}>
+            <AIAnalysisCard
+              polling={polling}
+              analysis={latestAIAnalysis}
+              aiResponse={latestAIResponse}
+              aiResponses={aiResponses}
+              tSync={tSync}
+              language={language}
+            />
+            <div className="mt-6">
+              <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} processing={polling} />
+            </div>
+          </PageCard>
+
+          <SectionCard>
+            <ButtonsCard
+              tSync={tSync}
+              onMatchNowClick={() => navigate('/matching')}
+              onManualSearchClick={() => navigate('/search')}
+            />
+          </SectionCard>
+        </div>
       </PageWrapper>
     </>
   );
