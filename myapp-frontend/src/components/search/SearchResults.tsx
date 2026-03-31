@@ -145,8 +145,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
                 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isLoading
-                ? <Icon name="sync" size={18} className="animate-spin" />
-                : <Icon name="bookmark" filled={job.isSaved} size={18} />}
+                ? <Icon name="sync" size={24} className="animate-spin" />
+                : <Icon name="bookmark" filled={job.isSaved} size={24} />}
             </button>
             {!job.isSaved && (
               <button
@@ -156,10 +156,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
                   ${countdown > 0 ? 'text-red-600 bg-red-50 hover:bg-red-100' : 'text-slate-500 hover:bg-slate-100'}`}
               >
                 {countdown > 0
-                  ? <><Icon name="delete" size={18} /><span className="text-xs font-mono">{countdown}</span></>
+                  ? <><Icon name="delete" size={24} /><span className="text-xs font-mono">{countdown}</span></>
                   : isLoading
-                    ? <Icon name="sync" size={18} className="animate-spin" />
-                    : <Icon name="delete" size={18} />}
+                    ? <Icon name="sync" size={24} className="animate-spin" />
+                    : <Icon name="delete" size={24} />}
               </button>
             )}
           </div>
