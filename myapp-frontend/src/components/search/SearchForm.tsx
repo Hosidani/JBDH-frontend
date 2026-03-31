@@ -97,9 +97,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading, initialValue
             />
             <span className="font-semibold">{tSync('searchForm_use_profile_label')}</span>
           </label>
-          <span className="text-gray-400 text-sm cursor-help" title={tSync('searchForm_use_profile_help')}>
-            ℹ️
-          </span>
         </div>
 
         {/* Submit Button */}
