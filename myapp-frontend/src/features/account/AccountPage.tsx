@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { CheckboxGroup } from '../../components/ui/CheckboxGroup';
 import { PageCard } from '../../components/common/PageCard';
-import { Modal } from '../../components/common/Modal';
+import { ConfirmModal } from '../../components/common/ConfirmModal';
 import { PageWrapper, PageBackground } from '../../components/common';
 import accountSettingsBg from '../../assets/img/account_settings.png';
 
@@ -403,13 +403,16 @@ const AccountPage: React.FC = () => {
       </PageWrapper>
 
       {/* Terminate Confirmation Modal */}
-      <Modal open={showTerminateConfirm} onClose={() => setShowTerminateConfirm(false)} title={tSync('terminate_confirm_title')}>
-        <p className="text-slate-700 mb-6 text-sm">{tSync('terminate_confirm_message')}</p>
-        <div className="flex gap-3">
-          <Button variant="danger" size="lg" loading={isTerminating} onClick={handleTerminate}>{isTerminating ? 'Stänger...' : 'Ja, stäng'}</Button>
-          <Button variant="secondary" size="lg" disabled={isTerminating} onClick={() => setShowTerminateConfirm(false)}>{tSync('button_cancel')}</Button>
-        </div>
-      </Modal>
+      <ConfirmModal
+        open={showTerminateConfirm}
+        title={tSync('terminate_confirm_title')}
+        message={tSync('terminate_confirm_message')}
+        confirmLabel={tSync('terminate_confirm_ok')}
+        cancelLabel={tSync('button_cancel')}
+        loading={isTerminating}
+        onConfirm={handleTerminate}
+        onCancel={() => setShowTerminateConfirm(false)}
+      />
     </>
   );
 };
