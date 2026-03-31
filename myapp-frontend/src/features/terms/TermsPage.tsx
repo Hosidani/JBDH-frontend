@@ -2,15 +2,17 @@ import React from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
-import { Heading } from '../../components/ui/Heading';
+import MarkdownRenderer from '../../components/common/MarkdownRenderer';
+import termsSv from '../../content/terms.sv.md?raw';
+import termsEn from '../../content/terms.en.md?raw';
 
 const TermsPage: React.FC = () => {
-  const { tSync } = useTranslation();
+  const { language } = useTranslation();
+  const content = language === 'sv' ? termsSv : termsEn;
   return (
     <PageWrapper>
       <SectionCard>
-        <Heading level={2} className="mb-4">{tSync('termsPage_title')}</Heading>
-        <p>{tSync('termsPage_comingSoon')}</p>
+        <MarkdownRenderer content={content} />
       </SectionCard>
     </PageWrapper>
   );

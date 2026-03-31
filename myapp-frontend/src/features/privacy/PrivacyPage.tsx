@@ -2,15 +2,17 @@ import React from 'react';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
-import { Heading } from '../../components/ui/Heading';
+import MarkdownRenderer from '../../components/common/MarkdownRenderer';
+import privacySv from '../../content/privacy.sv.md?raw';
+import privacyEn from '../../content/privacy.en.md?raw';
 
 const PrivacyPage: React.FC = () => {
-  const { tSync } = useTranslation();
+  const { language } = useTranslation();
+  const content = language === 'sv' ? privacySv : privacyEn;
   return (
     <PageWrapper>
       <SectionCard>
-        <Heading level={2} className="mb-4">{tSync('privacyPage_title')}</Heading>
-        <p>{tSync('privacyPage_comingSoon')}</p>
+        <MarkdownRenderer content={content} />
       </SectionCard>
     </PageWrapper>
   );
