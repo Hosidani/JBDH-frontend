@@ -23,8 +23,9 @@ src/**/*.stories.*
 src/**/*.mdx
 
 # Ignore specific markdown and docs
-MY_NOTES.md
 TODO.md
+MY_NOTES.md
+README.md
 
 # Ignore backup and temp files
 *.tmp
