@@ -316,9 +316,12 @@
   "jobDetail_tab_matching": "Matchning",
   "app_tagline": "Onödigt enkelt",
 
-  "feedback_button_label": "Lämna feedback",
+  "feedback_button_label": "Ge oss feedback",
   "feedback_modal_title": "Feedback",
   "feedback_modal_description": "Här kan du återkoppla vad du tycker är bra eller vad som behöver förbättras.",
   "feedback_placeholder": "Skriv din feedback här...",
-  "feedback_submit_button": "Skicka in"
+  "feedback_submit_button": "Skicka in",
+  "feedback_thanks_title": "TACK!",
+  "feedback_thanks_message": "Tack för att du hjälper oss att bli bättre. Det kan hända att vi kontaktar dig för att få mer detaljer i ärendet.",
+  "feedback_thanks_ok": "OK"
 }

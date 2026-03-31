@@ -199,6 +199,20 @@ export class ApiService {
     return await response.json();
   }
 
+  static async submitFeedback(payload: {
+    text: string;
+    url: string;
+    accountName: string;
+    accountEmail: string;
+    timestamp: string;
+  }): Promise<void> {
+    await this.fetchWithAuth('/feedback/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
   // Terminate current user's account
   static async terminateAccount(): Promise<any> {
     const response = await this.fetchWithAuth('/settings/terminateaccount', {
