@@ -14,3 +14,4 @@ export { ConfirmModal } from './ConfirmModal';
 export { RoleGate } from './RoleGate';
 export { RequireAuth } from './RequireAuth';
 export { default as Footer } from './Footer';
+export { default as FeedbackButton } from './FeedbackButton';

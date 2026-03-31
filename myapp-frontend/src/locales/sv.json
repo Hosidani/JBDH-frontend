@@ -345,5 +345,13 @@
   "eulaPage_comingSoon": "Slutanvändarlicensavtal kommer snart.",
   "profilePage_title": "Min profil",
   "profilePage_basic_info_heading": "Grundinformation",
-  "profilePage_description": "Detta är sidan för din profil. Din profil används av JBDH till att bedöma hur väl en jobbeskrivning passar dig. Du kan också leta efter jobb och använda din profil i sökningen. Dessutom kan rekryterare hitta din profil om du sagt \"ja\" till Sökbar. Det är då informationen i din profil som visas och inte informationen på kontoinställningarna."
+  "profilePage_description": "Detta är sidan för din profil. Din profil används av JBDH till att bedöma hur väl en jobbeskrivning passar dig. Du kan också leta efter jobb och använda din profil i sökningen. Dessutom kan rekryterare hitta din profil om du sagt \"ja\" till Sökbar. Det är då informationen i din profil som visas och inte informationen på kontoinställningarna.",
+  "feedback_button_label": "Ge oss feedback",
+  "feedback_modal_title": "Feedback",
+  "feedback_modal_description": "Här kan du återkoppla vad du tycker är bra eller vad som behöver förbättras.",
+  "feedback_placeholder": "Skriv din feedback här...",
+  "feedback_submit_button": "Skicka in",
+  "feedback_thanks_title": "TACK!",
+  "feedback_thanks_message": "Tack för att du hjälper oss att bli bättre. Det kan hända att vi kontaktar dig för att få mer detaljer i ärendet.",
+  "feedback_thanks_ok": "OK"
 }
