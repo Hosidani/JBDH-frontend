@@ -36,7 +36,6 @@ function ProfilePage() {
         const msg = (err as any)?.message || '';
         if (msg.includes('401')) return;
         setError(msg || 'Något gick fel.');
-        setAnalysisResult(null);
       } finally {
         setLoading(false);
       }

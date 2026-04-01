@@ -16,8 +16,6 @@ interface ProfileInfoCardProps {
   email: string;
 }
 
-const initials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
-
 const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   name: nameProp,
   createdAt,
