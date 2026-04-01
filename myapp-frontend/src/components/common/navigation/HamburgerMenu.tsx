@@ -55,9 +55,14 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
         </div>
         <nav className="flex flex-col gap-3">
           {!user && (
-            <button className="text-left hover:underline" onClick={() => { onClose(); onOpenLogin(); }}>
-              {tSync('menu_login')}
-            </button>
+            <>
+              <button className="text-left hover:underline" onClick={() => { onClose(); onOpenLogin(); }}>
+                {tSync('menu_login')}
+              </button>
+              <Link to="/register" className="text-left hover:underline" onClick={onClose}>
+                {tSync('menu_register')}
+              </Link>
+            </>
           )}
 
           {MENU_ITEMS.filter(isVisible).map(item => (
