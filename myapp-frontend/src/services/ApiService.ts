@@ -569,6 +569,7 @@ export class ApiService {
       throw new Error(`Search failed: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return Array.isArray(data) ? data : (data.results ?? []);
   }
 }
