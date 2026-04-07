@@ -24,6 +24,25 @@ interface JobDetailsDto {
   notes?: string;
 }
 
+export interface JobSearchResponse {
+    results: JobDetailsDto[];
+    total: number;
+    offset: number;
+    limit: number;
+    has_more: boolean;
+}
+
+interface SearchParams {
+    location?: string;
+    workArea?: string;
+    jobDescription?: string;
+    roles?: string;
+    competence?: string;
+    useProfile?: boolean;
+    offset?: number;
+    limit?: number;
+}
+
 export type { JobDetailsDto };
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL}`;
@@ -551,7 +570,7 @@ export class ApiService {
   }
 
   // Search jobs - call real backend API
-  static async searchJobs(searchParams: any): Promise<JobDetailsDto[]> {
+  static async searchJobs(searchParams: SearchParams): Promise<JobSearchResponse> {
     const params = new URLSearchParams();
     if (searchParams.location) params.append('location', searchParams.location);
     if (searchParams.workArea) params.append('workArea', searchParams.workArea);
@@ -559,6 +578,9 @@ export class ApiService {
     if (searchParams.roles) params.append('roles', searchParams.roles);
     if (searchParams.competence) params.append('competence', searchParams.competence);
     if (searchParams.useProfile) params.append('useProfile', 'true');
+
+    params.append('offset', (searchParams.offset ?? 0).toString());
+    params.append('limit', (searchParams.limit ?? 20).toString());
 
     const response = await fetch(`${API_BASE_URL}/Search/SearchV2?${params.toString()}`, {
       method: 'GET',
@@ -569,7 +591,6 @@ export class ApiService {
       throw new Error(`Search failed: ${response.status}`);
     }
 
-    const data = await response.json();
-    return Array.isArray(data) ? data : (data.results ?? []);
+    return await response.json();
   }
 }

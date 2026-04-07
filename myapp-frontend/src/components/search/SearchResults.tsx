@@ -5,15 +5,32 @@ import { ApiService, type JobDetailsDto } from '../../services/ApiService';
 import { DataList, type DataListColumn } from '../ui/DataList';
 import { Icon } from '../ui/Icon';
 
+interface SearchPagination {
+  total: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+}
+
 interface SearchResultsProps {
   results: JobDetailsDto[] | null;
   onJobUpdate?: (updatedJob: JobDetailsDto) => void;
   onJobRemove?: (jobId: number) => void;
+  loading?: boolean;
+  pagination?: SearchPagination | null;
+  onPageChange?: (nextPage: number) => void;
 }
 
 const STORAGE_KEY = 'searchResultsList';
 
-const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJobRemove }) => {
+const SearchResults: React.FC<SearchResultsProps> = ({
+  results,
+  onJobUpdate,
+  onJobRemove,
+  loading = false,
+  pagination = null,
+  onPageChange,
+}) => {
   const { tSync } = useTranslation();
   const navigate = useNavigate();
   const [loadingStates, setLoadingStates] = useState<Record<number, boolean>>({});
@@ -26,6 +43,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
   }, [timers]);
 
   if (!results) return null;
+
+  const currentPage = pagination ? Math.floor(pagination.offset / pagination.limit) + 1 : 1;
+  const totalPages = pagination ? Math.max(1, Math.ceil(pagination.total / pagination.limit)) : 1;
 
   const handleJobClick = (job: JobDetailsDto) => {
     setSelectedId(job.jobId);
@@ -170,11 +190,41 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onJobUpdate, onJ
         getItemId={job => job.jobId}
         onItemClick={handleJobClick}
         selectedId={selectedId}
-        pageSize={20}
+        pageSize={pagination ? Math.max(results.length, 1) : 20}
         storageKey={STORAGE_KEY}
+        loading={loading}
         emptyMessage={tSync('searchJobs_no_results')}
         maxHeight="60vh"
       />
+
+      {pagination && onPageChange && (
+        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-sm text-slate-600">
+          <div>
+            Visar {pagination.offset + 1}-{Math.min(pagination.offset + results.length, pagination.total)} av {pagination.total}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage <= 1 || loading}
+              className="rounded border border-slate-300 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span>
+              Page {currentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={!pagination.hasMore || loading}
+              className="rounded border border-slate-300 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

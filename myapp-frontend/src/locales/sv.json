@@ -256,7 +256,7 @@
   "searchForm_job_description_label": "Jobb / Uppdrags beskrivning",
   "searchForm_job_description_placeholder": "Semantisk",
   "searchForm_job_description_help": "Beskriv jobbet eller uppdraget",
-  "searchForm_roles_label": "Roller",
+  "searchForm_roles_label": "Jobb titel / Roller",
   "searchForm_roles_placeholder": "Separera med kommatecken",
   "searchForm_roles_help": "Separera med kommatecken",
   "searchForm_competencies_label": "Kompetenser",

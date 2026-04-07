@@ -258,7 +258,7 @@
   "searchForm_job_description_label": "Job / Assignment Description",
   "searchForm_job_description_placeholder": "Semantic",
   "searchForm_job_description_help": "Describe the job or assignment",
-  "searchForm_roles_label": "Roles",
+  "searchForm_roles_label": "Job Title / Roles",
   "searchForm_roles_placeholder": "Separate by comma",
   "searchForm_roles_help": "Separate by comma",
   "searchForm_competencies_label": "Competencies",

@@ -6,6 +6,14 @@ import { Tabs } from '../ui/Tabs';
 import { useTranslation } from '../../hooks/TranslationProvider';
 
 const STORAGE_KEY = 'searchState';
+const PAGE_SIZE = 20;
+
+interface SearchPaginationState {
+  total: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+}
 
 const SearchJobsCard: React.FC = () => {
   const { tSync } = useTranslation();
@@ -13,6 +21,8 @@ const SearchJobsCard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialFormValues, setInitialFormValues] = useState<SearchFormData | undefined>(undefined);
+  const [lastSearchForm, setLastSearchForm] = useState<SearchFormData | null>(null);
+  const [pagination, setPagination] = useState<SearchPaginationState | null>(null);
   const [activeTab, setActiveTab] = useState('search');
 
   useEffect(() => {
@@ -20,28 +30,68 @@ const SearchJobsCard: React.FC = () => {
       sessionStorage.removeItem('searchReturnFlag');
       const saved = sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const { formData, results: savedResults } = JSON.parse(saved);
+        const { formData, results: savedResults, pagination: savedPagination } = JSON.parse(saved);
+        const normalizedResults = Array.isArray(savedResults)
+          ? savedResults
+          : (savedResults?.results ?? null);
         setInitialFormValues(formData);
-        setResults(savedResults);
+        setLastSearchForm(formData);
+        setResults(normalizedResults);
+        if (savedPagination) {
+          setPagination(savedPagination);
+        }
         setActiveTab('results');
       }
     }
   }, []);
 
-  const handleSearch = async (formData: SearchFormData) => {
+  const runSearch = async (formData: SearchFormData, offset: number) => {
     setError(null);
     setLoading(true);
-    setResults(null);
+
     try {
-      const searchResults = await ApiService.searchJobs(formData);
-      setResults(searchResults);
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ formData, results: searchResults }));
+      const searchResponse = await ApiService.searchJobs({
+        ...formData,
+        offset,
+        limit: PAGE_SIZE,
+      });
+
+      const paginationState: SearchPaginationState = {
+        total: searchResponse.total,
+        offset: searchResponse.offset,
+        limit: searchResponse.limit,
+        hasMore: searchResponse.has_more,
+      };
+
+      setResults(searchResponse.results);
+      setPagination(paginationState);
+      setLastSearchForm(formData);
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ formData, results: searchResponse.results, pagination: paginationState })
+      );
       setActiveTab('results');
     } catch {
       setError('An error occurred during the search.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = async (formData: SearchFormData) => {
+    setResults(null);
+    setPagination(null);
+    await runSearch(formData, 0);
+  };
+
+  const handlePageChange = async (nextPage: number) => {
+    if (!lastSearchForm || !pagination || loading) {
+      return;
+    }
+
+    const page = Math.max(1, nextPage);
+    const nextOffset = (page - 1) * pagination.limit;
+    await runSearch(lastSearchForm, nextOffset);
   };
 
   const handleJobUpdate = (updatedJob: JobDetailsDto) => {
@@ -74,7 +124,7 @@ const SearchJobsCard: React.FC = () => {
           {tSync('searchJobs_tab_results')}
           {results !== null && (
             <span className="ml-2 bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-              {results.length}
+              {pagination?.total ?? results.length}
             </span>
           )}
         </span>
@@ -85,6 +135,9 @@ const SearchJobsCard: React.FC = () => {
           results={results}
           onJobUpdate={handleJobUpdate}
           onJobRemove={handleJobRemove}
+          loading={loading}
+          pagination={pagination}
+          onPageChange={handlePageChange}
         />
       ),
     },
