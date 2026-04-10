@@ -6,9 +6,10 @@ import { ApiService } from '../../../services/ApiService';
 
 interface LoginModalProps {
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
+const LoginModal: React.FC<LoginModalProps> = ({ onClose, onSuccess }) => {
   const { login } = useAuth();
   const { tSync } = useTranslation();
   const [email, setEmail] = useState('');
@@ -41,6 +42,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     if (result.user) {
       login(result.user);
       onClose();
+      onSuccess?.();
     } else {
       setError(tSync('loginModal_error_invalid_credentials'));
     }

@@ -30,11 +30,16 @@ function App() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [loginRedirectTo, setLoginRedirectTo] = useState<string | null>(null);
   const { currentMessage, acknowledge } = useServiceMessages(user?.email);
   const [sessionDismissed, setSessionDismissed] = useState<string[]>([]);
 
   useEffect(() => {
-    const handler = () => setLoginModalOpen(true);
+    const handler = (e: Event) => {
+      const redirectTo = (e as CustomEvent).detail?.redirectTo ?? null;
+      setLoginRedirectTo(redirectTo);
+      setLoginModalOpen(true);
+    };
     window.addEventListener('requireLogin', handler);
     return () => window.removeEventListener('requireLogin', handler);
   }, []);
@@ -83,7 +88,15 @@ function App() {
       />
       {/* Login Modal */}
       {loginModalOpen && (
-        <LoginModal onClose={() => setLoginModalOpen(false)} />
+        <LoginModal
+          onClose={() => setLoginModalOpen(false)}
+          onSuccess={() => {
+            if (loginRedirectTo) {
+              navigate(loginRedirectTo);
+              setLoginRedirectTo(null);
+            }
+          }}
+        />
       )}
       {/* Service message modal — requires acknowledgement before using the app */}
       {user && currentMessage && !sessionDismissed.includes(currentMessage.id) && (
