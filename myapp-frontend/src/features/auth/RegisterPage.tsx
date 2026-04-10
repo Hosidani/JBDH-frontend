@@ -49,7 +49,7 @@ const RegisterPage: React.FC = () => {
         body: formData,
       });
       if (response.ok) {
-        navigate('/login', { state: { success: tSync('registerPage_success') } });
+        navigate('/account');
       } else {
         let errorMsg = tSync('registerPage_failed');
         try {

@@ -8,7 +8,7 @@ import { lazy, Suspense } from 'react';
 const AboutPage = lazy(() => import('./features/about/AboutPage'));
 import { CompareCvToJobAdPage } from './features/compare-cv-to-job-ad';
 import { SavedJobsPage } from './features/saved-jobs';
-import { LoginPage, RegisterPage } from './features/auth';
+import { RegisterPage } from './features/auth';
 import { SearchJobsPage, MatchAdToCvsPage } from './features/search';
 import { ProfilePage } from './features/profile';
 import { AccountPage } from './features/account';
@@ -126,7 +126,6 @@ function App() {
         <Routes>
           {/* Public */}
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/search" element={<RequireAuth><SearchJobsPage /></RequireAuth>} />
           <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
