@@ -31,6 +31,8 @@
   "accountType_gold": "Gold",
   "terminate_confirm_title": "Terminate Account",
   "terminate_confirm_message": "Are you sure you want to terminate your account? This action cannot be undone and you will be logged out immediately.",
+  "terminate_confirm_message_2": "All information linked to your account will be permanently deleted, including your profile, CV, saved jobs, and messages. If you have a subscription, it will be cancelled and you will not be charged again.",
+  "terminate_confirm_message_3": "Please make sure you have saved any important information before proceeding.",
   "terminate_confirm_ok": "Yes, terminate",
   "menu_match_cv_ads": "Search jobs",
   "menu_post_ad": "Post a job ad",
