@@ -6,8 +6,8 @@ const Footer: React.FC = () => {
   const { tSync } = useTranslation();
 
   return (
-    <footer className="relative z-10 w-full bg-white border-t border-slate-200 py-6 px-8 mt-auto">
-      <div className="max-w-5xl mx-auto flex flex-col sm:flex-row gap-8 sm:gap-16 text-sm text-slate-600">
+    <footer className="relative z-10 w-full bg-white border-t border-slate-200 py-6 mt-auto">
+      <div className="w-[80%] max-w-full mx-auto px-4 flex flex-col sm:flex-row gap-8 sm:gap-16 text-sm text-slate-600">
 
         {/* JBDH */}
         <div className="flex flex-col gap-2">
@@ -33,7 +33,7 @@ const Footer: React.FC = () => {
         </div>
 
       </div>
-      <div className="max-w-5xl mx-auto mt-6 pt-4 border-t border-slate-100 text-xs text-slate-400">
+      <div className="w-[80%] max-w-full mx-auto px-4 mt-6 pt-4 border-t border-slate-100 text-xs text-slate-400">
         © {new Date().getFullYear()} Log House AB
       </div>
     </footer>
