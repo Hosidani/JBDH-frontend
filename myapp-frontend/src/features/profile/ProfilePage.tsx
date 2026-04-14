@@ -108,7 +108,6 @@ function ProfilePage() {
           <SectionCard>
             <ButtonsCard
               tSync={tSync}
-              onMatchNowClick={() => navigate('/matching')}
               onManualSearchClick={() => navigate('/search')}
             />
           </SectionCard>
