@@ -201,7 +201,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       {pagination && onPageChange && (
         <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-sm text-slate-600">
           <div>
-            Visar {pagination.offset + 1}-{Math.min(pagination.offset + results.length, pagination.total)} av {pagination.total}
+            {tSync('searchResults_showing')
+              .replace('{{from}}', String(pagination.offset + 1))
+              .replace('{{to}}', String(Math.min(pagination.offset + results.length, pagination.total)))
+              .replace('{{total}}', String(pagination.total))}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -210,7 +213,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
               disabled={currentPage <= 1 || loading}
               className="rounded border border-slate-300 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Previous
+              {tSync('searchResults_previous')}
             </button>
             <span className="flex items-center gap-1">
               <input
@@ -250,7 +253,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
               disabled={!pagination.hasMore || loading}
               className="rounded border border-slate-300 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Next
+              {tSync('searchResults_next')}
             </button>
           </div>
         </div>
