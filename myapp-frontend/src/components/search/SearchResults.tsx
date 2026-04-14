@@ -37,6 +37,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   const [countdownStates, setCountdownStates] = useState<Record<number, number>>({});
   const [timers, setTimers] = useState<Record<number, NodeJS.Timeout>>({});
   const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
+  const [pageInput, setPageInput] = useState('');
 
   useEffect(() => {
     return () => { Object.values(timers).forEach(t => clearInterval(t)); };
@@ -211,8 +212,37 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             >
               Previous
             </button>
-            <span>
-              Page {currentPage} / {totalPages}
+            <span className="flex items-center gap-1">
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={pageInput}
+                placeholder={String(currentPage)}
+                onChange={e => setPageInput(e.target.value)}
+                onBlur={() => {
+                  const n = parseInt(pageInput, 10);
+                  if (!isNaN(n) && n >= 1 && n <= totalPages && n !== currentPage) {
+                    onPageChange(n);
+                  }
+                  setPageInput('');
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    const n = parseInt(pageInput, 10);
+                    if (!isNaN(n) && n >= 1 && n <= totalPages && n !== currentPage) {
+                      onPageChange(n);
+                    }
+                    setPageInput('');
+                    (e.target as HTMLInputElement).blur();
+                  } else if (e.key === 'Escape') {
+                    setPageInput('');
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
+                className="w-14 rounded border border-slate-300 px-2 py-1 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <span>/ {totalPages}</span>
             </span>
             <button
               type="button"

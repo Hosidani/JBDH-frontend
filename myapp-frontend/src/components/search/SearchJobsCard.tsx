@@ -108,7 +108,7 @@ const SearchJobsCard: React.FC = () => {
       label: tSync('searchJobs_tab_search'),
       content: (
         <>
-          <SearchForm onSubmit={handleSearch} loading={loading} initialValues={initialFormValues} />
+          <SearchForm onSubmit={handleSearch} loading={loading} initialValues={lastSearchForm ?? initialFormValues} />
           {error && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
               {error}
