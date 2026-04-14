@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon } from '../ui/Icon';
 import { Button } from '../ui/Button';
@@ -12,9 +12,16 @@ const FeedbackButton: React.FC = () => {
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showThanks, setShowThanks] = useState(false);
+  const [visible, setVisible] = useState(false);
   const { tSync } = useTranslation();
   const { user } = useAuth();
   const location = useLocation();
+
+  useEffect(() => {
+    setVisible(false);
+    const timer = setTimeout(() => setVisible(true), 1000);
+    return () => clearTimeout(timer);
+  }, [location.pathname, user]);
 
   const handleSubmit = async () => {
     if (!text.trim()) return;
@@ -52,16 +59,27 @@ const FeedbackButton: React.FC = () => {
 
   return (
     <>
-      {/* Bookmark trigger */}
-      <button
-        onClick={() => setOpen(true)}
-        aria-label={tSync('feedback_button_label')}
-        title={tSync('feedback_button_label')}
-        className="fixed right-0 bottom-32 z-40 bg-blue-600 hover:bg-blue-700 text-white rounded-l-lg flex items-center justify-center shadow-lg transition-colors duration-150"
-        style={{ width: 52, height: 52 }}
+      {/* Feedback trigger */}
+      <div
+        className="fixed z-40"
+        style={{
+          right: 0,
+          top: '62%',
+          transform: visible ? 'translateX(0)' : 'translateX(80px)',
+          transition: visible ? 'transform 0.5s ease-out' : 'none',
+        }}
       >
-        <Icon name="feedback" size={32} />
-      </button>
+        <button
+          onClick={() => setOpen(true)}
+          aria-label={tSync('feedback_button_label')}
+          title={tSync('feedback_button_label')}
+          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1 px-3 shadow-lg transition-colors duration-150 -rotate-90 origin-bottom-right"
+          style={{ height: 52, borderRadius: '8px 8px 0 0' }}
+        >
+          <Icon name="feedback" size={32} />
+          <span className="text-m font-medium">Feedback</span>
+        </button>
+      </div>
 
       {/* Thanks modal */}
       <Modal open={showThanks} onClose={() => setShowThanks(false)} title={tSync('feedback_thanks_title')}>
