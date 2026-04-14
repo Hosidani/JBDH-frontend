@@ -44,16 +44,16 @@ const HomePage: React.FC = () => {
   return (
     <PageWrapper>
       {/* Hero Section */}
-      <section className="w-full flex flex-col items-center justify-center py-10">
+      <section className="w-full flex flex-col py-10">
         <img
           src="/landing_page_big_image.png"
           alt={tSync('home_hero_alt')}
-          className="w-full max-w-2xl rounded-lg object-cover mb-8 shadow"
+          className="w-full rounded-lg object-cover mb-8 shadow"
           style={{ height: 260 }}
         />
 
       </section>
-      <section className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-6 px-4 pb-12 mx-auto">
+      <section className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6 pb-12">
         {features(tSync)
           .filter(f => f.to !== '/profile' || user)
           .map((f, i) => (
