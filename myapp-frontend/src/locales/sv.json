@@ -153,6 +153,8 @@
   "home_feature_add_ad_desc": "Lägg upp en annons så den blir sökbar",
   "home_feature_settings_title": "Inställningar",
   "home_feature_settings_desc": "Hantera dina kontoinställningar",
+  "home_feature_register_title": "Registrera ett gratis konto",
+  "home_feature_register_desc": "Skapa ett personligt konto. Vi är i Beta och allt är gratis och du förbinder dig inte till något",
   "settingsPage_title": "Inställningar",
   "settingsPage_profile_section_title": "Profilinformation",
   "settingsPage_name_label": "Namn",

@@ -6,6 +6,13 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 
 const features = (t: (key: string) => string) => [
   {
+    title: t('home_feature_register_title'),
+    desc: t('home_feature_register_desc'),
+    to: '/register',
+    img: '/edit_profile.png',
+    guestOnly: true,
+  },
+  {
     title: t('home_feature_match_cv_jobad_title'),
     desc: t('home_feature_match_cv_jobad_desc'),
     to: '/compare-cv-jobad',
@@ -55,7 +62,7 @@ const HomePage: React.FC = () => {
       </section>
       <section className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-6 px-4 pb-12 mx-auto">
         {features(tSync)
-          .filter(f => f.to !== '/profile' || user)
+          .filter(f => (!f.guestOnly || !user) && (f.to !== '/profile' || user))
           .map((f, i) => (
             <FeatureCard key={i} to={f.to} img={f.img} title={f.title} desc={f.desc} />
           ))}
