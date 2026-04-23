@@ -28,6 +28,10 @@ export const handlers = [
 
   http.delete(`${BASE}/external-cvs/:id/`, () => new HttpResponse(null, { status: 204 })),
 
+  http.post(`${BASE}/external-cvs/upload-pdf/`, () =>
+    HttpResponse.json({ id: 99, text: 'Uppladdad CV-text via PDF', created_at: '2026-04-23T12:00:00Z' }, { status: 201 })
+  ),
+
   // External Job Ads
   http.get(`${BASE}/external-job-ads/`, () => HttpResponse.json(externalJobAds)),
 

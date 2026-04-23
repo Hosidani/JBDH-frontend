@@ -613,6 +613,15 @@ export class ApiService {
     await this.fetchWithAuth(`/external-cvs/${id}/`, { method: 'DELETE' });
   }
 
+  /** Upload a PDF/DOCX file → backend extracts text → saves as ExternalCV */
+  static async uploadCVPDF(file: File): Promise<{ id: number; text: string; created_at: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await this.fetchWithAuth('/external-cvs/upload-pdf/', { method: 'POST', body: formData });
+    if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+    return await response.json();
+  }
+
   // === EXTERNAL JOB ADS ===
 
   static async getExternalJobAds(): Promise<{ id: number; text: string; created_at: string }[]> {

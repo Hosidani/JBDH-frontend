@@ -13,11 +13,11 @@ vi.mock('../../hooks/useSSE', () => ({
 
 function setup() {
   const user = userEvent.setup();
-  const view = renderWithProviders(<CompareCvToJobAdPage />);
-  return { user, ...view };
+  const { container, ...rest } = renderWithProviders(<CompareCvToJobAdPage />);
+  return { user, container, ...rest };
 }
 
-describe('SavedTextPanel - External CVs', () => {
+describe('External CVs – dropdown', () => {
   it('loads and shows saved CVs in dropdown', async () => {
     setup();
     const select = await screen.findByRole('combobox', { name: /sparad CV/i });
@@ -26,30 +26,56 @@ describe('SavedTextPanel - External CVs', () => {
     }
   });
 
-  it('fills CV textarea on select', async () => {
+  it('selecting a saved CV shows Ta bort button', async () => {
     const { user } = setup();
     const select = await screen.findByRole('combobox', { name: /sparad CV/i });
     await user.selectOptions(select, String(externalCVs[0].id));
-    const textarea = screen.getByPlaceholderText(/CV-inneh/i) as HTMLTextAreaElement;
-    await waitFor(() => expect(textarea.value).toBe(externalCVs[0].text));
-  });
-
-  it('saves new CV and adds to dropdown', async () => {
-    const { user } = setup();
-    await screen.findByRole('combobox', { name: /sparad CV/i });
-    const textarea = screen.getByPlaceholderText(/CV-inneh/i) as HTMLTextAreaElement;
-    await user.clear(textarea);
-    await user.type(textarea, 'Nytt CV');
-    await user.click(screen.getByRole('button', { name: /Spara CV/i }));
-    await waitFor(() => expect(screen.getByRole('combobox', { name: /sparad CV/i })).toHaveTextContent('Nytt CV'));
+    expect(screen.getByRole('button', { name: /Ta bort/i })).toBeInTheDocument();
   });
 
   it('removes CV from dropdown after delete', async () => {
     const { user } = setup();
     const select = await screen.findByRole('combobox', { name: /sparad CV/i });
     await user.selectOptions(select, String(externalCVs[0].id));
-    await user.click(await screen.findByRole('button', { name: /Ta bort/i }));
-    await waitFor(() => expect(screen.getByRole('combobox', { name: /sparad CV/i })).not.toHaveTextContent(externalCVs[0].text.slice(0, 60)));
+    await user.click(screen.getByRole('button', { name: /Ta bort/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /sparad CV/i })).not.toHaveTextContent(
+        externalCVs[0].text.slice(0, 60)
+      )
+    );
+  });
+});
+
+describe('External CVs – PDF-uppladdning', () => {
+  it('visar Spara CV-knapp när en fil väljs', async () => {
+    const { user, container } = setup();
+    await screen.findByRole('combobox', { name: /sparad CV/i });
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const pdf = new File(['%PDF-content'], 'mitt-cv.pdf', { type: 'application/pdf' });
+    await user.upload(fileInput, pdf);
+    expect(await screen.findByRole('button', { name: /Spara CV/i })).toBeInTheDocument();
+  });
+
+  it('sparar PDF och lägger till i dropdown', async () => {
+    const { user, container } = setup();
+    await screen.findByRole('combobox', { name: /sparad CV/i });
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const pdf = new File(['%PDF-content'], 'mitt-cv.pdf', { type: 'application/pdf' });
+    await user.upload(fileInput, pdf);
+    await user.click(await screen.findByRole('button', { name: /Spara CV/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /sparad CV/i })).toHaveTextContent('Uppladdad CV-text via PDF')
+    );
+  });
+
+  it('Spara CV-knapp döljs efter spara', async () => {
+    const { user, container } = setup();
+    await screen.findByRole('combobox', { name: /sparad CV/i });
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const pdf = new File(['%PDF-content'], 'mitt-cv.pdf', { type: 'application/pdf' });
+    await user.upload(fileInput, pdf);
+    await user.click(await screen.findByRole('button', { name: /Spara CV/i }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: /Spara CV/i })).not.toBeInTheDocument());
   });
 });
 

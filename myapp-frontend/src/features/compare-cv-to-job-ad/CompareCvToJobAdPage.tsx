@@ -105,10 +105,11 @@ const CompareCvToJobAdPage: React.FC = () => {
 
   // Saved CVs & Job Ads state
   const [savedCVs, setSavedCVs] = useState<SavedItem[]>([]);
+  const [selectedCVId, setSelectedCVId] = useState<number | null>(null);
   const [savedJobAds, setSavedJobAds] = useState<SavedItem[]>([]);
   const [savingCV, setSavingCV] = useState(false);
   const [savingJobAd, setSavingJobAd] = useState(false);
-  const [cvText, setCvText] = useState('');
+  const [cvSaveError, setCvSaveError] = useState<string | null>(null);
 
   // Load saved items on mount
   useEffect(() => {
@@ -117,21 +118,30 @@ const CompareCvToJobAdPage: React.FC = () => {
     ApiService.getExternalJobAds().then(setSavedJobAds).catch(() => {});
   }, [user]);
 
-  const handleSaveCV = useCallback(async () => {
-    if (!cvText.trim()) return;
+  const handleSaveCVFile = useCallback(async () => {
+    if (!cvFile) return;
+    setCvSaveError(null);
     setSavingCV(true);
     try {
-      const created = await ApiService.createExternalCV(cvText.trim());
+      const created = await ApiService.uploadCVPDF(cvFile);
       setSavedCVs(prev => [created, ...prev]);
+      setSelectedCVId(created.id);
+      setCvFile(null);
+    } catch (err: any) {
+      const msg = err?.message?.includes('400')
+        ? 'Kunde inte extrahera text ur filen. Kontrollera att det är en giltig PDF/DOCX.'
+        : 'Uppladdning misslyckades. Försök igen.';
+      setCvSaveError(msg);
     } finally {
       setSavingCV(false);
     }
-  }, [cvText]);
+  }, [cvFile]);
 
   const handleDeleteCV = useCallback(async (id: number) => {
     await ApiService.deleteExternalCV(id);
     setSavedCVs(prev => prev.filter(c => c.id !== id));
-  }, []);
+    if (selectedCVId === id) setSelectedCVId(null);
+  }, [selectedCVId]);
 
   const handleSaveJobAd = useCallback(async () => {
     if (!jobAdText.trim()) return;
@@ -149,12 +159,12 @@ const CompareCvToJobAdPage: React.FC = () => {
     setSavedJobAds(prev => prev.filter(j => j.id !== id));
   }, []);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSseError(null);
     setSseResult(null);
     setSseProgress(null);
-    if (!cvFile) {
+    if (!selectedCVId && !cvFile) {
       setSseError(tSync('compareCvToJobAdPage_error_cv_required'));
       return;
     }
@@ -162,11 +172,32 @@ const CompareCvToJobAdPage: React.FC = () => {
       setSseError(tSync('compareCvToJobAdPage_error_jobad_required'));
       return;
     }
+
+    // Auto-spara CV-filen om den inte redan är sparad i databasen
+    let cvIdToUse = selectedCVId;
+    if (!selectedCVId && cvFile) {
+      setSavingCV(true);
+      try {
+        const created = await ApiService.uploadCVPDF(cvFile);
+        setSavedCVs(prev => [created, ...prev]);
+        setSelectedCVId(created.id);
+        setCvFile(null);
+        cvIdToUse = created.id;
+      } catch {
+        setSseError('Kunde inte ladda upp CV-filen. Försök igen.');
+        setSavingCV(false);
+        return;
+      }
+      setSavingCV(false);
+    }
+
     const formData = new FormData();
-    formData.append('CvPath', cvFile);
+    if (cvIdToUse) {
+      formData.append('external_cv_id', String(cvIdToUse));
+    }
     formData.append('JobAdText', jobAdText);
     setSseFormData(formData);
-  }, [cvFile, jobAdText, tSync]);
+  }, [selectedCVId, cvFile, jobAdText, tSync]);
 
   useSSE(
     '/home/CompareCvJobSSE',
@@ -177,9 +208,13 @@ const CompareCvToJobAdPage: React.FC = () => {
     },
     (result) => {
       setSseResult(result);
+      setSseProgress(null);
       if (result.vectorResult) setVectorResult(result.vectorResult);
     },
-    (err) => setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'))
+    (err) => {
+      setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'));
+      setSseProgress(null);
+    }
   );
 
   return (
@@ -199,11 +234,44 @@ const CompareCvToJobAdPage: React.FC = () => {
             </ol>
           </section>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* CV – file upload */}
+            {/* CV – sparad dropdown + ny uppladdning */}
             <div>
+              <label className="block mb-1 font-semibold">{tSync('compareCvToJobAdPage_cv_label') || 'CV-fil'}</label>
+
+              {/* Dropdown med sparade CVs */}
+              <div className="flex flex-wrap gap-2 items-center mb-3">
+                <select
+                  aria-label="Välj sparad CV"
+                  className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white min-w-[200px] flex-1"
+                  value={selectedCVId ?? ''}
+                  onChange={e => {
+                    const id = Number(e.target.value) || null;
+                    setSelectedCVId(id);
+                    if (id) setCvFile(null);
+                  }}
+                >
+                  <option value="" disabled={selectedCVId !== null} hidden={selectedCVId !== null}>— Välj sparad CV —</option>
+                  {savedCVs.map(cv => (
+                    <option key={cv.id} value={cv.id}>
+                      {cv.text.slice(0, 60)}{cv.text.length > 60 ? '…' : ''}
+                    </option>
+                  ))}
+                </select>
+                {selectedCVId !== null && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCV(selectedCVId)}
+                    className="px-3 py-1.5 text-sm bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition"
+                  >
+                    Ta bort
+                  </button>
+                )}
+              </div>
+
+              {/* FileDropZone för ny PDF */}
               <FileDropZone
                 accept=".pdf,.doc,.docx"
-                onFileSelected={file => setCvFile(file)}
+                onFileSelected={file => { setCvFile(file); setSelectedCVId(null); setCvSaveError(null); }}
                 className="border border-slate-300 rounded-lg p-6 flex flex-col bg-white w-full max-w-[420px] justify-between cursor-pointer transition hover:shadow-md"
                 style={{ minHeight: 200 }}
               >
@@ -216,14 +284,31 @@ const CompareCvToJobAdPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <div className="font-bold text-xl text-center leading-tight">{tSync('compareCvToJobAdPage_cv_label')}</div>
-                  <div className="text-slate-400 text-sm mt-1 text-center">{tSync('compareCvToJobAdPage_dropzone_label')}</div>
+                  <div className="font-bold text-xl text-center leading-tight">{tSync('compareCvToJobAdPage_cv_label') || 'CV-fil'}</div>
+                  <div className="text-slate-400 text-sm mt-1 text-center">{tSync('compareCvToJobAdPage_dropzone_label') || 'Dra och släpp CV-filen här eller klicka för att välja'}</div>
                 </div>
                 <div className="flex-1" />
                 {cvFile && (
                   <div className="text-blue-600 text-sm mt-4 font-semibold text-center pointer-events-none">{cvFile.name}</div>
                 )}
               </FileDropZone>
+
+              {/* Spara CV-knapp — visas bara när ny fil är vald */}
+              {cvFile && !selectedCVId && (
+                <div className="mt-2 flex flex-col gap-1">
+                  <button
+                    type="button"
+                    disabled={savingCV}
+                    onClick={handleSaveCVFile}
+                    className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition disabled:opacity-50 self-start"
+                  >
+                    {savingCV ? 'Sparar…' : 'Spara CV'}
+                  </button>
+                  {cvSaveError && (
+                    <p className="text-red-600 text-xs">{cvSaveError}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Job Ad – text area */}
@@ -262,27 +347,6 @@ const CompareCvToJobAdPage: React.FC = () => {
               </Button>
             </div>
           </form>
-
-          {/* Saved CV text (for storage & reuse) */}
-          <div className="mt-6 border-t border-slate-200 pt-6">
-            <h3 className="font-semibold mb-1">Spara CV som text</h3>
-            <p className="text-xs text-slate-500 mb-3">Klistra in ditt CV som text för att spara och återanvända det.</p>
-            <SavedTextPanel
-              label="CV"
-              items={savedCVs}
-              onSave={handleSaveCV}
-              onDelete={handleDeleteCV}
-              onSelect={setCvText}
-              saving={savingCV}
-            />
-            <textarea
-              value={cvText}
-              onChange={e => setCvText(e.target.value)}
-              rows={6}
-              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
-              placeholder="Klistra in ditt CV-innehåll här…"
-            />
-          </div>
 
           {/* SSE Progressbar */}
           {!sseResult && sseProgress && (
