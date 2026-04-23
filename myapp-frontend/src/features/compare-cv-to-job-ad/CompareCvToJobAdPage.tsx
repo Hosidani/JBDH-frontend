@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { ApiService } from '../../services/ApiService';
 
-type SavedItem = { id: number; text: string; created_at: string };
+type SavedItem = { id: number; name: string; text: string; created_at: string };
 
 function SavedTextPanel({
   label,
@@ -18,6 +18,10 @@ function SavedTextPanel({
   onDelete,
   onSelect,
   saving,
+  nameValue,
+  onNameChange,
+  canSave,
+  onUpdateName,
 }: {
   label: string;
   items: SavedItem[];
@@ -25,6 +29,10 @@ function SavedTextPanel({
   onDelete: (id: number) => void;
   onSelect: (text: string) => void;
   saving: boolean;
+  nameValue: string;
+  onNameChange: (name: string) => void;
+  canSave: boolean;
+  onUpdateName?: () => void;
 }) {
   const [selectedId, setSelectedId] = useState<number | ''>('');
 
@@ -47,37 +55,69 @@ function SavedTextPanel({
   }, [items, selectedId]);
 
   return (
-    <div className="flex flex-wrap gap-2 items-center mb-2">
-      <select
-        aria-label={`Välj sparad ${label}`}
-        className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white min-w-[200px] flex-1"
-        value={selectedId}
-        onChange={handleSelect}
-      >
-        <option value="">— Välj sparad {label} —</option>
-        {items.map(item => (
-          <option key={item.id} value={item.id}>
-            {item.text.slice(0, 60)}{item.text.length > 60 ? '…' : ''}
-          </option>
-        ))}
-      </select>
-      {selectedId !== '' && (
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="px-3 py-1.5 text-sm bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition"
+    <div className="mb-2">
+      <div className="flex flex-wrap gap-2 items-center mb-2">
+        <select
+          aria-label={`Välj sparad ${label}`}
+          className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white min-w-[200px] flex-1"
+          value={selectedId}
+          onChange={handleSelect}
         >
-          Ta bort
-        </button>
+          <option value="">— Välj sparad {label} —</option>
+          {items.map(item => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+        {selectedId !== '' && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="px-3 py-1.5 text-sm bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition"
+          >
+            Ta bort
+          </button>
+        )}
+      </div>
+      {canSave && (
+        <div className="flex flex-wrap gap-2 items-center">
+          <input
+            type="text"
+            value={nameValue}
+            onChange={e => onNameChange(e.target.value)}
+            placeholder={`Namn (frivilligt) – annars används de första orden`}
+            className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white flex-1 min-w-[200px]"
+          />
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+            className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition disabled:opacity-50"
+          >
+            {saving ? 'Sparar…' : `Spara ${label}`}
+          </button>
+        </div>
       )}
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={saving}
-        className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition disabled:opacity-50"
-      >
-        {saving ? 'Sparar…' : `Spara ${label}`}
-      </button>
+      {!canSave && onUpdateName && (
+        <div className="flex flex-wrap gap-2 items-center">
+          <input
+            type="text"
+            value={nameValue}
+            onChange={e => onNameChange(e.target.value)}
+            placeholder="Lägg till namn på den sparade annonsen…"
+            className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white flex-1 min-w-[200px]"
+          />
+          <button
+            type="button"
+            onClick={onUpdateName}
+            disabled={saving || !nameValue.trim()}
+            className="px-3 py-1.5 text-sm bg-green-50 text-green-700 border border-green-200 rounded hover:bg-green-100 transition disabled:opacity-50"
+          >
+            {saving ? 'Uppdaterar…' : 'Uppdatera namn'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -110,6 +150,10 @@ const CompareCvToJobAdPage: React.FC = () => {
   const [savingCV, setSavingCV] = useState(false);
   const [savingJobAd, setSavingJobAd] = useState(false);
   const [cvSaveError, setCvSaveError] = useState<string | null>(null);
+  const [cvName, setCvName] = useState('');
+  const [jobAdName, setJobAdName] = useState('');
+  const [jobAdDirty, setJobAdDirty] = useState(false);
+  const [unsavedJobAdNameId, setUnsavedJobAdNameId] = useState<number | null>(null);
 
   // Load saved items on mount
   useEffect(() => {
@@ -123,10 +167,11 @@ const CompareCvToJobAdPage: React.FC = () => {
     setCvSaveError(null);
     setSavingCV(true);
     try {
-      const created = await ApiService.uploadCVPDF(cvFile);
+      const created = await ApiService.uploadCVPDF(cvFile, cvName.trim() || undefined);
       setSavedCVs(prev => [created, ...prev]);
       setSelectedCVId(created.id);
       setCvFile(null);
+      setCvName('');
     } catch (err: any) {
       const msg = err?.message?.includes('400')
         ? 'Kunde inte extrahera text ur filen. Kontrollera att det är en giltig PDF/DOCX.'
@@ -135,7 +180,7 @@ const CompareCvToJobAdPage: React.FC = () => {
     } finally {
       setSavingCV(false);
     }
-  }, [cvFile]);
+  }, [cvFile, cvName]);
 
   const handleDeleteCV = useCallback(async (id: number) => {
     await ApiService.deleteExternalCV(id);
@@ -147,12 +192,33 @@ const CompareCvToJobAdPage: React.FC = () => {
     if (!jobAdText.trim()) return;
     setSavingJobAd(true);
     try {
-      const created = await ApiService.createExternalJobAd(jobAdText.trim());
+      const created = await ApiService.createExternalJobAd(jobAdText.trim(), jobAdName.trim() || undefined);
       setSavedJobAds(prev => [created, ...prev]);
+      setJobAdDirty(false);
+      if (!jobAdName.trim()) {
+        // saved without name — keep field visible so user can add one
+        setUnsavedJobAdNameId(created.id);
+      } else {
+        setJobAdName('');
+        setUnsavedJobAdNameId(null);
+      }
     } finally {
       setSavingJobAd(false);
     }
-  }, [jobAdText]);
+  }, [jobAdText, jobAdName]);
+
+  const handleUpdateJobAdName = useCallback(async () => {
+    if (!unsavedJobAdNameId || !jobAdName.trim()) return;
+    setSavingJobAd(true);
+    try {
+      const updated = await ApiService.updateExternalJobAdName(unsavedJobAdNameId, jobAdName.trim());
+      setSavedJobAds(prev => prev.map(j => j.id === updated.id ? updated : j));
+      setJobAdName('');
+      setUnsavedJobAdNameId(null);
+    } finally {
+      setSavingJobAd(false);
+    }
+  }, [unsavedJobAdNameId, jobAdName]);
 
   const handleDeleteJobAd = useCallback(async (id: number) => {
     await ApiService.deleteExternalJobAd(id);
@@ -178,10 +244,11 @@ const CompareCvToJobAdPage: React.FC = () => {
     if (!selectedCVId && cvFile) {
       setSavingCV(true);
       try {
-        const created = await ApiService.uploadCVPDF(cvFile);
+        const created = await ApiService.uploadCVPDF(cvFile, cvName.trim() || undefined);
         setSavedCVs(prev => [created, ...prev]);
         setSelectedCVId(created.id);
         setCvFile(null);
+        setCvName('');
         cvIdToUse = created.id;
       } catch {
         setSseError('Kunde inte ladda upp CV-filen. Försök igen.');
@@ -253,7 +320,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                   <option value="" disabled={selectedCVId !== null} hidden={selectedCVId !== null}>— Välj sparad CV —</option>
                   {savedCVs.map(cv => (
                     <option key={cv.id} value={cv.id}>
-                      {cv.text.slice(0, 60)}{cv.text.length > 60 ? '…' : ''}
+                      {cv.name}
                     </option>
                   ))}
                 </select>
@@ -295,7 +362,14 @@ const CompareCvToJobAdPage: React.FC = () => {
 
               {/* Spara CV-knapp — visas bara när ny fil är vald */}
               {cvFile && !selectedCVId && (
-                <div className="mt-2 flex flex-col gap-1">
+                <div className="mt-2 flex flex-col gap-2">
+                  <input
+                    type="text"
+                    value={cvName}
+                    onChange={e => setCvName(e.target.value)}
+                    placeholder="Namn på CV (frivilligt) – annars används filnamnet"
+                    className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white w-full max-w-[420px]"
+                  />
                   <button
                     type="button"
                     disabled={savingCV}
@@ -321,12 +395,16 @@ const CompareCvToJobAdPage: React.FC = () => {
                 items={savedJobAds}
                 onSave={handleSaveJobAd}
                 onDelete={handleDeleteJobAd}
-                onSelect={setJobAdText}
+                onSelect={text => { setJobAdText(text); setJobAdDirty(false); setUnsavedJobAdNameId(null); setJobAdName(''); }}
                 saving={savingJobAd}
+                nameValue={jobAdName}
+                onNameChange={setJobAdName}
+                canSave={jobAdDirty && jobAdText.trim().length > 0}
+                onUpdateName={unsavedJobAdNameId !== null ? handleUpdateJobAdName : undefined}
               />
               <textarea
                 value={jobAdText}
-                onChange={e => setJobAdText(e.target.value)}
+                onChange={e => { setJobAdText(e.target.value); setJobAdDirty(true); }}
                 rows={6}
                 className="w-full border border-slate-200 rounded-md px-3 py-2"
                 placeholder={tSync('compareCvToJobAdPage_jobad_placeholder')}

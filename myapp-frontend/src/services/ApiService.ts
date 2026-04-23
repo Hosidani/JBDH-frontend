@@ -596,15 +596,15 @@ export class ApiService {
 
   // === EXTERNAL CVs ===
 
-  static async getExternalCVs(): Promise<{ id: number; text: string; created_at: string }[]> {
+  static async getExternalCVs(): Promise<{ id: number; name: string; text: string; created_at: string }[]> {
     const response = await this.fetchWithAuth('/external-cvs/', { method: 'GET' });
     return await response.json();
   }
 
-  static async createExternalCV(text: string): Promise<{ id: number; text: string; created_at: string }> {
+  static async createExternalCV(text: string, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
     const response = await this.fetchWithAuth('/external-cvs/', {
       method: 'POST',
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, name: name || undefined }),
     });
     return await response.json();
   }
@@ -614,9 +614,10 @@ export class ApiService {
   }
 
   /** Upload a PDF/DOCX file → backend extracts text → saves as ExternalCV */
-  static async uploadCVPDF(file: File): Promise<{ id: number; text: string; created_at: string }> {
+  static async uploadCVPDF(file: File, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
     const formData = new FormData();
     formData.append('file', file);
+    if (name) formData.append('name', name);
     const response = await this.fetchWithAuth('/external-cvs/upload-pdf/', { method: 'POST', body: formData });
     if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
     return await response.json();
@@ -624,20 +625,28 @@ export class ApiService {
 
   // === EXTERNAL JOB ADS ===
 
-  static async getExternalJobAds(): Promise<{ id: number; text: string; created_at: string }[]> {
+  static async getExternalJobAds(): Promise<{ id: number; name: string; text: string; created_at: string }[]> {
     const response = await this.fetchWithAuth('/external-job-ads/', { method: 'GET' });
     return await response.json();
   }
 
-  static async createExternalJobAd(text: string): Promise<{ id: number; text: string; created_at: string }> {
+  static async createExternalJobAd(text: string, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
     const response = await this.fetchWithAuth('/external-job-ads/', {
       method: 'POST',
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, name: name || undefined }),
     });
     return await response.json();
   }
 
   static async deleteExternalJobAd(id: number): Promise<void> {
     await this.fetchWithAuth(`/external-job-ads/${id}/`, { method: 'DELETE' });
+  }
+
+  static async updateExternalJobAdName(id: number, name: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
+    const response = await this.fetchWithAuth(`/external-job-ads/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+    return await response.json();
   }
 }
