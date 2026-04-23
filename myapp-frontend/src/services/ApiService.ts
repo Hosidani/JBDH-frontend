@@ -593,4 +593,42 @@ export class ApiService {
 
     return await response.json();
   }
+
+  // === EXTERNAL CVs ===
+
+  static async getExternalCVs(): Promise<{ id: number; text: string; created_at: string }[]> {
+    const response = await this.fetchWithAuth('/external-cvs/', { method: 'GET' });
+    return await response.json();
+  }
+
+  static async createExternalCV(text: string): Promise<{ id: number; text: string; created_at: string }> {
+    const response = await this.fetchWithAuth('/external-cvs/', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+    return await response.json();
+  }
+
+  static async deleteExternalCV(id: number): Promise<void> {
+    await this.fetchWithAuth(`/external-cvs/${id}/`, { method: 'DELETE' });
+  }
+
+  // === EXTERNAL JOB ADS ===
+
+  static async getExternalJobAds(): Promise<{ id: number; text: string; created_at: string }[]> {
+    const response = await this.fetchWithAuth('/external-job-ads/', { method: 'GET' });
+    return await response.json();
+  }
+
+  static async createExternalJobAd(text: string): Promise<{ id: number; text: string; created_at: string }> {
+    const response = await this.fetchWithAuth('/external-job-ads/', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+    return await response.json();
+  }
+
+  static async deleteExternalJobAd(id: number): Promise<void> {
+    await this.fetchWithAuth(`/external-job-ads/${id}/`, { method: 'DELETE' });
+  }
 }
