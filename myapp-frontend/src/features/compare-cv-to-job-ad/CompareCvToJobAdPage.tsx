@@ -49,6 +49,7 @@ function SavedTextPanel({
   return (
     <div className="flex flex-wrap gap-2 items-center mb-2">
       <select
+        aria-label={`Välj sparad ${label}`}
         className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white min-w-[200px] flex-1"
         value={selectedId}
         onChange={handleSelect}

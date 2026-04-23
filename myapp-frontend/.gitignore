@@ -22,6 +22,10 @@ src/**/*.spec.*
 src/**/*.stories.*
 src/**/*.mdx
 
+# Un-ignore TypeScript/TSX test files (committed as part of the test suite)
+!src/**/*.test.ts
+!src/**/*.test.tsx
+
 # Ignore specific markdown and docs
 TODO.md
 MY_NOTES.md
