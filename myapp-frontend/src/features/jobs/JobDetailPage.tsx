@@ -12,7 +12,6 @@ const JobDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { tSync } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'description' | 'matching'>('description');
   const [jobData, setJobData] = useState<JobDetailsDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -184,8 +183,6 @@ const JobDetailPage: React.FC = () => {
         <SectionCard className="relative z-10">
           <JobDetailCard
             job={job}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
             onApply={handleApply}
             onSave={handleSave}
             onNotInterested={handleNotInterested}

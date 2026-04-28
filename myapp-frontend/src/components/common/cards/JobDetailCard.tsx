@@ -1,6 +1,17 @@
-import React from 'react';
+import React, { Fragment } from 'react';
+
+const renderDescription = (text: string) =>
+  text.split(/\n{2,}/).map((paragraph, pi) => (
+    <p key={pi} className="text-gray-700 leading-relaxed mb-3">
+      {paragraph.split('\n').map((line, li, arr) => (
+        <Fragment key={li}>
+          {line}
+          {li < arr.length - 1 && <br />}
+        </Fragment>
+      ))}
+    </p>
+  ));
 import { useTranslation } from '../../../hooks/TranslationProvider';
-import MatchingAnalysisTab from './MatchingAnalysisTab';
 import type { SavedJob } from './SavedJobCard';
 import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/Icon';
@@ -12,8 +23,6 @@ interface JobDetailCardProps {
     description?: string;
     matchingAnalysis?: string;
   };
-  activeTab: 'description' | 'matching';
-  onTabChange: (tab: 'description' | 'matching') => void;
   onApply: () => void;
   onSave: () => void;
   onNotInterested: () => void;
@@ -24,8 +33,6 @@ interface JobDetailCardProps {
 
 const JobDetailCard: React.FC<JobDetailCardProps> = ({
   job,
-  activeTab,
-  onTabChange,
   onApply,
   onSave,
   onNotInterested,
@@ -113,60 +120,9 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 flex">
-        <button
-          onClick={() => onTabChange('description')}
-          className={`flex-1 px-6 py-4 font-semibold transition ${
-            activeTab === 'description'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          {tSync('jobDetail_tab_description')}
-        </button>
-        <button
-          onClick={() => onTabChange('matching')}
-          className={`flex-1 px-6 py-4 font-semibold transition ${
-            activeTab === 'matching'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          {tSync('jobDetail_tab_matching')}
-        </button>
-      </div>
-
-      {/* Tab Content */}
+      {/* Description */}
       <div className="p-6">
-        {activeTab === 'description' && (
-          <div>
-            <p className="text-gray-700 leading-relaxed">{job.description}</p>
-          </div>
-        )}
-        {activeTab === 'matching' && (
-          <MatchingAnalysisTab
-            matches={[
-              { id: 1, label: 'React' },
-              { id: 2, label: 'TypeScript' },
-              { id: 3, label: 'Angular' },
-              { id: 4, label: 'CSS' },
-              { id: 5, label: 'Material Design' },
-              { id: 6, label: 'Responsive Design' },
-            ]}
-            nonMatches={[
-              { id: 1, label: 'Python' },
-              { id: 2, label: 'DevOps' },
-              { id: 3, label: 'Machine Learning' },
-            ]}
-            improvements={[
-              { id: 1, label: 'Advanced State Management' },
-              { id: 2, label: 'E2E Testing' },
-              { id: 3, label: 'Performance Optimization' },
-            ]}
-            coachTips="Your CV matches this position very well. You have most of the required technical skills and relevant experience. Consider developing skills in: Advanced DevOps, Kubernetes, and AWS."
-          />
-        )}
+        <p className="text-gray-700 leading-relaxed">{job.description}</p>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useRoles } from '../../hooks/useRoles';
@@ -28,7 +28,11 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({ roles, children }) => 
   const { user } = useAuth();
   const { hasAnyRole } = useRoles();
 
-  if (!user) return <Navigate to="/" replace />;
+  useEffect(() => {
+    if (!user) window.dispatchEvent(new CustomEvent('requireLogin'));
+  }, [user]);
+
+  if (!user) return null;
 
   if (roles && roles.length > 0) {
     if (user.roles === undefined) return null; // roles still loading — don't redirect yet

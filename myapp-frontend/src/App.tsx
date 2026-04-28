@@ -8,7 +8,7 @@ import { lazy, Suspense } from 'react';
 const AboutPage = lazy(() => import('./features/about/AboutPage'));
 import { CompareCvToJobAdPage } from './features/compare-cv-to-job-ad';
 import { SavedJobsPage } from './features/saved-jobs';
-import { LoginPage, RegisterPage } from './features/auth';
+import { RegisterPage } from './features/auth';
 import { SearchJobsPage, MatchAdToCvsPage } from './features/search';
 import { ProfilePage } from './features/profile';
 import { AccountPage } from './features/account';
@@ -30,11 +30,16 @@ function App() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [loginRedirectTo, setLoginRedirectTo] = useState<string | null>(null);
   const { currentMessage, acknowledge } = useServiceMessages(user?.email);
   const [sessionDismissed, setSessionDismissed] = useState<string[]>([]);
 
   useEffect(() => {
-    const handler = () => setLoginModalOpen(true);
+    const handler = (e: Event) => {
+      const redirectTo = (e as CustomEvent).detail?.redirectTo ?? null;
+      setLoginRedirectTo(redirectTo);
+      setLoginModalOpen(true);
+    };
     window.addEventListener('requireLogin', handler);
     return () => window.removeEventListener('requireLogin', handler);
   }, []);
@@ -83,7 +88,15 @@ function App() {
       />
       {/* Login Modal */}
       {loginModalOpen && (
-        <LoginModal onClose={() => setLoginModalOpen(false)} />
+        <LoginModal
+          onClose={() => setLoginModalOpen(false)}
+          onSuccess={() => {
+            if (loginRedirectTo) {
+              navigate(loginRedirectTo);
+              setLoginRedirectTo(null);
+            }
+          }}
+        />
       )}
       {/* Service message modal — requires acknowledgement before using the app */}
       {user && currentMessage && !sessionDismissed.includes(currentMessage.id) && (
@@ -113,7 +126,6 @@ function App() {
         <Routes>
           {/* Public */}
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/search" element={<RequireAuth><SearchJobsPage /></RequireAuth>} />
           <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />

@@ -66,7 +66,7 @@ function SavedTextPanel({
           <option value="">— Välj sparad {label} —</option>
           {items.map(item => (
             <option key={item.id} value={item.id}>
-              {item.name}
+              {item.name || item.text.slice(0, 60)}
             </option>
           ))}
         </select>
@@ -320,7 +320,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                   <option value="" disabled={selectedCVId !== null} hidden={selectedCVId !== null}>— Välj sparad CV —</option>
                   {savedCVs.map(cv => (
                     <option key={cv.id} value={cv.id}>
-                      {cv.name}
+                      {cv.name || cv.text.slice(0, 60)}
                     </option>
                   ))}
                 </select>
