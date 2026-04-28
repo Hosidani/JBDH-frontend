@@ -11,6 +11,7 @@ const features = (t: (key: string) => string) => [
     to: '/register',
     img: '/edit_profile.png',
     guestOnly: true,
+    requiresAuth: false,
   },
   {
     title: t('home_feature_match_cv_jobad_title'),
@@ -64,7 +65,7 @@ const HomePage: React.FC = () => {
         {features(tSync)
           .filter(f => (!f.guestOnly || !user) && (f.to !== '/profile' || user))
           .map((f, i) => (
-            <FeatureCard key={i} to={f.to} img={f.img} title={f.title} desc={f.desc} />
+            <FeatureCard key={i} to={f.to} img={f.img} title={f.title} desc={f.desc} requiresAuth={f.requiresAuth} />
           ))}
       </section>
     </PageWrapper>

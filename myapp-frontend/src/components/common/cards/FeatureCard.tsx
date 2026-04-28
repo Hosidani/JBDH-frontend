@@ -7,13 +7,14 @@ interface FeatureCardProps {
   img?: string;
   title: string;
   desc: string;
+  requiresAuth?: boolean;
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = ({ to, img, title, desc }) => {
+const FeatureCard: React.FC<FeatureCardProps> = ({ to, img, title, desc, requiresAuth = true }) => {
   const { user } = useAuth();
 
   const handleClick = (e: React.MouseEvent) => {
-    if (!user) {
+    if (requiresAuth && !user) {
       e.preventDefault();
       window.dispatchEvent(new CustomEvent('requireLogin', { detail: { redirectTo: to } }));
     }

@@ -20,12 +20,6 @@ function ProfilePage() {
   const { polling, setPolling, getLatestAIResponseId, pollForLatestAIResponse } = useAIResponsePolling();
 
   useEffect(() => {
-    if (!user) {
-      window.dispatchEvent(new CustomEvent('requireLogin'));
-    }
-  }, [user]);
-
-  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);

@@ -15,9 +15,7 @@ const CompareCvToJobAdPage: React.FC = () => {
 
   React.useEffect(() => {
     if (!user) {
-      window.dispatchEvent(new CustomEvent('requireLogin'));
-      navigate('/login');
-      return;
+      navigate('/');
     }
   }, [user, navigate]);
 
