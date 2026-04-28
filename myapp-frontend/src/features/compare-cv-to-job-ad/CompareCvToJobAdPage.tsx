@@ -3,10 +3,10 @@ import { useAuth } from '../../context/AuthContext';
 import { PageWrapper, PageBackground, FileDropZone } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import { useSSE } from '../../hooks/useSSE';
 import IconCvDocument from '../../components/icon_library/IconCvDocument';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
+import { useSSE } from '../../hooks/useSSE';
 
 const CompareCvToJobAdPage: React.FC = () => {
   const { user } = useAuth();
@@ -28,6 +28,9 @@ const CompareCvToJobAdPage: React.FC = () => {
   const [sseResult, setSseResult] = useState<any>(null);
   const [sseError, setSseError] = useState<string | null>(null);
   const [vectorResult, setVectorResult] = useState<any>(null);
+  const [atsResult, setAtsResult] = useState<any>(null);
+  const [atsLoading, setAtsLoading] = useState(false);
+  const [atsError, setAtsError] = useState<string | null>(null);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -48,24 +51,57 @@ const CompareCvToJobAdPage: React.FC = () => {
     setSseFormData(formData);
   }, [cvFile, jobAdText, tSync]);
 
+  const handleAtsTest = useCallback(async () => {
+    setAtsError(null);
+    setAtsResult(null);
+    if (!cvFile) {
+      setAtsError(tSync('compareCvToJobAdPage_error_cv_required') || 'CV krävs');
+      return;
+    }
+    if (!jobAdText.trim()) {
+      setAtsError(tSync('compareCvToJobAdPage_error_jobad_required') || 'Jobbannons krävs');
+      return;
+    }
+    setAtsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('CvPath', cvFile);
+      formData.append('JobAdText', jobAdText);
+      const response = await fetch('/api/ats/score', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(err || 'Fel vid ATS-anrop');
+      }
+      const data = await response.json();
+      setAtsResult(data);
+    } catch (err: any) {
+      setAtsError(err?.message || 'Något gick fel vid ATS-test');
+    } finally {
+      setAtsLoading(false);
+    }
+  }, [cvFile, jobAdText, tSync]);
+
   useSSE(
     '/home/CompareCvJobSSE',
     sseFormData,
-    (data) => {
+    (data: any) => {
       console.log('PROGRESS:', data); // ← Kolla vectorResult här
       setSseProgress(data);
       if (data.vectorResult) {
         setVectorResult(data.vectorResult);
       }
     },
-    (result) => {
+    (result: any) => {
       console.log('RESULT:', result); // ← Kolla vad som kommer HIT
       setSseResult(result);
       if (result.vectorResult) {
         setVectorResult(result.vectorResult);
       }
     },
-    (err) => setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'))
+    (err: any) => setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'))
   );
 
   return (
@@ -133,6 +169,15 @@ const CompareCvToJobAdPage: React.FC = () => {
                 {sseProgress && sseProgress.progress > 0 && sseProgress.progress < 100
                   ? tSync('compareCvToJobAdPage_button_comparing')
                   : 'Realtidsanalys'}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                onClick={handleAtsTest}
+                disabled={atsLoading}
+              >
+                {atsLoading ? 'Testar ATS...' : 'Testa ATS direkt'}
               </Button>
             </div>
           </form>
@@ -257,6 +302,37 @@ const CompareCvToJobAdPage: React.FC = () => {
               )}
             </div>
           )}
+          {/* ATS-resultatkort */}
+          {atsResult && (
+            <div className="mt-6 p-4 bg-white rounded-xl shadow border border-green-200">
+              <h3 className="text-xl font-bold text-green-700 mb-2">ATS-resultat</h3>
+              <div className="mb-2">
+                <span className="font-semibold">Totalpoäng: </span>
+                <span className="text-2xl font-black text-green-700">{atsResult.totalScore ?? '-'}</span>
+              </div>
+              {Array.isArray(atsResult.matchedSkills) && atsResult.matchedSkills.length > 0 && (
+                <div className="mb-2">
+                  <span className="font-semibold">Matchande kompetenser:</span>
+                  <ul className="list-disc ml-8 text-green-900">
+                    {atsResult.matchedSkills.map((skill: any, i: number) => (
+                      <li key={i}>{typeof skill === 'string' ? skill : skill.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {Array.isArray(atsResult.missingSkills) && atsResult.missingSkills.length > 0 && (
+                <div className="mb-2">
+                  <span className="font-semibold">Saknade kompetenser:</span>
+                  <ul className="list-disc ml-8 text-red-900">
+                    {atsResult.missingSkills.map((skill: any, i: number) => (
+                      <li key={i}>{typeof skill === 'string' ? skill : skill.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          {atsError && <div className="text-red-600 text-sm mt-2">{atsError}</div>}
         </SectionCard>
       </PageWrapper>
     </>
