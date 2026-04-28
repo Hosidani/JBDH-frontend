@@ -122,7 +122,7 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
 
       {/* Description */}
       <div className="p-6">
-        <p className="text-gray-700 leading-relaxed">{job.description}</p>
+        {job.description ? renderDescription(job.description) : null}
       </div>
     </div>
   );
