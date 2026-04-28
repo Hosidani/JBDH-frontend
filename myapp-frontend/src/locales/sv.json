@@ -319,8 +319,6 @@
   "jobDetail_no_url_available": "Detta jobb är inte längre tillgängligt eller ansökningslänken går inte att komma åt.",
   "jobDetail_job_disappearing": "Jobbet försvinner om {seconds} sek",
   "jobDetail_cancel_action": "Klicka för att ångra",
-  "jobDetail_tab_description": "Beskrivning",
-  "jobDetail_tab_matching": "Matchning",
   "app_tagline": "Onödigt enkelt",
   "serviceMessages_acknowledge_button": "Jag förstår",
   "serviceMessages_dont_show_again": "Visa inte igen",

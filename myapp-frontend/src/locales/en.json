@@ -319,8 +319,6 @@
   "jobDetail_no_url_available": "This job is no longer available or the application link is not accessible.",
   "jobDetail_job_disappearing": "Job will disappear in {seconds} sec",
   "jobDetail_cancel_action": "Click to cancel",
-  "jobDetail_tab_description": "Description",
-  "jobDetail_tab_matching": "Matching",
   "app_tagline": "Ridiculously simple",
   "serviceMessages_acknowledge_button": "I understand",
   "serviceMessages_dont_show_again": "Don't show again",
