@@ -32,6 +32,8 @@
   "accountType_gold": "Guld",
   "terminate_confirm_title": "Stäng konto",
   "terminate_confirm_message": "Är du säker på att du vill stänga ditt konto? Denna åtgärd kan inte ångras och du kommer att loggas ut omedelbart.",
+  "terminate_confirm_message_2": "All information kopplad till till dit konto kommer att raderas permanent, inklusive din profil, CV, sparade jobb och meddelanden. Om du har en prenumeration kommer den att avslutas och du kommer inte att debiteras igen.",
+  "terminate_confirm_message_3": "Vänligen se till att du har sparat all viktig information innan du fortsätter.",
   "terminate_confirm_ok": "Ja, stäng",
   "menu_match_cv_ads": "Sök jobb",
   "menu_post_ad": "Lägg in annons",
