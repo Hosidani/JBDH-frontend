@@ -7,7 +7,10 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+# Remove lockfile so npm re-resolves optional platform-specific binaries
+# (Windows-generated lockfile omits linux-musl native binaries)
+# overrides in package.json force a single esbuild version (avoids expo@54 conflict)
+RUN rm -f package-lock.json && npm install
 
 # Copy source code
 COPY . .
