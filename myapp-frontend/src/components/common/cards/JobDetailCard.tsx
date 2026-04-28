@@ -1,4 +1,16 @@
-import React from 'react';
+import React, { Fragment } from 'react';
+
+const renderDescription = (text: string) =>
+  text.split(/\n{2,}/).map((paragraph, pi) => (
+    <p key={pi} className="text-gray-700 leading-relaxed mb-3">
+      {paragraph.split('\n').map((line, li, arr) => (
+        <Fragment key={li}>
+          {line}
+          {li < arr.length - 1 && <br />}
+        </Fragment>
+      ))}
+    </p>
+  ));
 import { useTranslation } from '../../../hooks/TranslationProvider';
 import MatchingAnalysisTab from './MatchingAnalysisTab';
 import type { SavedJob } from './SavedJobCard';
@@ -141,7 +153,7 @@ const JobDetailCard: React.FC<JobDetailCardProps> = ({
       <div className="p-6">
         {activeTab === 'description' && (
           <div>
-            <p className="text-gray-700 leading-relaxed">{job.description}</p>
+            {renderDescription(job.description || '')}
           </div>
         )}
         {activeTab === 'matching' && (
