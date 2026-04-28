@@ -87,8 +87,8 @@ const RegisterPage: React.FC = () => {
           <TextInput label={tSync('registerPage_email_label')}            value={email}           onChange={setEmail}           type="email"     helpText={tSync('registerPage_required')} />
           <TextInput label={tSync('registerPage_phone_label')}            value={phone}           onChange={setPhone}           type="tel"      />
           <TextInput label={tSync('registerPage_location_label')}         value={location}        onChange={setLocation} />
-          <TextInput label={tSync('registerPage_password_label')}         value={password}        onChange={setPassword}        type="password" helpText={tSync('registerPage_required')} />
-          <TextInput label={tSync('registerPage_confirm_password_label')} value={confirmPassword} onChange={setConfirmPassword} type="password" helpText={tSync('registerPage_required')} />
+          <TextInput label={tSync('registerPage_password_label')}         value={password}        onChange={setPassword}        type="password" showToggle helpText={tSync('registerPage_required')} />
+          <TextInput label={tSync('registerPage_confirm_password_label')} value={confirmPassword} onChange={setConfirmPassword} type="password" showToggle helpText={tSync('registerPage_required')} />
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <Button type="submit" variant="primary" size="lg" loading={loading} disabled={!isFormValid} className="self-center">
