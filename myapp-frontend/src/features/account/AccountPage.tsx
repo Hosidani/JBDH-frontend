@@ -7,6 +7,7 @@ import { TextInput } from '../../components/ui/TextInput';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { CheckboxGroup } from '../../components/ui/CheckboxGroup';
+import { InfoRow } from '../../components/common/InfoRow';
 import { PageCard } from '../../components/common/PageCard';
 import { Modal } from '../../components/common/Modal';
 import { PageWrapper, PageBackground } from '../../components/common';
@@ -33,10 +34,6 @@ const mapAccountTypeToString = (accountType: number | string): string => {
   return Object.values(ACCOUNT_TYPE_MAP).includes(normalized) ? normalized : 'free';
 };
 
-const mapStringToAccountType = (accountTypeString: string): number => {
-  const entry = Object.entries(ACCOUNT_TYPE_MAP).find(([, v]) => v === accountTypeString.toLowerCase());
-  return entry ? Number(entry[0]) : 0;
-};
 
 interface FormData {
   accountName: string;
@@ -53,11 +50,8 @@ const AccountPage: React.FC = () => {
   const { tSync } = useTranslation();
   const navigate = useNavigate();
   const [accountSettings, setAccountSettings] = useState<AccountSettings | null>(null);
-  const [originalData, setOriginalData] = useState<FormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [isTerminating, setIsTerminating] = useState(false);
   const [showTerminateConfirm, setShowTerminateConfirm] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -99,7 +93,6 @@ const AccountPage: React.FC = () => {
           acceptedTermsAndConditions: data.acceptedTermsAndConditions || false,
         };
         setFormData(initialFormData);
-        setOriginalData(initialFormData);
       } catch (err) {
         if (err instanceof Error) {
           if (err.message.includes('Account has been terminated')) {
@@ -127,83 +120,14 @@ const AccountPage: React.FC = () => {
     }));
   };
 
-  const handleSave = async () => {
-    if (!accountSettings || !originalData || accountSettings.isTerminated) return;
-
-    setIsSaving(true);
+  const saveField = async (fields: Partial<Record<string, any>>) => {
+    if (!accountSettings || accountSettings.isTerminated) return;
     try {
-      // Build update request with only changed fields
-      const updateRequest: any = {};
-
-      // Check basic fields for changes
-      if (formData.accountName !== originalData.accountName) {
-        updateRequest.accountName = formData.accountName;
-      }
-      if (formData.accountEmail !== originalData.accountEmail) {
-        updateRequest.accountEmail = formData.accountEmail;
-      }
-      if (formData.accountPhone !== originalData.accountPhone) {
-        updateRequest.accountPhone = formData.accountPhone;
-      }
-      if (formData.preferredLanguage !== originalData.preferredLanguage) {
-        updateRequest.preferredLanguage = formData.preferredLanguage;
-      }
-      if (formData.accountType !== originalData.accountType) {
-        updateRequest.accountType = mapStringToAccountType(formData.accountType);
-      }
-      if (formData.acceptedTermsAndConditions !== originalData.acceptedTermsAndConditions) {
-        updateRequest.acceptedTermsAndConditions = formData.acceptedTermsAndConditions;
-      }
-
-      // Check roles for changes
-      const rolesChanged = JSON.stringify(formData.roles.sort()) !== JSON.stringify(originalData.roles.sort());
-      if (rolesChanged) {
-        updateRequest.roles = formData.roles;
-      }
-
-      // Only send request if there are changes
-      if (Object.keys(updateRequest).length > 0) {
-        await ApiService.updateAccountSettings(updateRequest);
-      }
-
-      // Refresh account settings
-      const updatedData = await ApiService.getAccountSettings();
-      setAccountSettings(updatedData);
-      const newFormData = {
-        accountName: updatedData.accountName || '',
-        accountEmail: updatedData.accountEmail || '',
-        accountPhone: updatedData.accountPhone || '',
-        preferredLanguage: updatedData.preferredLanguage || 'en',
-        accountType: mapAccountTypeToString(updatedData.accountType),
-        roles: updatedData.roles || [],
-        acceptedTermsAndConditions: updatedData.acceptedTermsAndConditions || false,
-      };
-      setFormData(newFormData);
-      setOriginalData(newFormData);
-      setIsEditing(false);
+      await ApiService.updateAccountSettings(fields);
       await refreshRoles();
-    } catch (err) {
-      if (err instanceof Error) {
-        if (err.message.includes('Account has been terminated')) {
-          setError('Account has been terminated.');
-        } else if (err.message.includes('404') || err.message.includes('No account found')) {
-          setError('No account found for user.');
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError('Failed to update account settings');
-      }
-    } finally {
-      setIsSaving(false);
+    } catch {
+      // ignore silently
     }
-  };
-
-  const handleCancel = () => {
-    if (!originalData) return;
-    // Reset form data to original values
-    setFormData({ ...originalData });
-    setIsEditing(false);
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -282,70 +206,74 @@ const AccountPage: React.FC = () => {
     );
   }
 
-  const roleLabel = (role: string) =>
-    role === 'User' ? tSync('role_candidate') :
-    role === 'Recruiter' ? tSync('role_recruiter') :
-    role === 'Sales' ? tSync('role_sales') :
-    role === 'Manager' ? tSync('role_sales') : role;
-
   return (
     <>
       <PageBackground imageUrl={accountSettingsBg} opacity={1} blur={0} />
       <PageWrapper className="flex flex-col gap-6 relative z-10">
 
         {/* Account Information */}
-        <PageCard
-          title={tSync('account_information')}
-          action={!accountSettings.isTerminated && !isEditing
-            ? <Button variant="secondary" size="sm" onClick={() => setIsEditing(true)}>{tSync('button_edit')}</Button>
-            : undefined}
-        >
+        <PageCard title={tSync('account_information')}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <TextInput label={tSync('account_name')}  value={isEditing ? formData.accountName  : accountSettings.accountName  || tSync('not_provided')} readOnly={!isEditing || accountSettings.isTerminated} onChange={v => handleInputChange('accountName', v)}  placeholder="Förnamn Efternamn" />
-            <TextInput label={tSync('account_phone')} value={isEditing ? formData.accountPhone : accountSettings.accountPhone || tSync('not_provided')} readOnly={!isEditing || accountSettings.isTerminated} onChange={v => handleInputChange('accountPhone', v)} type="tel" placeholder="0709638741" />
-            <TextInput label={tSync('account_email')} value={isEditing ? formData.accountEmail : accountSettings.accountEmail || tSync('not_provided')} readOnly={!isEditing || accountSettings.isTerminated} onChange={v => handleInputChange('accountEmail', v)} type="email" placeholder="email@service.com" />
+            <InfoRow
+              label={tSync('account_name')}
+              value={formData.accountName}
+              readOnly={accountSettings.isTerminated}
+              onChange={v => handleInputChange('accountName', v)}
+              onBlur={() => saveField({ accountName: formData.accountName })}
+              placeholder="Förnamn Efternamn"
+            />
+            <InfoRow
+              label={tSync('account_phone')}
+              value={formData.accountPhone}
+              readOnly={accountSettings.isTerminated}
+              onChange={v => handleInputChange('accountPhone', v)}
+              onBlur={() => saveField({ accountPhone: formData.accountPhone })}
+              type="tel"
+              placeholder="0709638741"
+            />
+            <InfoRow
+              label={tSync('account_email')}
+              value={formData.accountEmail}
+              readOnly={accountSettings.isTerminated}
+              onChange={v => handleInputChange('accountEmail', v)}
+              onBlur={() => saveField({ accountEmail: formData.accountEmail })}
+              type="email"
+              placeholder="email@service.com"
+            />
           </div>
 
           {/* Roles */}
           <div className="mt-6">
-            {isEditing && !accountSettings.isTerminated ? (
-              <CheckboxGroup
-                label={tSync('account_roles')}
-                options={[
-                  { value: 'User',      label: tSync('role_candidate') },
-                  { value: 'Recruiter', label: tSync('role_recruiter') },
-                  { value: 'Manager',   label: tSync('role_sales') },
-                ]}
-                selected={formData.roles}
-                onChange={vals => handleInputChange('roles', vals)}
-                layout="row"
-              />
-            ) : (
-              <>
-                <p className="text-sm font-medium text-slate-700 mb-2">{tSync('account_roles')}</p>
-                <div className="flex flex-wrap gap-2">
-                  {accountSettings.roles?.length > 0
-                    ? accountSettings.roles.map(role => <Badge key={role} label={roleLabel(role)} color="blue" />)
-                    : <span className="text-slate-400 text-sm">No roles assigned</span>}
-                </div>
-              </>
-            )}
+            <CheckboxGroup
+              label={tSync('account_roles')}
+              options={[
+                { value: 'User',      label: tSync('role_candidate') },
+                { value: 'Recruiter', label: tSync('role_recruiter') },
+                { value: 'Manager',   label: tSync('role_sales') },
+              ]}
+              selected={formData.roles}
+              onChange={async vals => {
+                handleInputChange('roles', vals);
+                await saveField({ roles: vals });
+              }}
+              layout="row"
+            />
           </div>
 
           {/* Terms */}
-          {isEditing && !accountSettings.isTerminated && (
+          {!accountSettings.isTerminated && (
             <label className="flex items-center gap-2 mt-6 cursor-pointer">
-              <input type="checkbox" checked={formData.acceptedTermsAndConditions} onChange={e => handleInputChange('acceptedTermsAndConditions', e.target.checked)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+              <input
+                type="checkbox"
+                checked={formData.acceptedTermsAndConditions}
+                onChange={async e => {
+                  handleInputChange('acceptedTermsAndConditions', e.target.checked);
+                  await saveField({ acceptedTermsAndConditions: e.target.checked });
+                }}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
               <span className="text-sm text-slate-700">{tSync('terms_accept')}</span>
             </label>
-          )}
-
-          {/* Save / Cancel */}
-          {isEditing && !accountSettings.isTerminated && (
-            <div className="flex gap-3 pt-6 border-t border-slate-200 mt-6">
-              <Button variant="primary" size="lg" loading={isSaving} onClick={handleSave}>{tSync('button_save')}</Button>
-              <Button variant="secondary" size="lg" disabled={isSaving} onClick={handleCancel}>{tSync('button_cancel')}</Button>
-            </div>
           )}
         </PageCard>
 
