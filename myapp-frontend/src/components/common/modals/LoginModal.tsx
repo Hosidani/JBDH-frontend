@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useTranslation } from '../../../hooks/TranslationProvider';
 import { ApiService } from '../../../services/ApiService';
+import { Icon } from '../../ui/Icon';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -15,6 +16,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,14 +64,24 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             required
             autoFocus
           />
-          <input
-            type="password"
-            placeholder={tSync('loginModal_password_placeholder')}
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-              className="border border-slate-200 rounded-md px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder={tSync('loginModal_password_placeholder')}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full border border-slate-200 rounded-md px-4 py-3 pr-11 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              tabIndex={-1}
+            >
+              <Icon name={showPassword ? 'visibility_off' : 'visibility'} size={20} />
+            </button>
+          </div>
           {error && <div className="text-red-600 text-sm text-center">{error}</div>}
           <button
             type="submit"
