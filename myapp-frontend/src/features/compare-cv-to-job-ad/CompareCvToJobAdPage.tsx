@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { PageWrapper, PageBackground, FileDropZone } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
@@ -7,6 +7,120 @@ import { useSSE } from '../../hooks/useSSE';
 import IconCvDocument from '../../components/icon_library/IconCvDocument';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
+import { ApiService } from '../../services/ApiService';
+
+type SavedItem = { id: number; name: string; text: string; created_at: string };
+
+function SavedTextPanel({
+  label,
+  items,
+  onSave,
+  onDelete,
+  onSelect,
+  saving,
+  nameValue,
+  onNameChange,
+  canSave,
+  onUpdateName,
+}: {
+  label: string;
+  items: SavedItem[];
+  onSave: () => void;
+  onDelete: (id: number) => void;
+  onSelect: (text: string) => void;
+  saving: boolean;
+  nameValue: string;
+  onNameChange: (name: string) => void;
+  canSave: boolean;
+  onUpdateName?: () => void;
+}) {
+  const [selectedId, setSelectedId] = useState<number | ''>('');
+
+  const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = Number(e.target.value);
+    setSelectedId(id || '');
+    const item = items.find(i => i.id === id);
+    if (item) onSelect(item.text);
+  };
+
+  const handleDelete = () => {
+    if (!selectedId) return;
+    onDelete(selectedId as number);
+    setSelectedId('');
+  };
+
+  // Reset selectedId if item is deleted
+  useEffect(() => {
+    if (selectedId && !items.find(i => i.id === selectedId)) setSelectedId('');
+  }, [items, selectedId]);
+
+  return (
+    <div className="mb-2">
+      <div className="flex flex-wrap gap-2 items-center mb-2">
+        <select
+          aria-label={`Välj sparad ${label}`}
+          className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white min-w-[200px] flex-1"
+          value={selectedId}
+          onChange={handleSelect}
+        >
+          <option value="">— Välj sparad {label} —</option>
+          {items.map(item => (
+            <option key={item.id} value={item.id}>
+              {item.name || item.text.slice(0, 60)}
+            </option>
+          ))}
+        </select>
+        {selectedId !== '' && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="px-3 py-1.5 text-sm bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition"
+          >
+            Ta bort
+          </button>
+        )}
+      </div>
+      {canSave && (
+        <div className="flex flex-wrap gap-2 items-center">
+          <input
+            type="text"
+            value={nameValue}
+            onChange={e => onNameChange(e.target.value)}
+            placeholder={`Namn (frivilligt) – annars används de första orden`}
+            className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white flex-1 min-w-[200px]"
+          />
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+            className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition disabled:opacity-50"
+          >
+            {saving ? 'Sparar…' : `Spara ${label}`}
+          </button>
+        </div>
+      )}
+      {!canSave && onUpdateName && (
+        <div className="flex flex-wrap gap-2 items-center">
+          <input
+            type="text"
+            value={nameValue}
+            onChange={e => onNameChange(e.target.value)}
+            placeholder="Lägg till namn på den sparade annonsen…"
+            className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white flex-1 min-w-[200px]"
+          />
+          <button
+            type="button"
+            onClick={onUpdateName}
+            disabled={saving || !nameValue.trim()}
+            className="px-3 py-1.5 text-sm bg-green-50 text-green-700 border border-green-200 rounded hover:bg-green-100 transition disabled:opacity-50"
+          >
+            {saving ? 'Uppdaterar…' : 'Uppdatera namn'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const CompareCvToJobAdPage: React.FC = () => {
   const { user } = useAuth();
@@ -29,12 +143,94 @@ const CompareCvToJobAdPage: React.FC = () => {
   const [sseError, setSseError] = useState<string | null>(null);
   const [vectorResult, setVectorResult] = useState<any>(null);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  // Saved CVs & Job Ads state
+  const [savedCVs, setSavedCVs] = useState<SavedItem[]>([]);
+  const [selectedCVId, setSelectedCVId] = useState<number | null>(null);
+  const [savedJobAds, setSavedJobAds] = useState<SavedItem[]>([]);
+  const [savingCV, setSavingCV] = useState(false);
+  const [savingJobAd, setSavingJobAd] = useState(false);
+  const [cvSaveError, setCvSaveError] = useState<string | null>(null);
+  const [cvName, setCvName] = useState('');
+  const [jobAdName, setJobAdName] = useState('');
+  const [jobAdDirty, setJobAdDirty] = useState(false);
+  const [unsavedJobAdNameId, setUnsavedJobAdNameId] = useState<number | null>(null);
+
+  // Load saved items on mount
+  useEffect(() => {
+    if (!user) return;
+    ApiService.getExternalCVs().then(setSavedCVs).catch(() => {});
+    ApiService.getExternalJobAds().then(setSavedJobAds).catch(() => {});
+  }, [user]);
+
+  const handleSaveCVFile = useCallback(async () => {
+    if (!cvFile) return;
+    setCvSaveError(null);
+    setSavingCV(true);
+    try {
+      const created = await ApiService.uploadCVPDF(cvFile, cvName.trim() || undefined);
+      setSavedCVs(prev => [created, ...prev]);
+      setSelectedCVId(created.id);
+      setCvFile(null);
+      setCvName('');
+    } catch (err: any) {
+      const msg = err?.message?.includes('400')
+        ? 'Kunde inte extrahera text ur filen. Kontrollera att det är en giltig PDF/DOCX.'
+        : 'Uppladdning misslyckades. Försök igen.';
+      setCvSaveError(msg);
+    } finally {
+      setSavingCV(false);
+    }
+  }, [cvFile, cvName]);
+
+  const handleDeleteCV = useCallback(async (id: number) => {
+    await ApiService.deleteExternalCV(id);
+    setSavedCVs(prev => prev.filter(c => c.id !== id));
+    if (selectedCVId === id) setSelectedCVId(null);
+  }, [selectedCVId]);
+
+  const handleSaveJobAd = useCallback(async () => {
+    if (!jobAdText.trim()) return;
+    setSavingJobAd(true);
+    try {
+      const created = await ApiService.createExternalJobAd(jobAdText.trim(), jobAdName.trim() || undefined);
+      setSavedJobAds(prev => [created, ...prev]);
+      setJobAdDirty(false);
+      if (!jobAdName.trim()) {
+        // saved without name — keep field visible so user can add one
+        setUnsavedJobAdNameId(created.id);
+      } else {
+        setJobAdName('');
+        setUnsavedJobAdNameId(null);
+      }
+    } finally {
+      setSavingJobAd(false);
+    }
+  }, [jobAdText, jobAdName]);
+
+  const handleUpdateJobAdName = useCallback(async () => {
+    if (!unsavedJobAdNameId || !jobAdName.trim()) return;
+    setSavingJobAd(true);
+    try {
+      const updated = await ApiService.updateExternalJobAdName(unsavedJobAdNameId, jobAdName.trim());
+      setSavedJobAds(prev => prev.map(j => j.id === updated.id ? updated : j));
+      setJobAdName('');
+      setUnsavedJobAdNameId(null);
+    } finally {
+      setSavingJobAd(false);
+    }
+  }, [unsavedJobAdNameId, jobAdName]);
+
+  const handleDeleteJobAd = useCallback(async (id: number) => {
+    await ApiService.deleteExternalJobAd(id);
+    setSavedJobAds(prev => prev.filter(j => j.id !== id));
+  }, []);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSseError(null);
     setSseResult(null);
     setSseProgress(null);
-    if (!cvFile) {
+    if (!selectedCVId && !cvFile) {
       setSseError(tSync('compareCvToJobAdPage_error_cv_required'));
       return;
     }
@@ -42,30 +238,50 @@ const CompareCvToJobAdPage: React.FC = () => {
       setSseError(tSync('compareCvToJobAdPage_error_jobad_required'));
       return;
     }
+
+    // Auto-spara CV-filen om den inte redan är sparad i databasen
+    let cvIdToUse = selectedCVId;
+    if (!selectedCVId && cvFile) {
+      setSavingCV(true);
+      try {
+        const created = await ApiService.uploadCVPDF(cvFile, cvName.trim() || undefined);
+        setSavedCVs(prev => [created, ...prev]);
+        setSelectedCVId(created.id);
+        setCvFile(null);
+        setCvName('');
+        cvIdToUse = created.id;
+      } catch {
+        setSseError('Kunde inte ladda upp CV-filen. Försök igen.');
+        setSavingCV(false);
+        return;
+      }
+      setSavingCV(false);
+    }
+
     const formData = new FormData();
-    formData.append('CvPath', cvFile);
+    if (cvIdToUse) {
+      formData.append('external_cv_id', String(cvIdToUse));
+    }
     formData.append('JobAdText', jobAdText);
     setSseFormData(formData);
-  }, [cvFile, jobAdText, tSync]);
+  }, [selectedCVId, cvFile, jobAdText, tSync]);
 
   useSSE(
     '/home/CompareCvJobSSE',
     sseFormData,
     (data) => {
-      console.log('PROGRESS:', data); // ← Kolla vectorResult här
       setSseProgress(data);
-      if (data.vectorResult) {
-        setVectorResult(data.vectorResult);
-      }
+      if (data.vectorResult) setVectorResult(data.vectorResult);
     },
     (result) => {
-      console.log('RESULT:', result); // ← Kolla vad som kommer HIT
       setSseResult(result);
-      if (result.vectorResult) {
-        setVectorResult(result.vectorResult);
-      }
+      setSseProgress(null);
+      if (result.vectorResult) setVectorResult(result.vectorResult);
     },
-    (err) => setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'))
+    (err) => {
+      setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'));
+      setSseProgress(null);
+    }
   );
 
   return (
@@ -85,10 +301,44 @@ const CompareCvToJobAdPage: React.FC = () => {
             </ol>
           </section>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* CV – sparad dropdown + ny uppladdning */}
             <div>
+              <label className="block mb-1 font-semibold">{tSync('compareCvToJobAdPage_cv_label') || 'CV-fil'}</label>
+
+              {/* Dropdown med sparade CVs */}
+              <div className="flex flex-wrap gap-2 items-center mb-3">
+                <select
+                  aria-label="Välj sparad CV"
+                  className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white min-w-[200px] flex-1"
+                  value={selectedCVId ?? ''}
+                  onChange={e => {
+                    const id = Number(e.target.value) || null;
+                    setSelectedCVId(id);
+                    if (id) setCvFile(null);
+                  }}
+                >
+                  <option value="" disabled={selectedCVId !== null} hidden={selectedCVId !== null}>— Välj sparad CV —</option>
+                  {savedCVs.map(cv => (
+                    <option key={cv.id} value={cv.id}>
+                      {cv.name || cv.text.slice(0, 60)}
+                    </option>
+                  ))}
+                </select>
+                {selectedCVId !== null && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCV(selectedCVId)}
+                    className="px-3 py-1.5 text-sm bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition"
+                  >
+                    Ta bort
+                  </button>
+                )}
+              </div>
+
+              {/* FileDropZone för ny PDF */}
               <FileDropZone
                 accept=".pdf,.doc,.docx"
-                onFileSelected={file => setCvFile(file)}
+                onFileSelected={file => { setCvFile(file); setSelectedCVId(null); setCvSaveError(null); }}
                 className="border border-slate-300 rounded-lg p-6 flex flex-col bg-white w-full max-w-[420px] justify-between cursor-pointer transition hover:shadow-md"
                 style={{ minHeight: 200 }}
               >
@@ -101,27 +351,66 @@ const CompareCvToJobAdPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <div className="font-bold text-xl text-center leading-tight">{tSync('compareCvToJobAdPage_cv_label')}</div>
-                  <div className="text-slate-400 text-sm mt-1 text-center">{tSync('compareCvToJobAdPage_dropzone_label')}</div>
+                  <div className="font-bold text-xl text-center leading-tight">{tSync('compareCvToJobAdPage_cv_label') || 'CV-fil'}</div>
+                  <div className="text-slate-400 text-sm mt-1 text-center">{tSync('compareCvToJobAdPage_dropzone_label') || 'Dra och släpp CV-filen här eller klicka för att välja'}</div>
                 </div>
                 <div className="flex-1" />
                 {cvFile && (
                   <div className="text-blue-600 text-sm mt-4 font-semibold text-center pointer-events-none">{cvFile.name}</div>
                 )}
               </FileDropZone>
+
+              {/* Spara CV-knapp — visas bara när ny fil är vald */}
+              {cvFile && !selectedCVId && (
+                <div className="mt-2 flex flex-col gap-2">
+                  <input
+                    type="text"
+                    value={cvName}
+                    onChange={e => setCvName(e.target.value)}
+                    placeholder="Namn på CV (frivilligt) – annars används filnamnet"
+                    className="border border-slate-300 rounded px-3 py-1.5 text-sm bg-white w-full max-w-[420px]"
+                  />
+                  <button
+                    type="button"
+                    disabled={savingCV}
+                    onClick={handleSaveCVFile}
+                    className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition disabled:opacity-50 self-start"
+                  >
+                    {savingCV ? 'Sparar…' : 'Spara CV'}
+                  </button>
+                  {cvSaveError && (
+                    <p className="text-red-600 text-xs">{cvSaveError}</p>
+                  )}
+                </div>
+              )}
             </div>
+
+            {/* Job Ad – text area */}
             <div>
               <label className="block mb-1 font-semibold">
                 {tSync('compareCvToJobAdPage_jobad_label')}
               </label>
+              <SavedTextPanel
+                label="jobbannons"
+                items={savedJobAds}
+                onSave={handleSaveJobAd}
+                onDelete={handleDeleteJobAd}
+                onSelect={text => { setJobAdText(text); setJobAdDirty(false); setUnsavedJobAdNameId(null); setJobAdName(''); }}
+                saving={savingJobAd}
+                nameValue={jobAdName}
+                onNameChange={setJobAdName}
+                canSave={jobAdDirty && jobAdText.trim().length > 0}
+                onUpdateName={unsavedJobAdNameId !== null ? handleUpdateJobAdName : undefined}
+              />
               <textarea
                 value={jobAdText}
-                onChange={e => setJobAdText(e.target.value)}
+                onChange={e => { setJobAdText(e.target.value); setJobAdDirty(true); }}
                 rows={6}
                 className="w-full border border-slate-200 rounded-md px-3 py-2"
                 placeholder={tSync('compareCvToJobAdPage_jobad_placeholder')}
               />
             </div>
+
             {sseError && <div className="text-red-600 text-sm mt-2">{sseError}</div>}
             <div className="flex gap-3">
               <Button
@@ -136,7 +425,8 @@ const CompareCvToJobAdPage: React.FC = () => {
               </Button>
             </div>
           </form>
-          {/* SSE Progressbar & status - visas bara om inget resultat finns! */}
+
+          {/* SSE Progressbar */}
           {!sseResult && sseProgress && (
             <div className="mt-6">
               <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden mb-2">
@@ -153,41 +443,35 @@ const CompareCvToJobAdPage: React.FC = () => {
               )}
             </div>
           )}
-          {/* SSE slutresultat: visa CvMatchingVisualization om klart */}
+
+          {/* SSE result */}
           {sseResult && (
             <div className="mt-8 p-6 bg-white rounded-xl shadow-lg border border-blue-100">
               <h2 className="text-2xl font-bold text-blue-800 mb-4 border-b border-blue-200 pb-2">AI-analys – Sammanfattning</h2>
-              {/* Likhetspoäng överst, alltid från vectorResult om finns */}
               {vectorResult?.similarityScore !== undefined && (
                 <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border-l-4 border-emerald-400">
                   <span className="text-4xl font-black text-emerald-700">{Number(vectorResult.similarityScore).toFixed(1)}%</span>
                   <span className="ml-3 text-slate-700 font-semibold">Semantisk likhet(CV vs Jobbannons)</span>
                 </div>
               )}
-
-              {/* Profession-likhet (vektor) */}
               {typeof sseResult.profession_vector_similarity === 'number' && (
                 <div className="mb-2">
                   <span className="font-semibold">Profession-likhet (vektor): </span>
                   <span>{sseResult.profession_vector_similarity}%</span>
                 </div>
               )}
-
-              {/* Kompetens-likhet (vektor) */}
               {typeof sseResult.skills_vector_similarity === 'number' && (
                 <div className="mb-6">
                   <span className="font-semibold">Kompetens-likhet (vektor): </span>
                   <span>{sseResult.skills_vector_similarity}%</span>
                 </div>
               )}
-              {/* Sammanfattning */}
               {sseResult.summary && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Sammanfattning</h3>
                   <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100">{sseResult.summary}</p>
                 </div>
               )}
-              {/* Matchande kompetenser */}
               {Array.isArray(sseResult.matching_skills) && sseResult.matching_skills.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Matchande kompetenser</h3>
@@ -198,7 +482,6 @@ const CompareCvToJobAdPage: React.FC = () => {
                   </ul>
                 </div>
               )}
-              {/* Saknade krav */}
               {Array.isArray(sseResult.missing_requirements) && sseResult.missing_requirements.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Saknade krav</h3>
@@ -209,7 +492,6 @@ const CompareCvToJobAdPage: React.FC = () => {
                   </ul>
                 </div>
               )}
-              {/* Relevanta erfarenheter */}
               {Array.isArray(sseResult.relevant_experiences) && sseResult.relevant_experiences.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Relevanta erfarenheter</h3>
@@ -220,7 +502,6 @@ const CompareCvToJobAdPage: React.FC = () => {
                   </ul>
                 </div>
               )}
-              {/* Utbildning & certifieringar */}
               {Array.isArray(sseResult.education_and_certifications) && sseResult.education_and_certifications.length > 0 && (
                 <div className="mb-2">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Utbildning & certifieringar</h3>
@@ -231,8 +512,6 @@ const CompareCvToJobAdPage: React.FC = () => {
                   </ul>
                 </div>
               )}
-
-              {/* Styrkor */}
               {Array.isArray(sseResult.strengths) && sseResult.strengths.length > 0 && (
                 <div className="mb-2">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Styrkor</h3>
@@ -243,8 +522,6 @@ const CompareCvToJobAdPage: React.FC = () => {
                   </ul>
                 </div>
               )}
-
-              {/* Luckor */}
               {Array.isArray(sseResult.gaps) && sseResult.gaps.length > 0 && (
                 <div className="mb-2">
                   <h3 className="text-lg font-semibold text-blue-700 mb-1">Luckor</h3>
