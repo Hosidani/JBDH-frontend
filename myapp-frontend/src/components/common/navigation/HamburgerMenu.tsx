@@ -27,6 +27,7 @@ const MENU_ITEMS: MenuItem[] = [
   { to: '/search',           labelKey: 'menu_match_cv_ads',     roles: ['User'] },
   { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',       roles: ['User'] },
   { to: '/add-job-ad',       labelKey: 'menu_post_ad',          roles: ['Recruiter'] },
+  { to: '/jobs-and-cvs',    labelKey: 'menu_multi_match',      roles: ['Recruiter', 'Manager'] },
   { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',   roles: null },
   { to: '/messages',         labelKey: 'menu_messages',         roles: [] },
   { to: '/about',            labelKey: 'menu_how_it_works',     roles: null },

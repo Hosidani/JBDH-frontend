@@ -22,6 +22,8 @@ function setup(selected = new Set<number>(), onSelectionChange = vi.fn()) {
       onDelete={vi.fn()}
       addLabel="Lägg till CV"
       deleteLabel="Ta bort CV"
+      selectAllLabel="Alla CV"
+      emptyLabel="Inga sparade"
     />
   );
   return { user, onSelectionChange };

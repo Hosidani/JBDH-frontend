@@ -3,6 +3,7 @@ import { Modal } from '../../components/common';
 import FileDropZone from '../../components/common/inputs/FileDropZone';
 import { Button } from '../../components/ui/Button';
 import { ApiService } from '../../services/ApiService';
+import { useTranslation } from '../../hooks/TranslationProvider';
 
 interface AddCvModalProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface AddCvModalProps {
 }
 
 const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded }) => {
+  const { tSync } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -32,14 +34,14 @@ const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded }) => {
       onAdded(created);
       handleClose();
     } catch {
-      setError('Uppladdning misslyckades. Kontrollera att filen är en giltig PDF/DOCX.');
+      setError(tSync('jac_add_cv_error'));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Modal open={open} onClose={handleClose} title="Lägg till CV">
+    <Modal open={open} onClose={handleClose} title={tSync('jac_add_cv_title')}>
       <div className="flex flex-col gap-4">
         <FileDropZone
           onFileSelected={setFile}
@@ -53,7 +55,7 @@ const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded }) => {
             ) : (
               <>
                 <span className="text-2xl">📄</span>
-                <span>Dra och släpp eller klicka för att välja PDF/DOCX</span>
+                <span>{tSync('jac_add_cv_dropzone')}</span>
               </>
             )}
           </div>
@@ -63,16 +65,16 @@ const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded }) => {
           type="text"
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="Titel (t.ex. Anna Svensson, Frontend)"
+          placeholder={tSync('jac_add_cv_name_placeholder')}
           className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
 
         <div className="flex gap-2 justify-end">
-          <Button variant="ghost" size="sm" onClick={handleClose}>Avbryt</Button>
-          <Button variant="primary" size="sm" disabled={!file} loading={saving} onClick={handleSave}>
-            Spara CV
+          <Button variant="ghost" size="lg" onClick={handleClose}>{tSync('jac_modal_cancel')}</Button>
+          <Button variant="primary" size="lg" disabled={!file} loading={saving} onClick={handleSave}>
+            {tSync('jac_add_cv_save')}
           </Button>
         </div>
       </div>

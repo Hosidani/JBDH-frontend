@@ -16,7 +16,10 @@ interface SelectableListSectionProps {
   onDelete: () => void;
   addLabel: string;
   deleteLabel: string;
+  selectAllLabel: string;
+  emptyLabel: string;
   showPill?: boolean;
+  className?: string;
 }
 
 const SelectableListSection: React.FC<SelectableListSectionProps> = ({
@@ -28,7 +31,10 @@ const SelectableListSection: React.FC<SelectableListSectionProps> = ({
   onDelete,
   addLabel,
   deleteLabel,
+  selectAllLabel,
+  emptyLabel,
   showPill = false,
+  className = '',
 }) => {
   const allChecked = items.length > 0 && items.every(i => selected.has(i.id));
 
@@ -51,9 +57,8 @@ const SelectableListSection: React.FC<SelectableListSectionProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <h2 className="font-bold text-base text-slate-800">{title}</h2>
-      <div className="border border-slate-200 rounded-lg bg-white flex flex-col" style={{ minHeight: 160 }}>
+    <div className={`flex flex-col gap-3 ${className}`}>
+      <div className="border border-slate-200 rounded-lg bg-white flex flex-col flex-1">
         {/* Select all row */}
         <label className="flex items-center gap-2 px-3 py-2 border-b border-slate-100 cursor-pointer select-none">
           <input
@@ -62,15 +67,13 @@ const SelectableListSection: React.FC<SelectableListSectionProps> = ({
             onChange={toggleAll}
             className="accent-blue-600"
           />
-          <span className="text-sm text-slate-600 font-medium">
-            {title === 'Sparade CV' ? 'Alla CV' : 'Alla jobb'}
-          </span>
+          <span className="text-sm text-slate-600 font-medium">{selectAllLabel}</span>
         </label>
 
         {/* Scrollable list */}
         <div className="overflow-y-auto flex-1" style={{ maxHeight: 200 }}>
           {items.length === 0 ? (
-            <p className="text-sm text-slate-400 px-3 py-4 text-center">Inga sparade</p>
+            <p className="text-sm text-slate-400 px-3 py-4 text-center">{emptyLabel}</p>
           ) : (
             items.map(item => (
               <label
@@ -94,13 +97,13 @@ const SelectableListSection: React.FC<SelectableListSectionProps> = ({
       </div>
 
       {/* Buttons */}
-      <div className="flex gap-2">
-        <Button variant="primary" size="sm" onClick={onAdd}>
+      <div className="flex justify-between mt-auto">
+        <Button variant="primary" size="lg" onClick={onAdd}>
           {addLabel}
         </Button>
         <Button
           variant="danger"
-          size="sm"
+          size="lg"
           disabled={selected.size === 0}
           onClick={onDelete}
         >

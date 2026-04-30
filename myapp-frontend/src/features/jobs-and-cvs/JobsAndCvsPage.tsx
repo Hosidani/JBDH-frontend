@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper } from '../../components/common';
-import { SectionCard } from '../../components/common/SectionCard';
+import { PageCard } from '../../components/common/PageCard';
 import { NamePill } from '../../components/common/NamePill';
 import { ApiService } from '../../services/ApiService';
 import SelectableListSection, { type SelectableItem } from './SelectableListSection';
@@ -12,6 +13,7 @@ function mockScore(cvId: number, jobId: number): number {
 }
 
 const JobsAndCvsPage: React.FC = () => {
+  const { tSync } = useTranslation();
   const [cvs, setCvs] = useState<SelectableItem[]>([]);
   const [jobs, setJobs] = useState<SelectableItem[]>([]);
   const [selectedCvs, setSelectedCvs] = useState<Set<number>>(new Set());
@@ -47,51 +49,54 @@ const JobsAndCvsPage: React.FC = () => {
     <PageWrapper>
       {/* CV and Job sections side by side */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-        <SectionCard>
+        <PageCard title={tSync('jac_saved_cvs')} className="flex flex-col">
           <SelectableListSection
-            title="Sparade CV"
+            title={tSync('jac_saved_cvs')}
             items={cvs}
             selected={selectedCvs}
             onSelectionChange={setSelectedCvs}
             onAdd={() => setCvModalOpen(true)}
             onDelete={handleDeleteCvs}
-            addLabel="Lägg till CV"
-            deleteLabel="Ta bort CV"
+            addLabel={tSync('jac_add_cv')}
+            deleteLabel={tSync('jac_delete_cv')}
+            selectAllLabel={tSync('jac_select_all_cvs')}
+            emptyLabel={tSync('jac_empty')}
             showPill
+            className="flex-1"
           />
-        </SectionCard>
+        </PageCard>
 
-        <SectionCard>
+        <PageCard title={tSync('jac_saved_jobs')} className="flex flex-col">
           <SelectableListSection
-            title="Sparade Jobb"
+            title={tSync('jac_saved_jobs')}
             items={jobs}
             selected={selectedJobs}
             onSelectionChange={setSelectedJobs}
             onAdd={() => setJobModalOpen(true)}
             onDelete={handleDeleteJobs}
-            addLabel="Lägg till jobb"
-            deleteLabel="Ta bort jobb"
+            addLabel={tSync('jac_add_job')}
+            deleteLabel={tSync('jac_delete_job')}
+            selectAllLabel={tSync('jac_select_all_jobs')}
+            emptyLabel={tSync('jac_empty')}
+            className="flex-1"
           />
-        </SectionCard>
+        </PageCard>
       </div>
 
       {/* Result section */}
-      <SectionCard>
-        <h2 className="font-bold text-base text-slate-800 mb-4">Resultat CV vs Jobb</h2>
+      <PageCard title={tSync('jac_result')}>
         {activeJobs.length === 0 || activeCvs.length === 0 ? (
-          <p className="text-sm text-slate-400 text-center py-6">
-            Välj minst ett CV och ett jobb för att se resultat.
-          </p>
+          <p className="text-sm text-slate-400 text-center py-6">{tSync('jac_result_empty')}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  <th className="text-left text-slate-500 font-normal pb-2 pr-4 w-48">Jobb</th>
+                  <th className="text-left text-slate-500 font-normal pb-2 pr-4 w-48">{tSync('jac_col_job')}</th>
                   <th className="text-left text-slate-400 font-normal pb-2">
                     <div className="flex justify-between text-xs">
-                      <span>Låg Match</span>
-                      <span>Hög Match</span>
+                      <span>{tSync('jac_col_low_match')}</span>
+                      <span>{tSync('jac_col_high_match')}</span>
                     </div>
                   </th>
                 </tr>
@@ -124,7 +129,7 @@ const JobsAndCvsPage: React.FC = () => {
             </table>
           </div>
         )}
-      </SectionCard>
+      </PageCard>
 
       <AddCvModal
         open={cvModalOpen}

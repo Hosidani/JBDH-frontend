@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/common';
 import { Button } from '../../components/ui/Button';
 import { ApiService } from '../../services/ApiService';
+import { useTranslation } from '../../hooks/TranslationProvider';
 
 interface AddJobModalProps {
   open: boolean;
@@ -10,6 +11,7 @@ interface AddJobModalProps {
 }
 
 const AddJobModal: React.FC<AddJobModalProps> = ({ open, onClose, onAdded }) => {
+  const { tSync } = useTranslation();
   const [text, setText] = useState('');
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -31,19 +33,19 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ open, onClose, onAdded }) => 
       onAdded(created);
       handleClose();
     } catch {
-      setError('Kunde inte spara jobbannonsen. Försök igen.');
+      setError(tSync('jac_add_job_error'));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Modal open={open} onClose={handleClose} title="Lägg till jobb">
+    <Modal open={open} onClose={handleClose} title={tSync('jac_add_job_title')}>
       <div className="flex flex-col gap-4">
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
-          placeholder="Klistra in jobbannonsens text här…"
+          placeholder={tSync('jac_add_job_placeholder')}
           rows={8}
           className="border border-slate-300 rounded px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
@@ -52,16 +54,16 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ open, onClose, onAdded }) => 
           type="text"
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="Titel (t.ex. Mjukvaruutvecklare (Saab))"
+          placeholder={tSync('jac_add_job_name_placeholder')}
           className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
 
         <div className="flex gap-2 justify-end">
-          <Button variant="ghost" size="sm" onClick={handleClose}>Avbryt</Button>
-          <Button variant="primary" size="sm" disabled={!text.trim()} loading={saving} onClick={handleSave}>
-            Spara jobb
+          <Button variant="ghost" size="lg" onClick={handleClose}>{tSync('jac_modal_cancel')}</Button>
+          <Button variant="primary" size="lg" disabled={!text.trim()} loading={saving} onClick={handleSave}>
+            {tSync('jac_add_job_save')}
           </Button>
         </div>
       </div>
