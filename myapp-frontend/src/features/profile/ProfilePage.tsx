@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+// import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
 import { ProfileInfoCard, AIAnalysisCard, FileDropZoneCard, ButtonsCard } from '../../components/profile';
@@ -11,7 +11,7 @@ import { useAIResponsePolling } from '../../hooks/useAIResponsePolling';
 
 
 function ProfilePage() {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
