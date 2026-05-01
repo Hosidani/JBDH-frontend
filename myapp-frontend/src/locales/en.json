@@ -38,6 +38,7 @@
   "menu_match_cv_ads": "Search jobs",
   "menu_post_ad": "Post a job ad",
   "menu_multi_match": "Multi-match",
+  "menu_multi_match_tbl": "Multi-match (table)",
   "menu_match_cv_jobad": "Match CV to job ad",
   "menu_messages": "Messages",
   "menu_how_it_works": "How does JBDH work?",
@@ -389,5 +390,7 @@
   "jac_add_job_name_placeholder": "Title (e.g. Software Developer (Saab))",
   "jac_add_job_error": "Could not save the job ad. Please try again.",
   "jac_add_job_save": "Save job",
-  "jac_modal_cancel": "Cancel"
+  "jac_modal_cancel": "Cancel",
+  "jac_tbl_col_cv": "CV",
+  "jac_tbl_col_score": "Score"
 }

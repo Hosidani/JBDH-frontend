@@ -14,7 +14,7 @@ import { ProfilePage } from './features/profile';
 import { AccountPage } from './features/account';
 import { AddJobAdPage } from './features/boards';
 import { MatchingProfilePage } from './features/matching';
-import { JobsAndCvsPage } from './features/jobs-and-cvs';
+import { JobsAndCvsPage, JobsAndCvsTblPage } from './features/jobs-and-cvs';
 import { JobDetailPage } from './features/jobs';
 import { MessagesPage } from './features/messages';
 import ServiceMessageModal from './components/common/ServiceMessageModal';
@@ -143,7 +143,8 @@ function App() {
           {/* Requires Recruiter role */}
           <Route path="/add-job-ad"   element={<RequireAuth roles={['Recruiter']}><AddJobAdPage /></RequireAuth>} />
           <Route path="/match-ad-cvs" element={<RequireAuth roles={['Recruiter']}><MatchAdToCvsPage /></RequireAuth>} />
-          <Route path="/jobs-and-cvs" element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsPage /></RequireAuth>} />
+          <Route path="/jobs-and-cvs"     element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsPage /></RequireAuth>} />
+          <Route path="/jobs-and-cvs-tbl" element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsTblPage /></RequireAuth>} />
 
           {/* Footer pages */}
           <Route path="/contact" element={<ContactPage />} />
