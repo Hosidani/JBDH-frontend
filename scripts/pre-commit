@@ -1,0 +1,27 @@
+#!/bin/sh
+# Run TypeScript type check and unit tests before every commit.
+# The commit is aborted if either step fails.
+
+FRONTEND_DIR="$(git rev-parse --show-toplevel)/myapp-frontend"
+
+echo "Running TypeScript type check..."
+cd "$FRONTEND_DIR" && npm run typecheck --silent
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+  echo ""
+  echo "Type check failed — commit aborted. Fix the TypeScript errors and try again."
+  exit 1
+fi
+
+echo "Running frontend tests..."
+npm run test:run --silent
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+  echo ""
+  echo "Tests failed — commit aborted. Fix the failing tests and try again."
+  exit 1
+fi
+
+exit 0
