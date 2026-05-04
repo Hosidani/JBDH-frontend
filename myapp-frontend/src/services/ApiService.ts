@@ -649,4 +649,12 @@ export class ApiService {
     });
     return await response.json();
   }
+
+  static async updateExternalJobAd(id: number, text: string, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
+    const response = await this.fetchWithAuth(`/external-job-ads/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ text, ...(name !== undefined ? { name } : {}) }),
+    });
+    return await response.json();
+  }
 }

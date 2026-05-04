@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '../../components/ui/Button';
 import { NamePill } from '../../components/common/NamePill';
+import { Icon } from '../../components/ui/Icon';
 
 export interface SelectableItem {
   id: number;
@@ -19,6 +20,7 @@ interface SelectableListSectionProps {
   selectAllLabel: string;
   emptyLabel: string;
   showPill?: boolean;
+  onEdit?: (id: number) => void;
   className?: string;
 }
 
@@ -34,6 +36,7 @@ const SelectableListSection: React.FC<SelectableListSectionProps> = ({
   selectAllLabel,
   emptyLabel,
   showPill = false,
+  onEdit,
   className = '',
 }) => {
   const allChecked = items.length > 0 && items.every(i => selected.has(i.id));
@@ -76,21 +79,37 @@ const SelectableListSection: React.FC<SelectableListSectionProps> = ({
             <p className="text-sm text-slate-400 px-3 py-4 text-center">{emptyLabel}</p>
           ) : (
             items.map(item => (
-              <label
+              <div
                 key={item.id}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 cursor-pointer select-none"
+                className="group flex items-center gap-2 px-3 py-2 hover:bg-blue-50 select-none"
               >
                 <input
                   type="checkbox"
+                  id={`sel-item-${item.id}`}
                   checked={selected.has(item.id)}
                   onChange={() => toggleItem(item.id)}
-                  className="accent-blue-600"
+                  className="accent-blue-600 cursor-pointer"
                 />
-                {showPill && (
-                  <NamePill id={item.id} title={item.name} size="sm" />
+                <label
+                  htmlFor={`sel-item-${item.id}`}
+                  className="flex items-center gap-2 flex-1 text-sm text-slate-700 truncate cursor-pointer"
+                >
+                  {showPill && (
+                    <NamePill id={item.id} title={item.name} size="sm" />
+                  )}
+                  {item.name}
+                </label>
+                {onEdit && (
+                  <button
+                    onClick={e => { e.preventDefault(); onEdit(item.id); }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-slate-400 hover:text-blue-600 rounded shrink-0"
+                    tabIndex={-1}
+                    aria-label={`edit-${item.id}`}
+                  >
+                    <Icon name="edit" size={20} />
+                  </button>
                 )}
-                <span className="text-sm text-slate-700 truncate">{item.name}</span>
-              </label>
+              </div>
             ))
           )}
         </div>

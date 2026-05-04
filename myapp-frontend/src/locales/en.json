@@ -390,6 +390,8 @@
   "jac_add_job_name_placeholder": "Title (e.g. Software Developer (Saab))",
   "jac_add_job_error": "Could not save the job ad. Please try again.",
   "jac_add_job_save": "Save job",
+  "jac_edit_job_title": "Edit job",
+  "jac_edit_job_save": "Save changes",
   "jac_modal_cancel": "Cancel",
   "jac_tbl_col_cv": "CV",
   "jac_tbl_col_score": "Score"

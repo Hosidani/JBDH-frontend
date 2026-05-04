@@ -8,14 +8,26 @@ interface AddJobModalProps {
   open: boolean;
   onClose: () => void;
   onAdded: (item: { id: number; name: string; text: string; created_at: string }) => void;
+  onUpdated?: (item: { id: number; name: string; text: string }) => void;
+  editItem?: { id: number; name: string; text: string };
 }
 
-const AddJobModal: React.FC<AddJobModalProps> = ({ open, onClose, onAdded }) => {
+const AddJobModal: React.FC<AddJobModalProps> = ({ open, onClose, onAdded, onUpdated, editItem }) => {
   const { tSync } = useTranslation();
   const [text, setText] = useState('');
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isEdit = !!editItem;
+
+  React.useEffect(() => {
+    if (open) {
+      setText(editItem?.text ?? '');
+      setName(editItem?.name ?? '');
+      setError(null);
+    }
+  }, [open, editItem]);
 
   const handleClose = () => {
     setText('');
@@ -29,8 +41,13 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ open, onClose, onAdded }) => 
     setSaving(true);
     setError(null);
     try {
-      const created = await ApiService.createExternalJobAd(text.trim(), name.trim() || undefined);
-      onAdded(created);
+      if (isEdit && editItem) {
+        const updated = await ApiService.updateExternalJobAd(editItem.id, text.trim(), name.trim() || undefined);
+        onUpdated?.({ id: updated.id, name: updated.name, text: updated.text });
+      } else {
+        const created = await ApiService.createExternalJobAd(text.trim(), name.trim() || undefined);
+        onAdded(created);
+      }
       handleClose();
     } catch {
       setError(tSync('jac_add_job_error'));
@@ -39,8 +56,10 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ open, onClose, onAdded }) => 
     }
   };
 
+  const modalTitle = isEdit ? tSync('jac_edit_job_title') : tSync('jac_add_job_title');
+
   return (
-    <Modal open={open} onClose={handleClose} title={tSync('jac_add_job_title')}>
+    <Modal open={open} onClose={handleClose} title={modalTitle}>
       <div className="flex flex-col gap-4">
         <textarea
           value={text}
@@ -63,7 +82,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ open, onClose, onAdded }) => 
         <div className="flex gap-2 justify-end">
           <Button variant="ghost" size="lg" onClick={handleClose}>{tSync('jac_modal_cancel')}</Button>
           <Button variant="primary" size="lg" disabled={!text.trim()} loading={saving} onClick={handleSave}>
-            {tSync('jac_add_job_save')}
+            {isEdit ? tSync('jac_edit_job_save') : tSync('jac_add_job_save')}
           </Button>
         </div>
       </div>
