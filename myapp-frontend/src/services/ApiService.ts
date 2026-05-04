@@ -613,6 +613,23 @@ export class ApiService {
     await this.fetchWithAuth(`/external-cvs/${id}/`, { method: 'DELETE' });
   }
 
+  static async updateExternalCVName(id: number, name: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
+    const response = await this.fetchWithAuth(`/external-cvs/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+    return await response.json();
+  }
+
+  static async updateExternalCVPDF(id: number, file: File, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (name) formData.append('name', name);
+    const response = await this.fetchWithAuth(`/external-cvs/${id}/upload-pdf/`, { method: 'PATCH', body: formData });
+    if (!response.ok) throw new Error(`Update failed: ${response.status}`);
+    return await response.json();
+  }
+
   /** Upload a PDF/DOCX file → backend extracts text → saves as ExternalCV */
   static async uploadCVPDF(file: File, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
     const formData = new FormData();

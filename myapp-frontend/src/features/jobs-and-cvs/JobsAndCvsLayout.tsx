@@ -11,23 +11,26 @@ interface JobsAndCvsLayoutProps {
   renderResult: (activeCvs: SelectableItem[], activeJobs: SelectableItem[]) => React.ReactNode;
 }
 
-type JobRaw = { id: number; name: string; text: string };
+type RawItem = { id: number; name: string; text: string };
 
 const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => {
   const { tSync } = useTranslation();
   const [cvs, setCvs] = useState<SelectableItem[]>([]);
+  const [cvsRaw, setCvsRaw] = useState<RawItem[]>([]);
   const [jobs, setJobs] = useState<SelectableItem[]>([]);
-  const [jobsRaw, setJobsRaw] = useState<JobRaw[]>([]);
+  const [jobsRaw, setJobsRaw] = useState<RawItem[]>([]);
   const [selectedCvs, setSelectedCvs] = useState<Set<number>>(new Set());
   const [selectedJobs, setSelectedJobs] = useState<Set<number>>(new Set());
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [jobModalOpen, setJobModalOpen] = useState(false);
-  const [editJob, setEditJob] = useState<JobRaw | undefined>(undefined);
+  const [editCv, setEditCv] = useState<{ id: number; name: string } | undefined>(undefined);
+  const [editJob, setEditJob] = useState<RawItem | undefined>(undefined);
 
   useEffect(() => {
-    ApiService.getExternalCVs().then(data =>
-      setCvs(data.map(c => ({ id: c.id, name: c.name || c.text.slice(0, 50) })))
-    ).catch(() => {});
+    ApiService.getExternalCVs().then(data => {
+      setCvsRaw(data.map(c => ({ id: c.id, name: c.name || c.text.slice(0, 50), text: c.text })));
+      setCvs(data.map(c => ({ id: c.id, name: c.name || c.text.slice(0, 50) })));
+    }).catch(() => {});
     ApiService.getExternalJobAds().then(data => {
       setJobsRaw(data.map(j => ({ id: j.id, name: j.name || j.text.slice(0, 50), text: j.text })));
       setJobs(data.map(j => ({ id: j.id, name: j.name || j.text.slice(0, 50) })));
@@ -37,7 +40,21 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
   const handleDeleteCvs = () => {
     selectedCvs.forEach(id => ApiService.deleteExternalCV(id).catch(() => {}));
     setCvs(prev => prev.filter(c => !selectedCvs.has(c.id)));
+    setCvsRaw(prev => prev.filter(c => !selectedCvs.has(c.id)));
     setSelectedCvs(new Set());
+  };
+
+  const handleEditCv = (id: number) => {
+    const raw = cvsRaw.find(c => c.id === id);
+    if (raw) {
+      setEditCv({ id: raw.id, name: raw.name });
+      setCvModalOpen(true);
+    }
+  };
+
+  const handleCvUpdated = (updated: { id: number; name: string; text: string }) => {
+    setCvsRaw(prev => prev.map(c => c.id === updated.id ? updated : c));
+    setCvs(prev => prev.map(c => c.id === updated.id ? { id: updated.id, name: updated.name || updated.text.slice(0, 50) } : c));
   };
 
   const handleDeleteJobs = () => {
@@ -72,13 +89,14 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
             items={cvs}
             selected={selectedCvs}
             onSelectionChange={setSelectedCvs}
-            onAdd={() => setCvModalOpen(true)}
+            onAdd={() => { setEditCv(undefined); setCvModalOpen(true); }}
             onDelete={handleDeleteCvs}
             addLabel={tSync('jac_add_cv')}
             deleteLabel={tSync('jac_delete_cv')}
             selectAllLabel={tSync('jac_select_all_cvs')}
             emptyLabel={tSync('jac_empty')}
             showPill
+            onEdit={handleEditCv}
             className="flex-1"
           />
         </PageCard>
@@ -105,8 +123,14 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
 
       <AddCvModal
         open={cvModalOpen}
-        onClose={() => setCvModalOpen(false)}
-        onAdded={item => setCvs(prev => [{ id: item.id, name: item.name || item.text.slice(0, 50) }, ...prev])}
+        onClose={() => { setCvModalOpen(false); setEditCv(undefined); }}
+        onAdded={item => {
+          const name = item.name || item.text.slice(0, 50);
+          setCvsRaw(prev => [{ id: item.id, name, text: item.text }, ...prev]);
+          setCvs(prev => [{ id: item.id, name }, ...prev]);
+        }}
+        onUpdated={handleCvUpdated}
+        editItem={editCv}
       />
       <AddJobModal
         open={jobModalOpen}

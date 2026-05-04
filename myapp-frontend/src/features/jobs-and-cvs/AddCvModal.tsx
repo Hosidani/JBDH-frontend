@@ -9,14 +9,26 @@ interface AddCvModalProps {
   open: boolean;
   onClose: () => void;
   onAdded: (item: { id: number; name: string; text: string; created_at: string }) => void;
+  onUpdated?: (item: { id: number; name: string; text: string }) => void;
+  editItem?: { id: number; name: string };
 }
 
-const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded }) => {
+const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded, onUpdated, editItem }) => {
   const { tSync } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isEdit = !!editItem;
+
+  React.useEffect(() => {
+    if (open) {
+      setFile(null);
+      setName(editItem?.name ?? '');
+      setError(null);
+    }
+  }, [open, editItem]);
 
   const handleClose = () => {
     setFile(null);
@@ -25,13 +37,25 @@ const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded }) => {
     onClose();
   };
 
+  const canSave = isEdit ? (file !== null || name.trim() !== (editItem?.name ?? '').trim()) : file !== null;
+
   const handleSave = async () => {
-    if (!file) return;
+    if (!canSave) return;
     setSaving(true);
     setError(null);
     try {
-      const created = await ApiService.uploadCVPDF(file, name.trim() || undefined);
-      onAdded(created);
+      if (isEdit && editItem) {
+        let updated: { id: number; name: string; text: string; created_at: string };
+        if (file) {
+          updated = await ApiService.updateExternalCVPDF(editItem.id, file, name.trim() || undefined);
+        } else {
+          updated = await ApiService.updateExternalCVName(editItem.id, name.trim());
+        }
+        onUpdated?.({ id: updated.id, name: updated.name, text: updated.text });
+      } else {
+        const created = await ApiService.uploadCVPDF(file!, name.trim() || undefined);
+        onAdded(created);
+      }
       handleClose();
     } catch {
       setError(tSync('jac_add_cv_error'));
@@ -40,8 +64,10 @@ const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded }) => {
     }
   };
 
+  const modalTitle = isEdit ? tSync('jac_edit_cv_title') : tSync('jac_add_cv_title');
+
   return (
-    <Modal open={open} onClose={handleClose} title={tSync('jac_add_cv_title')}>
+    <Modal open={open} onClose={handleClose} title={modalTitle}>
       <div className="flex flex-col gap-4">
         <FileDropZone
           onFileSelected={setFile}
@@ -55,7 +81,7 @@ const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded }) => {
             ) : (
               <>
                 <span className="text-2xl">📄</span>
-                <span>{tSync('jac_add_cv_dropzone')}</span>
+                <span>{isEdit ? tSync('jac_edit_cv_dropzone') : tSync('jac_add_cv_dropzone')}</span>
               </>
             )}
           </div>
@@ -73,8 +99,8 @@ const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded }) => {
 
         <div className="flex gap-2 justify-end">
           <Button variant="ghost" size="lg" onClick={handleClose}>{tSync('jac_modal_cancel')}</Button>
-          <Button variant="primary" size="lg" disabled={!file} loading={saving} onClick={handleSave}>
-            {tSync('jac_add_cv_save')}
+          <Button variant="primary" size="lg" disabled={!canSave} loading={saving} onClick={handleSave}>
+            {isEdit ? tSync('jac_edit_cv_save') : tSync('jac_add_cv_save')}
           </Button>
         </div>
       </div>
