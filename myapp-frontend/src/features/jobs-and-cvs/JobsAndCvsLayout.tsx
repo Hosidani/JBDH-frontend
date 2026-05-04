@@ -151,6 +151,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
           const name = item.name || item.text.slice(0, 50);
           setCvsRaw(prev => [{ id: item.id, name, text: item.text }, ...prev]);
           setCvs(prev => [{ id: item.id, name }, ...prev]);
+          refreshAtsResults();
         }}
         onUpdated={handleCvUpdated}
         editItem={editCv}
@@ -162,6 +163,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
           const name = item.name || item.text.slice(0, 50);
           setJobsRaw(prev => [{ id: item.id, name, text: item.text }, ...prev]);
           setJobs(prev => [{ id: item.id, name }, ...prev]);
+          refreshAtsResults();
         }}
         onUpdated={handleJobUpdated}
         editItem={editJob}
