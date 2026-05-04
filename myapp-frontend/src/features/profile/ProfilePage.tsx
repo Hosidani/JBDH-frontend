@@ -11,7 +11,7 @@ import { useAIResponsePolling } from '../../hooks/useAIResponsePolling';
 
 
 function ProfilePage() {
-  const { user } = useAuth();
+  useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -72,7 +72,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
     }
   };
 
-  const handleJobUpdated = (updated: JobRaw) => {
+  const handleJobUpdated = (updated: RawItem) => {
     setJobsRaw(prev => prev.map(j => j.id === updated.id ? updated : j));
     setJobs(prev => prev.map(j => j.id === updated.id ? { id: updated.id, name: updated.name || updated.text.slice(0, 50) } : j));
   };

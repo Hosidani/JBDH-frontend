@@ -25,7 +25,7 @@ interface SelectableListSectionProps {
 }
 
 const SelectableListSection: React.FC<SelectableListSectionProps> = ({
-  title,
+  title: _title,
   items,
   selected,
   onSelectionChange,
