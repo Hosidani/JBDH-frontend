@@ -7,11 +7,26 @@ import SelectableListSection, { type SelectableItem } from './SelectableListSect
 import AddCvModal from './AddCvModal';
 import AddJobModal from './AddJobModal';
 
-interface JobsAndCvsLayoutProps {
-  renderResult: (activeCvs: SelectableItem[], activeJobs: SelectableItem[]) => React.ReactNode;
+export interface AtsResultPreview {
+  id: number;
+  cv_name: string;
+  job_name: string;
+  overall_score: number | null;
+  created_at: string;
 }
 
-type RawItem = { id: number; name: string; text: string };
+export type RawItem = { id: number; name: string; text: string };
+
+interface JobsAndCvsLayoutProps {
+  renderResult: (
+    activeCvs: SelectableItem[],
+    activeJobs: SelectableItem[],
+    atsResults: AtsResultPreview[],
+    activeCvsRaw: RawItem[],
+    activeJobsRaw: RawItem[],
+    refreshAtsResults: () => void,
+  ) => React.ReactNode;
+}
 
 const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => {
   const { tSync } = useTranslation();
@@ -25,6 +40,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
   const [jobModalOpen, setJobModalOpen] = useState(false);
   const [editCv, setEditCv] = useState<{ id: number; name: string } | undefined>(undefined);
   const [editJob, setEditJob] = useState<RawItem | undefined>(undefined);
+  const [atsResults, setAtsResults] = useState<AtsResultPreview[]>([]);
 
   useEffect(() => {
     ApiService.getExternalCVs().then(data => {
@@ -35,7 +51,12 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
       setJobsRaw(data.map(j => ({ id: j.id, name: j.name || j.text.slice(0, 50), text: j.text })));
       setJobs(data.map(j => ({ id: j.id, name: j.name || j.text.slice(0, 50) })));
     }).catch(() => {});
+    ApiService.getAtsResults().then(setAtsResults).catch(() => {});
   }, []);
+
+  const refreshAtsResults = () => {
+    ApiService.getAtsResults().then(setAtsResults).catch(() => {});
+  };
 
   const handleDeleteCvs = () => {
     selectedCvs.forEach(id => ApiService.deleteExternalCV(id).catch(() => {}));
@@ -79,6 +100,8 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
 
   const activeCvs = cvs.filter(c => selectedCvs.has(c.id));
   const activeJobs = jobs.filter(j => selectedJobs.has(j.id));
+  const activeCvsRaw = cvsRaw.filter(c => selectedCvs.has(c.id));
+  const activeJobsRaw = jobsRaw.filter(j => selectedJobs.has(j.id));
 
   return (
     <PageWrapper>
@@ -119,7 +142,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
         </PageCard>
       </div>
 
-      {renderResult(activeCvs, activeJobs)}
+      {renderResult(activeCvs, activeJobs, atsResults, activeCvsRaw, activeJobsRaw, refreshAtsResults)}
 
       <AddCvModal
         open={cvModalOpen}

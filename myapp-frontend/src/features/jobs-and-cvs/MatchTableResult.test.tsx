@@ -9,10 +9,10 @@ const cv1 = { id: 10, name: 'Anna Svensson' };
 const cv2 = { id: 20, name: 'Beril Carlsson' };
 
 const rows: MatchRow[] = [
-  { job: job1, cv: cv1, score: 0.8 },
-  { job: job2, cv: cv2, score: 0.5 },
-  { job: job1, cv: cv2, score: 0.3 },
-  { job: job2, cv: cv1, score: 0.9 },
+  { job: job1, cv: cv1, score: 80 },
+  { job: job2, cv: cv2, score: 50 },
+  { job: job1, cv: cv2, score: 30 },
+  { job: job2, cv: cv1, score: 90 },
 ];
 
 function setup(r: MatchRow[] = rows) {
@@ -49,7 +49,7 @@ describe('MatchTableResult', () => {
   });
 
   it('formaterar score som procent', () => {
-    setup([{ job: job1, cv: cv1, score: 0.756 }]);
+    setup([{ job: job1, cv: cv1, score: 75.6 }]);
     expect(screen.getByRole('row', { name: /76%/ })).toBeInTheDocument();
   });
 

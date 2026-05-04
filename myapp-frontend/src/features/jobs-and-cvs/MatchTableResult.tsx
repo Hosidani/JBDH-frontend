@@ -4,7 +4,8 @@ import { type SelectableItem } from './SelectableListSection';
 export interface MatchRow {
   job: SelectableItem;
   cv: SelectableItem;
-  score: number;
+  score: number | null;
+  atsResultId?: number;
 }
 
 type SortKey = 'job' | 'cv' | 'score';
@@ -16,6 +17,7 @@ interface MatchTableResultProps {
   cvLabel: string;
   scoreLabel: string;
   emptyLabel: string;
+  onRowClick?: (atsResultId: number) => void;
 }
 
 const SortIcon: React.FC<{ active: boolean; dir: SortDir }> = ({ active, dir }) => (
@@ -30,6 +32,7 @@ const MatchTableResult: React.FC<MatchTableResultProps> = ({
   cvLabel,
   scoreLabel,
   emptyLabel,
+  onRowClick,
 }) => {
   const [sortKey, setSortKey] = useState<SortKey>('score');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -46,15 +49,17 @@ const MatchTableResult: React.FC<MatchTableResultProps> = ({
   const sorted = useMemo(() => {
     return [...rows].sort((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
+      const scoreA = a.score ?? -Infinity;
+      const scoreB = b.score ?? -Infinity;
       if (sortKey === 'job') {
         const primary = a.job.name.localeCompare(b.job.name, 'sv') * dir;
-        return primary !== 0 ? primary : b.score - a.score;
+        return primary !== 0 ? primary : scoreB - scoreA;
       }
       if (sortKey === 'cv') {
         const primary = a.cv.name.localeCompare(b.cv.name, 'sv') * dir;
-        return primary !== 0 ? primary : b.score - a.score;
+        return primary !== 0 ? primary : scoreB - scoreA;
       }
-      return (a.score - b.score) * dir;
+      return (scoreA - scoreB) * dir;
     });
   }, [rows, sortKey, sortDir]);
 
@@ -81,15 +86,22 @@ const MatchTableResult: React.FC<MatchTableResultProps> = ({
           </tr>
         </thead>
         <tbody>
-          {sorted.map((row, i) => (
-            <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
-              <td className="py-2 pr-4 text-slate-700 truncate max-w-[220px]">{row.job.name}</td>
-              <td className="py-2 pr-4 text-slate-700 truncate max-w-[220px]">{row.cv.name}</td>
-              <td className="py-2 text-right font-mono text-slate-600">
-                {(row.score * 100).toFixed(0)}%
-              </td>
-            </tr>
-          ))}
+          {sorted.map((row, i) => {
+            const clickable = !!row.atsResultId && !!onRowClick;
+            return (
+              <tr
+                key={i}
+                className={`border-t border-slate-100 hover:bg-blue-50 ${clickable ? 'cursor-pointer' : ''}`}
+                onClick={clickable ? () => onRowClick!(row.atsResultId!) : undefined}
+              >
+                <td className="py-2 pr-4 text-slate-700 truncate max-w-[220px]">{row.job.name}</td>
+                <td className="py-2 pr-4 text-slate-700 truncate max-w-[220px]">{row.cv.name}</td>
+                <td className="py-2 text-right font-mono text-slate-600">
+                  {row.score != null ? `${Math.round(row.score)}%` : '—'}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
