@@ -36,7 +36,7 @@ const AtsResultsPage: React.FC = () => {
 
   useEffect(() => {
     ApiService.getAtsResults()
-      .then(setResults)
+      .then(data => setResults(data.filter(r => r.cv_name?.trim() && r.job_name?.trim())))
       .catch(() => setError(tSync('ats_load_error')))
       .finally(() => setLoading(false));
   }, [tSync]);
