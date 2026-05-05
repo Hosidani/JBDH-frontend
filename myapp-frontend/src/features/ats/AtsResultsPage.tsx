@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { PageWrapper } from '../../components/common';
+import { PageWrapper, PageBackground } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
+import presentationImg from '../../assets/img/Presentation.png';
 import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import AtsResultDetailModal, { type AtsResultDetail } from './AtsResultDetailModal';
@@ -76,7 +77,9 @@ const AtsResultsPage: React.FC = () => {
   const thClass = 'text-left text-slate-500 font-semibold pb-3 pr-4 cursor-pointer select-none hover:text-blue-600 transition-colors text-sm';
 
   return (
-    <PageWrapper>
+    <>
+      <PageBackground imageUrl={presentationImg} opacity={1} blur={0} />
+      <PageWrapper className="relative z-10">
       <PageCard title={tSync('ats_page_title')}>
         {loading && (
           <p className="text-sm text-slate-400 text-center py-8">{tSync('ats_loading')}</p>
@@ -144,6 +147,7 @@ const AtsResultsPage: React.FC = () => {
         onClose={() => { setModalOpen(false); setDetail(null); }}
       />
     </PageWrapper>
+    </>
   );
 };
 

@@ -105,7 +105,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
   const activeJobsRaw = jobsRaw.filter(j => selectedJobs.has(j.id));
 
   return (
-    <PageWrapper>
+    <PageWrapper className="relative z-10">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
         <PageCard title={tSync('jac_saved_cvs')} className="flex flex-col">
           <SelectableListSection

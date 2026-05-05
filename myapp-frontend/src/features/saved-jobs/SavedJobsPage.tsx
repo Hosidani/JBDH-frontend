@@ -7,6 +7,7 @@ import { SavedJobsList } from '../../components/common/cards';
 import { ApiService } from '../../services/ApiService';
 import type { SavedJob } from '../../components/common/cards';
 import type { JobDetailsDto } from '../../services/ApiService';
+import groupExerciseByTableImg from '../../assets/img/groupexercise-by-table.png';
 
 const SavedJobsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -121,8 +122,8 @@ const SavedJobsPage: React.FC = () => {
 
   return (
     <>
-      <PageBackground imageUrl="/saved_jobs.png" opacity={1} blur={0} />
-      <PageWrapper>
+      <PageBackground imageUrl={groupExerciseByTableImg} opacity={1} blur={0} />
+      <PageWrapper className="relative z-10">
         <SectionCard className="relative z-10">
           <h2 className="text-2xl font-bold mb-2" style={{ color: '#2563eb' }}>
             {tSync('savedJobsPage_title')}

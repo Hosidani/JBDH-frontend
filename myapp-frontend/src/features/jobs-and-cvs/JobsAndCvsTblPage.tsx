@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PageCard } from '../../components/common/PageCard';
+import { PageBackground } from '../../components/common';
 import { Button } from '../../components/ui/Button';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { type SelectableItem } from './SelectableListSection';
@@ -8,6 +9,7 @@ import JobsAndCvsLayout from './JobsAndCvsLayout';
 import MatchTableResult, { type MatchRow } from './MatchTableResult';
 import AtsResultDetailModal, { type AtsResultDetail } from '../ats/AtsResultDetailModal';
 import { ApiService } from '../../services/ApiService';
+import coffeBreakImg from '../../assets/img/Coffe-break.png';
 
 const JobsAndCvsTblPage: React.FC = () => {
   const { tSync } = useTranslation();
@@ -48,6 +50,7 @@ const JobsAndCvsTblPage: React.FC = () => {
 
   return (
     <>
+      <PageBackground imageUrl={coffeBreakImg} opacity={1} blur={0} />
       <JobsAndCvsLayout
         showCvPills={false}
         renderResult={(

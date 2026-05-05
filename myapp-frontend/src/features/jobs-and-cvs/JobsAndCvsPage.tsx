@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PageCard } from '../../components/common/PageCard';
+import { PageBackground } from '../../components/common';
 import { NamePill } from '../../components/common/NamePill';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { type SelectableItem } from './SelectableListSection';
@@ -7,6 +8,7 @@ import { type AtsResultPreview } from './JobsAndCvsLayout';
 import JobsAndCvsLayout from './JobsAndCvsLayout';
 import AtsResultDetailModal, { type AtsResultDetail } from '../ats/AtsResultDetailModal';
 import { ApiService } from '../../services/ApiService';
+import groupExerciseImg from '../../assets/img/groupexercise.png';
 
 const JobsAndCvsPage: React.FC = () => {
   const { tSync } = useTranslation();
@@ -25,6 +27,7 @@ const JobsAndCvsPage: React.FC = () => {
 
   return (
     <>
+      <PageBackground imageUrl={groupExerciseImg} opacity={1} blur={0} />
       <JobsAndCvsLayout
         renderResult={(activeCvs: SelectableItem[], activeJobs: SelectableItem[], atsResults: AtsResultPreview[]) => {
           const atsMap = new Map<string, AtsResultPreview>();

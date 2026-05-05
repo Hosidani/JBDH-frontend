@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { FeatureCard, PageWrapper } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import welcomeImg from '../../assets/img/Welcome.png';
 
 
 const features = (t: (key: string) => string) => [
@@ -9,7 +10,7 @@ const features = (t: (key: string) => string) => [
     title: t('home_feature_register_title'),
     desc: t('home_feature_register_desc'),
     to: '/register',
-    img: '/edit_profile.png',
+    img: welcomeImg,
     guestOnly: true,
     requiresAuth: false,
   },
