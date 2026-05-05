@@ -49,6 +49,7 @@ const JobsAndCvsTblPage: React.FC = () => {
   return (
     <>
       <JobsAndCvsLayout
+        showCvPills={false}
         renderResult={(
           activeCvs: SelectableItem[],
           activeJobs: SelectableItem[],

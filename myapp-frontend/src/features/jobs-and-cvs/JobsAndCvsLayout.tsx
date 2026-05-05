@@ -26,9 +26,10 @@ interface JobsAndCvsLayoutProps {
     activeJobsRaw: RawItem[],
     refreshAtsResults: () => void,
   ) => React.ReactNode;
+  showCvPills?: boolean;
 }
 
-const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => {
+const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showCvPills = true }) => {
   const { tSync } = useTranslation();
   const [cvs, setCvs] = useState<SelectableItem[]>([]);
   const [cvsRaw, setCvsRaw] = useState<RawItem[]>([]);
@@ -118,7 +119,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult }) => 
             deleteLabel={tSync('jac_delete_cv')}
             selectAllLabel={tSync('jac_select_all_cvs')}
             emptyLabel={tSync('jac_empty')}
-            showPill
+            showPill={showCvPills}
             onEdit={handleEditCv}
             className="flex-1"
           />
