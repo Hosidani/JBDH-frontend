@@ -1,6 +1,6 @@
-# Integritetspolicy [UTKAST]
+# Integritetspolicy
 
-**Senast uppdaterad:** 2026-03-26
+**Senast uppdaterad:** 2026-05-05
 
 ## 1. Inledning
 
@@ -10,10 +10,10 @@ Genom att använda vår tjänst godkänner du att dina personuppgifter behandlas
 
 ## 2. Personuppgiftsansvarig
 
-[Företagsnamn]  
+Log House AB  
 [Organisationsnummer]  
-[Adress]  
-[E-post]  
+Håvet Lunnaberg, 43897 Rävlanda, Västra Götaland   
+hello@loghouse.dev   
 [Telefon]
 
 ## 3. Vilka personuppgifter vi samlar in

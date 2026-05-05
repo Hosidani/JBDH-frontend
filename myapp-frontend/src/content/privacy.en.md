@@ -1,7 +1,6 @@
-# Privacy Policy [DRAFT]
+# Privacy Policy
 
-
-**Last updated:** 2026-03-26
+**Last updated:** 2026-05-05
 
 ## 1. Introduction
 
@@ -11,10 +10,10 @@ By using our service, you consent to your personal data being processed in accor
 
 ## 2. Data Controller
 
-[Company Name]
-[Organisation Number]
-[Address]
-[Email]
+Log House AB  
+[Organisation Number]  
+Håvet Lunnaberg, 43897 Rävlanda, Västra Götaland  
+hello@loghouse.dev  
 [Phone]
 
 ## 3. Personal Data We Collect
@@ -89,12 +88,12 @@ You have the following rights under GDPR:
 - **Right to object** – You may object to processing based on legitimate interest.
 - **Right to withdraw consent** – You may withdraw consent at any time without affecting the lawfulness of processing that occurred beforehand.
 
-To exercise your rights, contact us at [email].
+To exercise your rights, contact us at hello@loghouse.dev.
 
 ## 10. Complaints
 
-If you believe we are processing your personal data incorrectly, you have the right to lodge a complaint with the **Swedish Authority for Privacy Protection (IMY)**:
-Website: [www.imy.se](https://www.imy.se)
+If you believe we are processing your personal data incorrectly, you have the right to lodge a complaint with the **Swedish Authority for Privacy Protection (IMY)**:  
+Website: [www.imy.se](https://www.imy.se)  
 Email: imy@imy.se
 
 ## 11. Changes to This Policy

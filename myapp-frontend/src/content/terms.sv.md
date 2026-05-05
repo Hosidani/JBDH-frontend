@@ -1,10 +1,10 @@
-# Användarvillkor [UTKAST]
+# Användarvillkor
 
-**Senast uppdaterade:** 2026-03-26
+**Senast uppdaterade:** 2026-05-05
 
 ## 1. Om tjänsten och dessa villkor
 
-Dessa användarvillkor ("Villkoren") reglerar din användning av [Tjänstens namn] ("Tjänsten"), som tillhandahålls av [Företagsnamn], org.nr [XXXXXX-XXXX] ("vi", "oss", "Bolaget").
+Dessa användarvillkor ("Villkoren") reglerar din användning av JBDH ("Tjänsten"), som tillhandahålls av Log House AB, org.nr [XXXXXX-XXXX] ("vi", "oss", "Bolaget").
 
 Genom att skapa ett konto eller använda Tjänsten godkänner du dessa Villkor i sin helhet. Om du inte godkänner Villkoren ska du inte använda Tjänsten.
 
@@ -74,7 +74,7 @@ Dessa Villkor regleras av svensk rätt. Tvister ska i första hand lösas genom 
 
 ## 12. Kontakt
 
-[Företagsnamn]  
-[E-postadress]  
+Log House AB  
+hello@loghouse.dev  
 [Telefon]  
-[Adress]
+Håvet Lunnaberg, 43897 Rävlanda, Västra Götaland 
