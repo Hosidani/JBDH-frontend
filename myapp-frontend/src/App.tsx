@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import jbdhLogoImg from './assets/img/JBDH_64X64.png';
 import { useTranslation } from './hooks/TranslationProvider';
 import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth, Footer, FeedbackButton } from './components/common';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
@@ -57,7 +58,7 @@ function App() {
       <header className="sticky top-0 w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20">
         <div className="flex items-center gap-3">
           <Link to="/">
-            <img src="/JBDH_64X64.png" alt="JBDH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
+            <img src={jbdhLogoImg} alt="JBDH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
           </Link>
           <span className="font-bold text-xl tracking-tight">JBDH</span>
           <span className="text-slate-500 text-sm ml-2">{tSync('app_tagline')}</span>

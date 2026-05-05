@@ -3,6 +3,12 @@ import { FeatureCard, PageWrapper } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useRoles } from '../../hooks/useRoles';
 import welcomeImg from '../../assets/img/Welcome.png';
+import matchCvJobImg from '../../assets/img/match_CV_against_job.png';
+import searchJobsImg from '../../assets/img/searchJobsPage.png';
+import editProfileImg from '../../assets/img/edit_profile.png';
+import matchCvImg from '../../assets/img/match_CV.png';
+import addJobImg from '../../assets/img/add_job.png';
+import landingPageImg from '../../assets/img/landing_page_big_image.png';
 
 const features = (t: (key: string) => string) => [
   {
@@ -17,32 +23,32 @@ const features = (t: (key: string) => string) => [
     title: t('home_feature_match_cv_jobad_title'),
     desc: t('home_feature_match_cv_jobad_desc'),
     to: '/compare-cv-jobad',
-    img: '/match_CV_against_job.png',
+    img: matchCvJobImg,
   },
   {
     title: t('home_feature_match_cv_ads_title'),
     desc: t('home_feature_match_cv_ads_desc'),
     to: '/search',
-    img: '/searchJobsPage.png',
+    img: searchJobsImg,
   },
   {
     title: t('home_feature_edit_profile_title'),
     desc: t('home_feature_edit_profile_desc'),
     to: '/profile',
-    img: '/edit_profile.png',
+    img: editProfileImg,
     roles: ['User'],
   },
   {
     title: t('home_feature_match_ad_cv_title'),
     desc: t('home_feature_match_ad_cv_desc'),
     to: '/jobs-and-cvs',
-    img: '/match_CV.png',
+    img: matchCvImg,
   },
   {
     title: t('home_feature_add_ad_title'),
     desc: t('home_feature_add_ad_desc'),
     to: '/add-job-ad',
-    img: '/add_job.png',
+    img: addJobImg,
   },
 ];
 
@@ -55,7 +61,7 @@ const HomePage: React.FC = () => {
       {/* Hero Section */}
       <section className="w-full flex flex-col py-10">
         <img
-          src="/landing_page_big_image.png"
+          src={landingPageImg}
           alt={tSync('home_hero_alt')}
           className="w-full rounded-lg object-cover mb-8 shadow"
           style={{ height: 260 }}

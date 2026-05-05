@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import editProfileImg from '../../assets/img/edit_profile.png';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
@@ -77,7 +78,7 @@ function ProfilePage() {
 
   return (
     <>
-      <PageBackground imageUrl="/edit_profile.png" opacity={1} blur={0} />
+      <PageBackground imageUrl={editProfileImg} opacity={1} blur={0} />
       <PageWrapper className="relative z-10">
         <div className="flex flex-col gap-6">
           <PageCard title={tSync('profilePage_title')}>
