@@ -64,6 +64,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({
         await ApiService.unsaveJob(jobId);
       } else {
         await ApiService.saveJob(jobId);
+        if (job.description) {
+          const adTitle = job.location ? `${job.title} (${job.location})` : job.title;
+          ApiService.createExternalJobAd(job.description, adTitle).catch(err =>
+            console.error('Failed to save external job ad:', err)
+          );
+        }
       }
       onJobUpdate?.({ ...job, isSaved: !job.isSaved });
     } catch {
