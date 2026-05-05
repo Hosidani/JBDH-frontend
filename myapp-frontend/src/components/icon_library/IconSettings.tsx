@@ -1,8 +1,9 @@
 import React from "react";
+import settingsImg from "../../assets/img/settings.png";
 
 const IconSettings: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "", style }) => (
   <img
-    src="/settings.png"
+    src={settingsImg}
     alt="Settings"
     className={className}
     style={style}

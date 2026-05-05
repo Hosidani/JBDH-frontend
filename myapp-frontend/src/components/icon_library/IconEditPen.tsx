@@ -1,8 +1,9 @@
 import React from "react";
+import editPenImg from "../../assets/img/edit_pen.svg";
 
 const IconEditPen: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "", style }) => (
   <img
-    src="/edit_pen.svg"
+    src={editPenImg}
     alt="Edit"
     className={className}
     style={style}
