@@ -93,15 +93,20 @@ const JobDetailPage: React.FC = () => {
 
   const handleSave = async () => {
     if (!jobData || saveLoading) return;
-    
+
     setSaveLoading(true);
     try {
       if (jobData.isSaved) {
         await ApiService.unsaveJob(jobData.jobId);
       } else {
         await ApiService.saveJob(jobData.jobId);
+        if (jobData.description) {
+          const adTitle = jobData.location ? `${jobData.title} (${jobData.location})` : jobData.title;
+          ApiService.createExternalJobAd(jobData.description, adTitle).catch(err =>
+            console.error('Failed to save external job ad:', err)
+          );
+        }
       }
-      // Update local state
       setJobData({ ...jobData, isSaved: !jobData.isSaved });
     } catch (err) {
       console.error('Error toggling save status:', err);
