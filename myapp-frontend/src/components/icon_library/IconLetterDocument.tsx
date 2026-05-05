@@ -1,8 +1,9 @@
 import React from "react";
+import letterDocumentImg from "../../assets/img/letter-document.png";
 
 const IconLetterDocument: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "", style }) => (
   <img
-    src="/letter-document.png"
+    src={letterDocumentImg}
     alt="Personligt brev"
     className={className}
     style={style}

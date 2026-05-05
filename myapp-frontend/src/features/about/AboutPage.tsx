@@ -1,5 +1,6 @@
 import React from 'react';
-import { PageWrapper } from '../../components/common';
+import { PageWrapper, PageBackground } from '../../components/common';
+import laptopWorkImg from '../../assets/img/Laptop-work.png';
 import { SectionCard } from '../../components/common/SectionCard';
 import MarkdownRenderer from '../../components/common/MarkdownRenderer';
 import { useTranslation } from '../../hooks/TranslationProvider';
@@ -16,11 +17,14 @@ const AboutPage: React.FC = () => {
   const content = contentByLanguage[language] ?? aboutSv;
 
   return (
-    <PageWrapper>
-      <SectionCard>
-        <MarkdownRenderer content={content} />
-      </SectionCard>
-    </PageWrapper>
+    <>
+      <PageBackground imageUrl={laptopWorkImg} opacity={1} blur={0} />
+      <PageWrapper className="relative z-10">
+        <SectionCard>
+          <MarkdownRenderer content={content} />
+        </SectionCard>
+      </PageWrapper>
+    </>
   );
 };
 

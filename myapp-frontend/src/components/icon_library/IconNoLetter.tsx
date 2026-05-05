@@ -1,8 +1,9 @@
 import React from "react";
+import noLetterImg from "../../assets/img/no-letter.png";
 
 const IconNoLetter: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "", style }) => (
   <img
-    src="/no-letter.png"
+    src={noLetterImg}
     alt="Inget brev"
     className={className}
     style={style}

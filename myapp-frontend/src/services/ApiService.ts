@@ -613,6 +613,23 @@ export class ApiService {
     await this.fetchWithAuth(`/external-cvs/${id}/`, { method: 'DELETE' });
   }
 
+  static async updateExternalCVName(id: number, name: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
+    const response = await this.fetchWithAuth(`/external-cvs/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+    return await response.json();
+  }
+
+  static async updateExternalCVPDF(id: number, file: File, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (name) formData.append('name', name);
+    const response = await this.fetchWithAuth(`/external-cvs/${id}/upload-pdf/`, { method: 'PATCH', body: formData });
+    if (!response.ok) throw new Error(`Update failed: ${response.status}`);
+    return await response.json();
+  }
+
   /** Upload a PDF/DOCX file → backend extracts text → saves as ExternalCV */
   static async uploadCVPDF(file: File, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
     const formData = new FormData();
@@ -621,6 +638,29 @@ export class ApiService {
     const response = await this.fetchWithAuth('/external-cvs/upload-pdf/', { method: 'POST', body: formData });
     if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
     return await response.json();
+  }
+
+  // === ATS RESULTS ===
+
+  static async runAtsScore(cvText: string, jobText: string): Promise<unknown> {
+    const formData = new FormData();
+    formData.append('CvPath', new File([new Blob([cvText], { type: 'text/plain' })], 'cv.txt', { type: 'text/plain' }));
+    formData.append('JobAdText', jobText);
+    const response = await this.fetchWithAuth('/ats/score', { method: 'POST', body: formData });
+    if (!response.ok) throw new Error(`ATS score failed: ${response.status}`);
+    return await response.json();
+  }
+
+  static async getAtsResults(): Promise<{ id: number; cv_name: string; job_name: string; overall_score: number | null; created_at: string }[]> {
+    const response = await this.fetchWithAuth('/ats/getexternalrelation/', { method: 'GET' });
+    const json = await response.json();
+    return json.data ?? json;
+  }
+
+  static async getAtsResult(id: number): Promise<{ id: number; cv_name: string; job_name: string; overall_score: number | null; created_at: string; cv_text: string; job_text: string; ats_json: Record<string, unknown> }> {
+    const response = await this.fetchWithAuth(`/ats/getexternalrelation/${id}/`, { method: 'GET' });
+    const json = await response.json();
+    return json.data ?? json;
   }
 
   // === EXTERNAL JOB ADS ===
@@ -646,6 +686,14 @@ export class ApiService {
     const response = await this.fetchWithAuth(`/external-job-ads/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify({ name }),
+    });
+    return await response.json();
+  }
+
+  static async updateExternalJobAd(id: number, text: string, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
+    const response = await this.fetchWithAuth(`/external-job-ads/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ text, ...(name !== undefined ? { name } : {}) }),
     });
     return await response.json();
   }

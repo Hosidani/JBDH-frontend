@@ -1,10 +1,10 @@
-# End User Licence Agreement (EULA) [DRAFT]
+# End User Licence Agreement (EULA)
 
-**Last updated:** 2026-03-26
+**Last updated:** 2026-05-05
 
 ## 1. Parties and Purpose
 
-This End User Licence Agreement ("EULA" or "Agreement") is a binding agreement between you as an individual ("User") and [Company Name], reg. no. [XXXXXX-XXXX] ("Licensor"), regarding the use of the software and service [Service Name], including any mobile apps, web applications and associated AI features (collectively the "Software").
+This End User Licence Agreement ("EULA" or "Agreement") is a binding agreement between you as an individual ("User") and Log House AB, reg. no. [XXXXXX-XXXX] ("Licensor"), regarding the use of the software and service JBDH, including any mobile apps, web applications and associated AI features (collectively the "Software").
 
 By installing, activating or otherwise using the Software, you confirm that you have read, understood and accepted this Agreement.
 
@@ -96,8 +96,8 @@ This Agreement is governed by and construed in accordance with Swedish law, with
 
 For questions about this Agreement, contact:
 
-[Company Name]
-[Organisation Number]
-[Address]
-[Email address]
+Log House AB  
+[Organisation Number]  
+Håvet Lunnaberg, 43897 Rävlanda, Västra Götaland  
+hello@loghouse.dev  
 [Phone number]

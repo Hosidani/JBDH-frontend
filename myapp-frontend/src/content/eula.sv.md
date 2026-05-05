@@ -1,10 +1,10 @@
-# Licensavtal för slutanvändare (EULA) [UTKAST]
+# Licensavtal för slutanvändare (EULA)
 
-**Senast uppdaterat:** 2026-03-26
+**Senast uppdaterat:** 2026-05-05
 
 ## 1. Parter och avtalets syfte
 
-Detta licensavtal för slutanvändare ("EULA" eller "Avtalet") är ett bindande avtal mellan dig som privatperson ("Användaren") och [Företagsnamn], org.nr [XXXXXX-XXXX] ("Licensgivaren"), avseende användning av programvaran och tjänsten [Tjänstens namn], inklusive eventuella mobilappar, webbapplikationer och tillhörande AI-funktioner (sammantaget "Programvaran").
+Detta licensavtal för slutanvändare ("EULA" eller "Avtalet") är ett bindande avtal mellan dig som privatperson ("Användaren") och Log House AB, org.nr [XXXXXX-XXXX] ("Licensgivaren"), avseende användning av programvaran och tjänsten JBDH, inklusive eventuella mobilappar, webbapplikationer och tillhörande AI-funktioner (sammantaget "Programvaran").
 
 Genom att installera, aktivera eller på annat sätt använda Programvaran bekräftar du att du har läst, förstått och godkänt detta Avtal.
 
@@ -96,8 +96,8 @@ Detta Avtal regleras av och tolkas i enlighet med svensk rätt, utan tillämpnin
 
 Vid frågor om detta Avtal, kontakta:
 
-[Företagsnamn]  
+Log House AB  
 [Organisationsnummer]  
-[Adress]  
-[E-postadress]  
+Håvet Lunnaberg, 43897 Rävlanda, Västra Götaland   
+hello@loghouse.dev  
 [Telefonnummer]

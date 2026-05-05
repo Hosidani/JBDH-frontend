@@ -1,11 +1,10 @@
-# Terms of Use  [DRAFT]
+# Terms of Use
 
-
-**Last updated:** 2026-03-26
+**Last updated:** 2026-05-05
 
 ## 1. About the Service and These Terms
 
-These terms of use ("Terms") govern your use of [Service Name] ("Service"), provided by [Company Name], reg. no. [XXXXXX-XXXX] ("we", "us", "Company").
+These terms of use ("Terms") govern your use of JBDH ("Service"), provided by Log House AB, reg. no. [XXXXXX-XXXX] ("we", "us", "Company").
 
 By creating an account or using the Service, you agree to these Terms in their entirety. If you do not accept the Terms, you must not use the Service.
 
@@ -75,7 +74,7 @@ These Terms are governed by Swedish law. Disputes shall first be resolved throug
 
 ## 12. Contact
 
-[Company Name]
-[Email address]
-[Phone]
-[Address]
+Log House AB  
+hello@loghouse.dev  
+[Phone]  
+Håvet Lunnaberg, 43897 Rävlanda, Västra Götaland

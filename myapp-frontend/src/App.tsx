@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import jbdhLogoImg from './assets/img/JBDH_64X64.png';
 import { useTranslation } from './hooks/TranslationProvider';
 import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth, Footer, FeedbackButton } from './components/common';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
@@ -14,6 +15,8 @@ import { ProfilePage } from './features/profile';
 import { AccountPage } from './features/account';
 import { AddJobAdPage } from './features/boards';
 import { MatchingProfilePage } from './features/matching';
+import { JobsAndCvsPage, JobsAndCvsTblPage } from './features/jobs-and-cvs';
+import { AtsResultsPage } from './features/ats';
 import { JobDetailPage } from './features/jobs';
 import { MessagesPage } from './features/messages';
 import ServiceMessageModal from './components/common/ServiceMessageModal';
@@ -50,12 +53,12 @@ function App() {
   const { language, changeLanguage, tSync } = useTranslation();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-orange-50">
       {/* Header with hamburger and language switcher */}
       <header className="sticky top-0 w-full flex items-center justify-between px-8 py-6 bg-white border-b border-slate-200 z-20">
         <div className="flex items-center gap-3">
           <Link to="/">
-            <img src="/JBDH_64X64.png" alt="JBDH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
+            <img src={jbdhLogoImg} alt="JBDH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
           </Link>
           <span className="font-bold text-xl tracking-tight">JBDH</span>
           <span className="text-slate-500 text-sm ml-2">{tSync('app_tagline')}</span>
@@ -142,6 +145,9 @@ function App() {
           {/* Requires Recruiter role */}
           <Route path="/add-job-ad"   element={<RequireAuth roles={['Recruiter']}><AddJobAdPage /></RequireAuth>} />
           <Route path="/match-ad-cvs" element={<RequireAuth roles={['Recruiter']}><MatchAdToCvsPage /></RequireAuth>} />
+          <Route path="/jobs-and-cvs"     element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsPage /></RequireAuth>} />
+          <Route path="/jobs-and-cvs-tbl" element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsTblPage /></RequireAuth>} />
+          <Route path="/ats-results"      element={<RequireAuth roles={['Recruiter', 'Manager']}><AtsResultsPage /></RequireAuth>} />
 
           {/* Footer pages */}
           <Route path="/contact" element={<ContactPage />} />

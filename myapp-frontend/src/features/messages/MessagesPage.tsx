@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { PageWrapper } from '../../components/common';
+import { PageWrapper, PageBackground } from '../../components/common';
+import laptopWorkImg from '../../assets/img/Laptop-work.png';
 import { SectionCard } from '../../components/common/SectionCard';
 import ServiceMessageModal from '../../components/common/ServiceMessageModal';
 import { useServiceMessages } from '../../hooks/useServiceMessages';
@@ -21,7 +22,9 @@ const MessagesPage: React.FC = () => {
   const [selectedMessage, setSelectedMessage] = useState<ServiceMessage | null>(null);
 
   return (
-    <PageWrapper>
+    <>
+      <PageBackground imageUrl={laptopWorkImg} opacity={1} blur={0} />
+    <PageWrapper className="relative z-10">
       <SectionCard className="flex flex-col gap-4">
         <h2 className="text-2xl font-bold text-blue-600 mb-2">{tSync('serviceMessages_page_title')}</h2>
         {allMessages.length === 0 && (
@@ -57,6 +60,7 @@ const MessagesPage: React.FC = () => {
         />
       )}
     </PageWrapper>
+    </>
   );
 };
 
