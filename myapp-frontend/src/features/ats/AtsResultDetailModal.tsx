@@ -91,14 +91,18 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
                 <div key={key}>
                   <div className="flex justify-between text-xs text-slate-600 mb-0.5">
                     <span className="capitalize">{key.replace(/_/g, ' ')}</span>
-                    <span>{Math.round(val)}%</span>
+                    <span>{val != null ? `${Math.round(val as number)}%` : '—'}</span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div
-                      className="h-2 rounded-full bg-blue-500"
-                      style={{ width: `${Math.min(100, Math.round(val))}%` }}
-                    />
-                  </div>
+                  {val != null ? (
+                    <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div
+                        className="h-2 rounded-full bg-blue-500"
+                        style={{ width: `${Math.min(100, Math.round(val as number))}%` }}
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">Ej angivet i jobbannonsen</p>
+                  )}
                 </div>
               ))}
             </div>
