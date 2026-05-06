@@ -418,5 +418,10 @@
   "ats_detail_recommendations": "Recommendations",
   "ats_run_analysis": "Run analysis",
   "ats_analyzing": "Analysing",
-  "ats_pairs_missing": "combinations missing analysis"
+  "ats_pairs_missing": "combinations missing analysis",
+  "ats_score_no_way": "Impossible",
+  "ats_score_poor": "Pointless",
+  "ats_score_not_likely": "Not Likely",
+  "ats_score_fair": "Fair",
+  "ats_score_excellent": "Excellent"
 }

@@ -418,5 +418,10 @@
   "ats_detail_recommendations": "Rekommendationer",
   "ats_run_analysis": "Kör analys",
   "ats_analyzing": "Analyserar",
-  "ats_pairs_missing": "kombinationer saknar analys"
+  "ats_pairs_missing": "kombinationer saknar analys",
+  "ats_score_no_way": "Omöjligt",
+  "ats_score_poor": "Lönlöst",
+  "ats_score_not_likely": "Inte troligt",
+  "ats_score_fair": "Hyfsad",
+  "ats_score_excellent": "Strålande"
 }

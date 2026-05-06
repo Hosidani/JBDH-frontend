@@ -1,6 +1,11 @@
 import React from 'react';
 import { Modal } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import noWayImg     from '../../assets/graphics/NoWay.png';
+import poorImg      from '../../assets/graphics/Poor.png';
+import notLikelyImg from '../../assets/graphics/NotLikely.png';
+import fairImg      from '../../assets/graphics/Fair.png';
+import excelentImg  from '../../assets/graphics/Excelent.png';
 
 interface AtsJson {
   total_score?: number;
@@ -29,16 +34,20 @@ interface Props {
   onClose: () => void;
 }
 
-function ScoreBadge({ score }: { score: number }) {
-  const color =
-    score >= 75 ? 'text-green-600 border-green-400' :
-    score >= 50 ? 'text-yellow-600 border-yellow-400' :
-    'text-red-600 border-red-400';
-  return (
-    <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center text-3xl font-bold ${color}`}>
-      {Math.round(score)}%
-    </div>
-  );
+function scoreImage(score: number): string {
+  if (score <= 25) return noWayImg;
+  if (score <= 55) return poorImg;
+  if (score <= 74) return notLikelyImg;
+  if (score <= 86) return fairImg;
+  return excelentImg;
+}
+
+function scoreLabelKey(score: number): string {
+  if (score <= 25) return 'ats_score_no_way';
+  if (score <= 55) return 'ats_score_poor';
+  if (score <= 74) return 'ats_score_not_likely';
+  if (score <= 86) return 'ats_score_fair';
+  return 'ats_score_excellent';
 }
 
 function SkillPill({ label, variant }: { label: string; variant: 'green' | 'red' | 'blue' }) {
@@ -74,9 +83,14 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
     <Modal open={open} onClose={onClose} title={`${result.cv_name || tSync('ats_unknown_cv')} → ${result.job_name || tSync('ats_unknown_job')}`}>
       <div className="flex flex-col gap-6">
 
-        {/* Score */}
-        <div className="flex flex-col items-center gap-1">
-          <ScoreBadge score={score} />
+        {/* Score image */}
+        <div className="flex flex-col items-center gap-2">
+          <img
+            src={scoreImage(score)}
+            alt={tSync(scoreLabelKey(score))}
+            className="w-40 h-auto object-contain"
+          />
+          <span className="text-2xl font-bold text-slate-700">{tSync(scoreLabelKey(score))}</span>
           <span className="text-sm text-slate-500">{tSync('ats_detail_score_label')}</span>
         </div>
 
