@@ -43,6 +43,10 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
   const [editJob, setEditJob] = useState<RawItem | undefined>(undefined);
   const [atsResults, setAtsResults] = useState<AtsResultPreview[]>([]);
 
+  const refreshAtsResults = () => {
+    ApiService.getAtsResults().then(setAtsResults).catch(() => {});
+  };
+
   useEffect(() => {
     ApiService.getExternalCVs().then(data => {
       setCvsRaw(data.map(c => ({ id: c.id, name: c.name || c.text.slice(0, 50), text: c.text })));
@@ -52,12 +56,19 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
       setJobsRaw(data.map(j => ({ id: j.id, name: j.name || j.text.slice(0, 50), text: j.text })));
       setJobs(data.map(j => ({ id: j.id, name: j.name || j.text.slice(0, 50) })));
     }).catch(() => {});
-    ApiService.getAtsResults().then(setAtsResults).catch(() => {});
+    refreshAtsResults();
   }, []);
 
-  const refreshAtsResults = () => {
-    ApiService.getAtsResults().then(setAtsResults).catch(() => {});
-  };
+  // Re-fetch ATS results when the user switches back to this browser tab.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refreshAtsResults();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   const handleDeleteCvs = () => {
     selectedCvs.forEach(id => ApiService.deleteExternalCV(id).catch(() => {}));
@@ -98,6 +109,9 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
     setJobsRaw(prev => prev.map(j => j.id === updated.id ? updated : j));
     setJobs(prev => prev.map(j => j.id === updated.id ? { id: updated.id, name: updated.name || updated.text.slice(0, 50) } : j));
   };
+
+  const handleCvUpdatedAndRefresh = (updated: RawItem) => { handleCvUpdated(updated); refreshAtsResults(); };
+  const handleJobUpdatedAndRefresh = (updated: RawItem) => { handleJobUpdated(updated); refreshAtsResults(); };
 
   const activeCvs = cvs.filter(c => selectedCvs.has(c.id));
   const activeJobs = jobs.filter(j => selectedJobs.has(j.id));
@@ -154,7 +168,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
           setCvs(prev => [{ id: item.id, name }, ...prev]);
           refreshAtsResults();
         }}
-        onUpdated={handleCvUpdated}
+        onUpdated={handleCvUpdatedAndRefresh}
         editItem={editCv}
       />
       <AddJobModal
@@ -166,7 +180,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
           setJobs(prev => [{ id: item.id, name }, ...prev]);
           refreshAtsResults();
         }}
-        onUpdated={handleJobUpdated}
+        onUpdated={handleJobUpdatedAndRefresh}
         editItem={editJob}
       />
     </PageWrapper>
