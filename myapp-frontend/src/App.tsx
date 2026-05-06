@@ -49,7 +49,7 @@ function App() {
 
   useEffect(() => {
     if (user) setSessionDismissed([]);
-  }, [user]);
+  }, [user?.email]);
   const { language, changeLanguage, tSync } = useTranslation();
 
   return (
