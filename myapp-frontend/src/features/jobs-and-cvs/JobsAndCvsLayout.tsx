@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { PageWrapper } from '../../components/common';
+import { PageWrapper, Modal } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
+import { Button } from '../../components/ui/Button';
 import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import SelectableListSection, { type SelectableItem } from './SelectableListSection';
@@ -42,6 +43,8 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
   const [editCv, setEditCv] = useState<{ id: number; name: string } | undefined>(undefined);
   const [editJob, setEditJob] = useState<RawItem | undefined>(undefined);
   const [atsResults, setAtsResults] = useState<AtsResultPreview[]>([]);
+  const [confirmDeleteCvs, setConfirmDeleteCvs] = useState(false);
+  const [confirmDeleteJobs, setConfirmDeleteJobs] = useState(false);
 
   const refreshAtsResults = () => {
     ApiService.getAtsResults().then(setAtsResults).catch(() => {});
@@ -75,6 +78,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
     setCvs(prev => prev.filter(c => !selectedCvs.has(c.id)));
     setCvsRaw(prev => prev.filter(c => !selectedCvs.has(c.id)));
     setSelectedCvs(new Set());
+    setConfirmDeleteCvs(false);
   };
 
   const handleEditCv = (id: number) => {
@@ -96,6 +100,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
     setJobs(prev => prev.filter(j => !selectedJobs.has(j.id)));
     setJobsRaw(prev => prev.filter(j => !selectedJobs.has(j.id)));
     setSelectedJobs(new Set());
+    setConfirmDeleteJobs(false);
   };
 
   const handleEditJob = (id: number) => {
@@ -130,7 +135,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
             selected={selectedCvs}
             onSelectionChange={setSelectedCvs}
             onAdd={() => { setEditCv(undefined); setCvModalOpen(true); }}
-            onDelete={handleDeleteCvs}
+            onDelete={() => setConfirmDeleteCvs(true)}
             addLabel={tSync('jac_add_cv')}
             deleteLabel={tSync('jac_delete_cv')}
             selectAllLabel={tSync('jac_select_all_cvs')}
@@ -148,7 +153,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
             selected={selectedJobs}
             onSelectionChange={setSelectedJobs}
             onAdd={() => { setEditJob(undefined); setJobModalOpen(true); }}
-            onDelete={handleDeleteJobs}
+            onDelete={() => setConfirmDeleteJobs(true)}
             addLabel={tSync('jac_add_job')}
             deleteLabel={tSync('jac_delete_job')}
             selectAllLabel={tSync('jac_select_all_jobs')}
@@ -185,6 +190,22 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
         onUpdated={handleJobUpdatedAndRefresh}
         editItem={editJob}
       />
+
+      <Modal open={confirmDeleteCvs} onClose={() => setConfirmDeleteCvs(false)} title={tSync('jac_delete_cv_confirm_title')}>
+        <p className="text-slate-700 text-sm mb-6">{tSync('jac_delete_cv_confirm_message')}</p>
+        <div className="flex gap-3 justify-end">
+          <Button variant="secondary" size="lg" onClick={() => setConfirmDeleteCvs(false)}>{tSync('button_cancel')}</Button>
+          <Button variant="danger" size="lg" onClick={handleDeleteCvs}>{tSync('jac_delete_confirm_ok')}</Button>
+        </div>
+      </Modal>
+
+      <Modal open={confirmDeleteJobs} onClose={() => setConfirmDeleteJobs(false)} title={tSync('jac_delete_job_confirm_title')}>
+        <p className="text-slate-700 text-sm mb-6">{tSync('jac_delete_job_confirm_message')}</p>
+        <div className="flex gap-3 justify-end">
+          <Button variant="secondary" size="lg" onClick={() => setConfirmDeleteJobs(false)}>{tSync('button_cancel')}</Button>
+          <Button variant="danger" size="lg" onClick={handleDeleteJobs}>{tSync('jac_delete_confirm_ok')}</Button>
+        </div>
+      </Modal>
     </PageWrapper>
   );
 };
