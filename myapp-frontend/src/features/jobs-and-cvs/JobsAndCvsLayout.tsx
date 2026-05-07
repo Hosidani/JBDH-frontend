@@ -88,6 +88,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
   const handleCvUpdated = (updated: { id: number; name: string; text: string }) => {
     setCvsRaw(prev => prev.map(c => c.id === updated.id ? updated : c));
     setCvs(prev => prev.map(c => c.id === updated.id ? { id: updated.id, name: updated.name || updated.text.slice(0, 50) } : c));
+    refreshAtsResults();
   };
 
   const handleDeleteJobs = () => {
@@ -108,6 +109,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
   const handleJobUpdated = (updated: RawItem) => {
     setJobsRaw(prev => prev.map(j => j.id === updated.id ? updated : j));
     setJobs(prev => prev.map(j => j.id === updated.id ? { id: updated.id, name: updated.name || updated.text.slice(0, 50) } : j));
+    refreshAtsResults();
   };
 
   const handleCvUpdatedAndRefresh = (updated: RawItem) => { handleCvUpdated(updated); refreshAtsResults(); };

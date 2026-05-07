@@ -29,6 +29,7 @@ describe('External CVs – dropdown', () => {
   it('selecting a saved CV shows Ta bort button', async () => {
     const { user } = setup();
     const select = await screen.findByRole('combobox', { name: /sparad CV/i });
+    await waitFor(() => expect(select).toHaveTextContent(externalCVs[0].text.slice(0, 60)));
     await user.selectOptions(select, String(externalCVs[0].id));
     expect(screen.getByRole('button', { name: /Ta bort/i })).toBeInTheDocument();
   });
@@ -36,6 +37,7 @@ describe('External CVs – dropdown', () => {
   it('removes CV from dropdown after delete', async () => {
     const { user } = setup();
     const select = await screen.findByRole('combobox', { name: /sparad CV/i });
+    await waitFor(() => expect(select).toHaveTextContent(externalCVs[0].text.slice(0, 60)));
     await user.selectOptions(select, String(externalCVs[0].id));
     await user.click(screen.getByRole('button', { name: /Ta bort/i }));
     await waitFor(() =>
