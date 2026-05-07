@@ -423,5 +423,8 @@
   "ats_score_poor": "Lönlöst",
   "ats_score_not_likely": "Inte troligt",
   "ats_score_fair": "Hyfsad",
-  "ats_score_excellent": "Strålande"
+  "ats_score_excellent": "Strålande",
+  "ats_recs_send": "Skicka rekommendationer",
+  "ats_recs_copy": "Kopiera",
+  "ats_recs_copied": "Kopierat!"
 }
