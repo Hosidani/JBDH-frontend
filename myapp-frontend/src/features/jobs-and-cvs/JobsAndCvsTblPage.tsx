@@ -9,6 +9,7 @@ import JobsAndCvsLayout from './JobsAndCvsLayout';
 import MatchTableResult, { type MatchRow } from './MatchTableResult';
 import AtsResultDetailModal, { type AtsResultDetail } from '../ats/AtsResultDetailModal';
 import { ApiService } from '../../services/ApiService';
+import { parseJobName } from '../../utils/parseJobName';
 import coffeBreakImg from '../../assets/img/Coffe-break.png';
 
 const JobsAndCvsTblPage: React.FC = () => {
@@ -62,7 +63,10 @@ const JobsAndCvsTblPage: React.FC = () => {
           refreshAtsResults: () => void,
         ) => {
           const atsMap = new Map<string, AtsResultPreview>();
-          atsResults.forEach(r => atsMap.set(`${r.cv_name}|||${r.job_name}`, r));
+          atsResults.forEach(r => {
+            const jobTitle = parseJobName(r.job_name).title || r.job_name;
+            atsMap.set(`${r.cv_name}|||${jobTitle}`, r);
+          });
 
           const rows: MatchRow[] = activeJobs.flatMap(job =>
             activeCvs.map(cv => {

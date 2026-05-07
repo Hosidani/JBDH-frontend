@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { parseJobName } from '../../utils/parseJobName';
 import noWayImg     from '../../assets/graphics/NoWay.png';
 import poorImg      from '../../assets/graphics/Poor.png';
 import notLikelyImg from '../../assets/graphics/NotLikely.png';
@@ -128,7 +129,7 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
 
   return (
     <>
-      <Modal open={open} onClose={onClose} title={`${result.cv_name || tSync('ats_unknown_cv')} → ${result.job_name || tSync('ats_unknown_job')}`}>
+      <Modal open={open} onClose={onClose} title={`${result.cv_name || tSync('ats_unknown_cv')} → ${parseJobName(result.job_name ?? '').title || result.job_name || tSync('ats_unknown_job')}`}>
         <div className="flex flex-col gap-6">
 
           {/* Score image */}
