@@ -423,5 +423,8 @@
   "ats_score_poor": "Pointless",
   "ats_score_not_likely": "Not Likely",
   "ats_score_fair": "Fair",
-  "ats_score_excellent": "Excellent"
+  "ats_score_excellent": "Excellent",
+  "ats_recs_send": "Send recommendations",
+  "ats_recs_copy": "Copy",
+  "ats_recs_copied": "Copied!"
 }

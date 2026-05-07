@@ -26,7 +26,7 @@ describe('getPillColor', () => {
   });
 
   it('roterar färger för id > palettlängd', () => {
-    expect(getPillColor(0)).toEqual(getPillColor(12));
+    expect(getPillColor(0)).toEqual(getPillColor(9));
   });
 });
 
