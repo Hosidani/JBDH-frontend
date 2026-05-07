@@ -6,6 +6,7 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 import SelectableListSection, { type SelectableItem } from './SelectableListSection';
 import AddCvModal from './AddCvModal';
 import AddJobModal from './AddJobModal';
+import { parseJobName } from '../../utils/parseJobName';
 
 export interface AtsResultPreview {
   id: number;
@@ -54,7 +55,11 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
     }).catch(() => {});
     ApiService.getExternalJobAds().then(data => {
       setJobsRaw(data.map(j => ({ id: j.id, name: j.name || j.text.slice(0, 50), text: j.text })));
-      setJobs(data.map(j => ({ id: j.id, name: j.name || j.text.slice(0, 50) })));
+      setJobs(data.map(j => {
+        const parsed = parseJobName(j.name || '');
+        const title = parsed.title || j.text.slice(0, 50);
+        return { id: j.id, name: title, subtitle: parsed.channel || undefined };
+      }));
     }).catch(() => {});
     refreshAtsResults();
   }, []);
@@ -108,7 +113,12 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
 
   const handleJobUpdated = (updated: RawItem) => {
     setJobsRaw(prev => prev.map(j => j.id === updated.id ? updated : j));
-    setJobs(prev => prev.map(j => j.id === updated.id ? { id: updated.id, name: updated.name || updated.text.slice(0, 50) } : j));
+    setJobs(prev => prev.map(j => {
+      if (j.id !== updated.id) return j;
+      const parsed = parseJobName(updated.name);
+      const title = parsed.title || updated.text.slice(0, 50);
+      return { id: updated.id, name: title, subtitle: parsed.channel || undefined };
+    }));
     refreshAtsResults();
   };
 
@@ -117,6 +127,7 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
 
   const activeCvs = cvs.filter(c => selectedCvs.has(c.id));
   const activeJobs = jobs.filter(j => selectedJobs.has(j.id));
+  const channelSuggestions = [...new Set(jobsRaw.map(j => parseJobName(j.name).channel).filter(Boolean))];
   const activeCvsRaw = cvsRaw.filter(c => selectedCvs.has(c.id));
   const activeJobsRaw = jobsRaw.filter(j => selectedJobs.has(j.id));
 
@@ -177,13 +188,16 @@ const JobsAndCvsLayout: React.FC<JobsAndCvsLayoutProps> = ({ renderResult, showC
         open={jobModalOpen}
         onClose={() => { setJobModalOpen(false); setEditJob(undefined); }}
         onAdded={item => {
-          const name = item.name || item.text.slice(0, 50);
-          setJobsRaw(prev => [{ id: item.id, name, text: item.text }, ...prev]);
-          setJobs(prev => [{ id: item.id, name }, ...prev]);
+          const rawName = item.name || item.text.slice(0, 50);
+          const parsed = parseJobName(rawName);
+          const title = parsed.title || item.text.slice(0, 50);
+          setJobsRaw(prev => [{ id: item.id, name: rawName, text: item.text }, ...prev]);
+          setJobs(prev => [{ id: item.id, name: title, subtitle: parsed.channel || undefined }, ...prev]);
           refreshAtsResults();
         }}
         onUpdated={handleJobUpdatedAndRefresh}
         editItem={editJob}
+        channelSuggestions={channelSuggestions}
       />
     </PageWrapper>
   );

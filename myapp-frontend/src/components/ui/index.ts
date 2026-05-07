@@ -13,3 +13,4 @@ export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';
 export { default as UserAvatar } from './UserAvatar';
 export { ItemList } from './ItemList';
+export { ComboInput } from './ComboInput';

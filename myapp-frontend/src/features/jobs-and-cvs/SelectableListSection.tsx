@@ -6,6 +6,7 @@ import { Icon } from '../../components/ui/Icon';
 export interface SelectableItem {
   id: number;
   name: string;
+  subtitle?: string;
 }
 
 interface SelectableListSectionProps {
@@ -92,12 +93,15 @@ const SelectableListSection: React.FC<SelectableListSectionProps> = ({
                 />
                 <label
                   htmlFor={`sel-item-${item.id}`}
-                  className="flex items-center gap-2 flex-1 text-sm text-slate-700 truncate cursor-pointer"
+                  className="flex items-center gap-2 flex-1 min-w-0 text-sm text-slate-700 cursor-pointer"
                 >
                   {showPill && (
                     <NamePill id={item.id} title={item.name} size="sm" />
                   )}
-                  {item.name}
+                  <span className="truncate">{item.name}</span>
+                  {item.subtitle && (
+                    <span className="ml-auto pl-2 text-xs text-slate-400 truncate shrink-0 max-w-[40%]">{item.subtitle}</span>
+                  )}
                 </label>
                 {onEdit && (
                   <button
