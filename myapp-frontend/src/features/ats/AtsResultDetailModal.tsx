@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { useSSE } from '../../hooks/useSSE';
 import noWayImg     from '../../assets/graphics/NoWay.png';
 import poorImg      from '../../assets/graphics/Poor.png';
 import notLikelyImg from '../../assets/graphics/NotLikely.png';
@@ -105,7 +107,58 @@ function RecsPopup({ text, onClose }: RecsPopupProps) {
 
 const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
   const { tSync } = useTranslation();
+  const navigate = useNavigate();
   const [recsPopupOpen, setRecsPopupOpen] = useState(false);
+  const [sseFormData, setSseFormData] = useState<FormData | null>(null);
+  const [sseProgress, setSseProgress] = useState<{ progress: number; message?: string; vectorResult?: any } | null>(null);
+  const [sseError, setSseError] = useState<string | null>(null);
+  const vectorResultRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setSseFormData(null);
+      setSseProgress(null);
+      setSseError(null);
+      vectorResultRef.current = null;
+    }
+  }, [open]);
+
+  useSSE(
+    '/home/CompareCvJobSSE',
+    sseFormData,
+    (data) => {
+      setSseProgress(data);
+      if (data.vectorResult) { vectorResultRef.current = data.vectorResult; }
+    },
+    (res) => {
+      setSseProgress(null);
+      onClose();
+      navigate('/ai-analysis-result', {
+        state: {
+          sseResult: res,
+          vectorResult: vectorResultRef.current,
+          title: `${result?.cv_name || ''} → ${result?.job_name || ''}`.trim(),
+        },
+      });
+    },
+    (err) => {
+      setSseError(typeof err === 'string' ? err : tSync('ats_analyze_error'));
+      setSseProgress(null);
+    },
+  );
+
+  const handleAnalyze = () => {
+    if (!result) return;
+    setSseError(null);
+    setSseProgress(null);
+    vectorResultRef.current = null;
+    const cvBlob = new Blob([result.cv_text], { type: 'text/plain' });
+    const cvFile = new File([cvBlob], 'cv.txt', { type: 'text/plain' });
+    const fd = new FormData();
+    fd.append('CvPath', cvFile);
+    fd.append('JobAdText', result.job_text);
+    setSseFormData(fd);
+  };
 
   if (!result) {
     return (
@@ -125,10 +178,11 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
   const bonus = json.bonus_skills ?? [];
   const recs = json.recommendations ?? [];
   const recsText = recs.join('\n');
+  const analyzing = !!sseProgress;
 
   return (
     <>
-      <Modal open={open} onClose={onClose} title={`${result.cv_name || tSync('ats_unknown_cv')} → ${result.job_name || tSync('ats_unknown_job')}`}>
+      <Modal open={open} onClose={onClose} maxWidth="max-w-3xl" title={`${result.cv_name || tSync('ats_unknown_cv')} → ${result.job_name || tSync('ats_unknown_job')}`}>
         <div className="flex flex-col gap-6">
 
           {/* Score image */}
@@ -217,19 +271,47 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
             </section>
           )}
 
+          {/* Bottom actions */}
           <div className="flex items-center justify-between">
             <p className="text-xs text-slate-400">
               {new Date(result.created_at).toLocaleString('sv-SE')}
             </p>
-            {recs.length > 0 && (
+            <div className="flex gap-2">
               <button
-                onClick={() => setRecsPopupOpen(true)}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={handleAnalyze}
+                disabled={analyzing}
+                className="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
               >
-                {tSync('ats_recs_send')}
+                {analyzing ? tSync('ats_analyzing') : tSync('ats_analyze')}
               </button>
-            )}
+              {recs.length > 0 && (
+                <button
+                  onClick={() => setRecsPopupOpen(true)}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {tSync('ats_recs_send')}
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* SSE progress */}
+          {sseProgress && (
+            <div>
+              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden mb-2">
+                <div
+                  className="h-3 bg-gradient-to-r from-blue-600 via-green-500 to-yellow-400 transition-all"
+                  style={{ width: `${sseProgress.progress}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-500">{sseProgress.message}</p>
+            </div>
+          )}
+
+          {/* SSE error */}
+          {sseError && (
+            <p className="text-sm text-red-600">{sseError}</p>
+          )}
 
         </div>
       </Modal>
