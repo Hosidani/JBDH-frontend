@@ -8,6 +8,7 @@ import { type AtsResultPreview } from './JobsAndCvsLayout';
 import JobsAndCvsLayout from './JobsAndCvsLayout';
 import AtsResultDetailModal, { type AtsResultDetail } from '../ats/AtsResultDetailModal';
 import { ApiService } from '../../services/ApiService';
+import { parseJobName } from '../../utils/parseJobName';
 import groupExerciseImg from '../../assets/img/groupexercise.png';
 
 const JobsAndCvsPage: React.FC = () => {
@@ -33,7 +34,8 @@ const JobsAndCvsPage: React.FC = () => {
           const atsMap = new Map<string, AtsResultPreview>();
           atsResults.forEach(r => {
             if (r.overall_score != null) {
-              atsMap.set(`${r.cv_name}|||${r.job_name}`, r);
+              const jobTitle = parseJobName(r.job_name).title || r.job_name;
+              atsMap.set(`${r.cv_name}|||${jobTitle}`, r);
             }
           });
 

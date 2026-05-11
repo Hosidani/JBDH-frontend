@@ -6,6 +6,7 @@ import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import AtsResultDetailModal, { type AtsResultDetail } from './AtsResultDetailModal';
 import { Icon } from '../../components/ui/Icon';
+import { parseJobName } from '../../utils/parseJobName';
 
 interface AtsResultPreview {
   id: number;
@@ -55,7 +56,7 @@ const AtsResultsPage: React.FC = () => {
     return [...results].sort((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
       if (sortKey === 'cv_name') return a.cv_name.localeCompare(b.cv_name, 'sv') * dir;
-      if (sortKey === 'job_name') return a.job_name.localeCompare(b.job_name, 'sv') * dir;
+      if (sortKey === 'job_name') return (parseJobName(a.job_name).title || a.job_name).localeCompare(parseJobName(b.job_name).title || b.job_name, 'sv') * dir;
       if (sortKey === 'overall_score') return ((a.overall_score ?? -1) - (b.overall_score ?? -1)) * dir;
       return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
     });
@@ -118,7 +119,7 @@ const AtsResultsPage: React.FC = () => {
                     onClick={() => handleRowClick(row.id)}
                   >
                     <td className="py-3 pr-4 text-slate-700 truncate max-w-[200px]">{row.cv_name || '—'}</td>
-                    <td className="py-3 pr-4 text-slate-700 truncate max-w-[200px]">{row.job_name || '—'}</td>
+                    <td className="py-3 pr-4 text-slate-700 truncate max-w-[200px]">{parseJobName(row.job_name).title || row.job_name || '—'}</td>
                     <td className="py-3 pr-4 text-right font-mono text-slate-600">
                       {row.overall_score != null ? `${Math.round(row.overall_score)}%` : '—'}
                     </td>
