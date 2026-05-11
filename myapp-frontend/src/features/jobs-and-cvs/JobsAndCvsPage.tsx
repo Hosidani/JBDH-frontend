@@ -10,6 +10,8 @@ import AtsResultDetailModal, { type AtsResultDetail } from '../ats/AtsResultDeta
 import { ApiService } from '../../services/ApiService';
 import { parseJobName } from '../../utils/parseJobName';
 import groupExerciseImg from '../../assets/img/groupexercise.png';
+import noWayImg from '../../assets/graphics/NoWay.png';
+import excelentImg from '../../assets/graphics/Excelent.png';
 
 const JobsAndCvsPage: React.FC = () => {
   const { tSync } = useTranslation();
@@ -50,9 +52,9 @@ const JobsAndCvsPage: React.FC = () => {
                       <tr>
                         <th className="text-left text-slate-500 font-normal pb-2 pr-4 w-48">{tSync('jac_col_job')}</th>
                         <th className="text-left text-slate-400 font-normal pb-2">
-                          <div className="flex justify-between text-xs">
-                            <span>{tSync('jac_col_low_match')}</span>
-                            <span>{tSync('jac_col_high_match')}</span>
+                          <div className="flex justify-between">
+                            <img src={noWayImg} alt="" title={tSync('jac_col_low_match')} className="h-6 w-auto object-contain" />
+                            <img src={excelentImg} alt="" title={tSync('jac_col_high_match')} className="h-6 w-auto object-contain" />
                           </div>
                         </th>
                       </tr>

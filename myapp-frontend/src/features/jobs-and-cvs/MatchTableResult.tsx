@@ -1,5 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { type SelectableItem } from './SelectableListSection';
+import noWayImg from '../../assets/graphics/NoWay.png';
+import poorImg from '../../assets/graphics/Poor.png';
+import notLikelyImg from '../../assets/graphics/NotLikely.png';
+import fairImg from '../../assets/graphics/Fair.png';
+import excelentImg from '../../assets/graphics/Excelent.png';
+
+function scoreImage(score: number): string {
+  if (score <= 25) return noWayImg;
+  if (score <= 55) return poorImg;
+  if (score <= 74) return notLikelyImg;
+  if (score <= 86) return fairImg;
+  return excelentImg;
+}
 
 export interface MatchRow {
   job: SelectableItem;
@@ -96,8 +109,10 @@ const MatchTableResult: React.FC<MatchTableResultProps> = ({
               >
                 <td className="py-2 pr-4 text-slate-700 truncate max-w-[220px]">{row.job.name}</td>
                 <td className="py-2 pr-4 text-slate-700 truncate max-w-[220px]">{row.cv.name}</td>
-                <td className="py-2 text-right font-mono text-slate-600">
-                  {row.score != null ? `${Math.round(row.score)}%` : '—'}
+                <td className="py-2 text-right">
+                  {row.score != null
+                    ? <img src={scoreImage(row.score)} alt={`${Math.round(row.score)}%`} title={`${Math.round(row.score)}%`} className="h-8 w-auto object-contain inline-block" />
+                    : <span className="text-slate-400">—</span>}
                 </td>
               </tr>
             );

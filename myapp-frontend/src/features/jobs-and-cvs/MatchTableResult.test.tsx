@@ -33,7 +33,12 @@ function getRowTexts() {
   return screen
     .getAllByRole('row')
     .slice(1)
-    .map(row => within(row).getAllByRole('cell').map(c => c.textContent ?? ''));
+    .map(row =>
+      within(row).getAllByRole('cell').map(c => {
+        const img = c.querySelector('img');
+        return img ? (img.getAttribute('alt') ?? '') : (c.textContent ?? '');
+      }),
+    );
 }
 
 describe('MatchTableResult', () => {
