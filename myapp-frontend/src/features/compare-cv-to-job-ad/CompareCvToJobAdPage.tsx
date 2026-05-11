@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import matchCvJobImg from '../../assets/img/match_CV_against_job.png';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import presentationImg from '../../assets/img/Presentation.png';
 import { useAuth } from '../../context/AuthContext';
 import { PageWrapper, PageBackground, FileDropZone } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
@@ -138,9 +138,8 @@ const CompareCvToJobAdPage: React.FC = () => {
   const [jobAdText, setJobAdText] = useState('');
   const [sseFormData, setSseFormData] = useState<FormData | null>(null);
   const [sseProgress, setSseProgress] = useState<{progress: number, message?: string, vectorResult?: any} | null>(null);
-  const [sseResult, setSseResult] = useState<any>(null);
   const [sseError, setSseError] = useState<string | null>(null);
-  const [vectorResult, setVectorResult] = useState<any>(null);
+  const vectorResultRef = useRef<any>(null);
 
   // Saved CVs & Job Ads state
   const [savedCVs, setSavedCVs] = useState<SavedItem[]>([]);
@@ -227,7 +226,6 @@ const CompareCvToJobAdPage: React.FC = () => {
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSseError(null);
-    setSseResult(null);
     setSseProgress(null);
     if (!selectedCVId && !cvFile) {
       setSseError(tSync('compareCvToJobAdPage_error_cv_required'));
@@ -270,12 +268,13 @@ const CompareCvToJobAdPage: React.FC = () => {
     sseFormData,
     (data) => {
       setSseProgress(data);
-      if (data.vectorResult) setVectorResult(data.vectorResult);
+      if (data.vectorResult) { vectorResultRef.current = data.vectorResult; }
     },
     (result) => {
-      setSseResult(result);
       setSseProgress(null);
-      if (result.vectorResult) setVectorResult(result.vectorResult);
+      navigate('/ai-analysis-result', {
+        state: { sseResult: result, vectorResult: vectorResultRef.current },
+      });
     },
     (err) => {
       setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'));
@@ -285,9 +284,9 @@ const CompareCvToJobAdPage: React.FC = () => {
 
   return (
     <>
-      <PageBackground imageUrl={matchCvJobImg} opacity={1} blur={0} />
-      <PageWrapper>
-        <SectionCard className="relative z-10">
+      <PageBackground imageUrl={presentationImg} opacity={1} blur={0} className="!z-[2]" />
+      <PageWrapper className="relative z-10">
+        <SectionCard>
           <h2 className="text-2xl font-bold mb-4">{tSync('compareCvToJobAdPage_title') || 'Matcha CV mot jobbannons'}</h2>
           <p className="text-sm text-slate-600 mb-6">{tSync('compareCvToJobAdPage_about')}</p>
           <section className="mb-6">
@@ -426,7 +425,7 @@ const CompareCvToJobAdPage: React.FC = () => {
           </form>
 
           {/* SSE Progressbar */}
-          {!sseResult && sseProgress && (
+          {sseProgress && (
             <div className="mt-6">
               <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden mb-2">
                 <div
@@ -443,96 +442,6 @@ const CompareCvToJobAdPage: React.FC = () => {
             </div>
           )}
 
-          {/* SSE result */}
-          {sseResult && (
-            <div className="mt-8 p-6 bg-white rounded-xl shadow-lg border border-blue-100">
-              <h2 className="text-2xl font-bold text-blue-800 mb-4 border-b border-blue-200 pb-2">AI-analys – Sammanfattning</h2>
-              {vectorResult?.similarityScore !== undefined && (
-                <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border-l-4 border-emerald-400">
-                  <span className="text-4xl font-black text-emerald-700">{Number(vectorResult.similarityScore).toFixed(1)}%</span>
-                  <span className="ml-3 text-slate-700 font-semibold">Semantisk likhet(CV vs Jobbannons)</span>
-                </div>
-              )}
-              {typeof sseResult.profession_vector_similarity === 'number' && (
-                <div className="mb-2">
-                  <span className="font-semibold">Profession-likhet (vektor): </span>
-                  <span>{sseResult.profession_vector_similarity}%</span>
-                </div>
-              )}
-              {typeof sseResult.skills_vector_similarity === 'number' && (
-                <div className="mb-6">
-                  <span className="font-semibold">Kompetens-likhet (vektor): </span>
-                  <span>{sseResult.skills_vector_similarity}%</span>
-                </div>
-              )}
-              {sseResult.summary && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Sammanfattning</h3>
-                  <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100">{sseResult.summary}</p>
-                </div>
-              )}
-              {Array.isArray(sseResult.matching_skills) && sseResult.matching_skills.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Matchande kompetenser</h3>
-                  <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.matching_skills.map((skill: any, i: number) => (
-                      <li key={i} className="mb-1">{typeof skill === 'string' ? skill : skill.name}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {Array.isArray(sseResult.missing_requirements) && sseResult.missing_requirements.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Saknade krav</h3>
-                  <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.missing_requirements.map((req: any, i: number) => (
-                      <li key={i} className="mb-1">{typeof req === 'string' ? req : req.name}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {Array.isArray(sseResult.relevant_experiences) && sseResult.relevant_experiences.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Relevanta erfarenheter</h3>
-                  <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.relevant_experiences.map((exp: any, i: number) => (
-                      <li key={i} className="mb-1">{exp}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {Array.isArray(sseResult.education_and_certifications) && sseResult.education_and_certifications.length > 0 && (
-                <div className="mb-2">
-                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Utbildning & certifieringar</h3>
-                  <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.education_and_certifications.map((edu: any, i: number) => (
-                      <li key={i} className="mb-1">{edu}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {Array.isArray(sseResult.strengths) && sseResult.strengths.length > 0 && (
-                <div className="mb-2">
-                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Styrkor</h3>
-                  <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.strengths.map((item: any, i: number) => (
-                      <li key={i} className="mb-1">{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {Array.isArray(sseResult.gaps) && sseResult.gaps.length > 0 && (
-                <div className="mb-2">
-                  <h3 className="text-lg font-semibold text-blue-700 mb-1">Luckor</h3>
-                  <ul className="list-disc ml-8 text-gray-900">
-                    {sseResult.gaps.map((item: any, i: number) => (
-                      <li key={i} className="mb-1">{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
         </SectionCard>
       </PageWrapper>
     </>
