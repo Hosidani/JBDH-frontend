@@ -220,7 +220,7 @@ const AccountPage: React.FC = () => {
               readOnly={accountSettings.isTerminated}
               onChange={v => handleInputChange('accountName', v)}
               onBlur={() => saveField({ accountName: formData.accountName })}
-              placeholder="Förnamn Efternamn"
+              helpText={tSync('account_name_help')}
             />
             <InfoRow
               label={tSync('account_phone')}
@@ -229,7 +229,7 @@ const AccountPage: React.FC = () => {
               onChange={v => handleInputChange('accountPhone', v)}
               onBlur={() => saveField({ accountPhone: formData.accountPhone })}
               type="tel"
-              placeholder="0709638741"
+              helpText={tSync('account_phone_help')}
             />
             <InfoRow
               label={tSync('account_email')}
@@ -238,7 +238,7 @@ const AccountPage: React.FC = () => {
               onChange={v => handleInputChange('accountEmail', v)}
               onBlur={() => saveField({ accountEmail: formData.accountEmail })}
               type="email"
-              placeholder="email@service.com"
+              helpText={tSync('account_email_help')}
             />
           </div>
 
@@ -257,6 +257,7 @@ const AccountPage: React.FC = () => {
                 await saveField({ roles: vals });
               }}
               layout="row"
+              helpText={tSync('account_roles_help')}
             />
           </div>
 
