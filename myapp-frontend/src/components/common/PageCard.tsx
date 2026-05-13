@@ -10,11 +10,13 @@ interface PageCardProps {
 }
 
 export const PageCard: React.FC<PageCardProps> = ({ title, action, children, className = '' }) => (
-  <SectionCard className={className}>
-    <div className="flex items-center justify-between mb-6">
+  <SectionCard className={`!p-4 ${className}`}>
+    <div className="flex items-center justify-between mb-3">
       <Heading level={2}>{title}</Heading>
       {action && <div>{action}</div>}
     </div>
-    {children}
+    <div className="flex flex-col">
+      {children}
+    </div>
   </SectionCard>
 );

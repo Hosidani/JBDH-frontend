@@ -213,7 +213,7 @@ const AccountPage: React.FC = () => {
 
         {/* Account Information */}
         <PageCard title={tSync('account_information')}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <InfoRow
               label={tSync('account_name')}
               value={formData.accountName}
@@ -280,7 +280,7 @@ const AccountPage: React.FC = () => {
         {/* Change Password */}
         <PageCard title={tSync('settingsPage_password_section_title')}>
           <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <TextInput label={tSync('settingsPage_current_password_label')} value={currentPassword} onChange={setCurrentPassword} type="password" showToggle />
               <div />
               <TextInput label={tSync('settingsPage_new_password_label')}     value={newPassword}     onChange={setNewPassword}     type="password" showToggle />
@@ -301,7 +301,7 @@ const AccountPage: React.FC = () => {
 
         {/* Account Status */}
         <PageCard title={tSync('account_status')}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-slate-700">{tSync('account_type')}</span>
               <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-md">

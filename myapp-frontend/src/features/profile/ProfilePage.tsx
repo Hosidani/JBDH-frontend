@@ -1,22 +1,21 @@
 import { useState, useEffect } from 'react';
 import editProfileImg from '../../assets/img/edit_profile.png';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../../services/ApiService';
-import { ProfileInfoCard, AIAnalysisCard, FileDropZoneCard, ButtonsCard } from '../../components/profile';
+import { ProfileInfoCard, AIAnalysisCard } from '../../components/profile';
+import UploadProfileCvModal from './UploadProfileCvModal';
 import { PageWrapper, PageBackground } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
-import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useAIResponsePolling } from '../../hooks/useAIResponsePolling';
 
 
 function ProfilePage() {
   useAuth();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [uploadCvOpen, setUploadCvOpen] = useState(false);
   const { tSync, language, ready } = useTranslation();
   const { polling, setPolling, getLatestAIResponseId, pollForLatestAIResponse } = useAIResponsePolling();
 
@@ -95,19 +94,25 @@ function ProfilePage() {
               tSync={tSync}
               language={language}
             />
-            <div className="mt-6">
-              <FileDropZoneCard tSync={tSync} handleCVUpload={handleCVUpload} processing={polling} />
+            <div className="mt-4">
+              <button
+                onClick={() => setUploadCvOpen(true)}
+                disabled={polling}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {tSync('profilePage_upload_cv_button')}
+              </button>
             </div>
           </PageCard>
 
-          <SectionCard>
-            <ButtonsCard
-              tSync={tSync}
-              onManualSearchClick={() => navigate('/search')}
-            />
-          </SectionCard>
         </div>
       </PageWrapper>
+
+      <UploadProfileCvModal
+        open={uploadCvOpen}
+        onClose={() => setUploadCvOpen(false)}
+        onUpload={handleCVUpload}
+      />
     </>
   );
 }

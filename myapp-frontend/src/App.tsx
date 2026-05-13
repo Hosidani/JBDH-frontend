@@ -62,7 +62,7 @@ function App() {
             <img src={jbdhLogoImg} alt="JBDH logo" style={{ width: 40, height: 40, cursor: 'pointer' }} />
           </Link>
           <span className="font-bold text-xl tracking-tight">JBDH</span>
-          <span className="text-slate-500 text-sm ml-2">{tSync('app_tagline')}</span>
+          <span className="hidden sm:inline text-slate-500 text-sm ml-2 whitespace-nowrap">{tSync('app_tagline')}</span>
         </div>
         <div className="flex items-center gap-4">
           {user && <UserIndicator />}

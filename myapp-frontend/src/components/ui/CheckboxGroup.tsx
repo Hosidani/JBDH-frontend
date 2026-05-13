@@ -23,7 +23,7 @@ const OutlinedCheckbox = ({
   onChange: () => void;
 }) => (
   <label
-    className={`flex flex-row items-center gap-2 px-4 py-2 border-2 rounded-xl cursor-pointer text-sm font-semibold transition-all duration-150 min-w-[110px] min-h-[48px] bg-white
+    className={`flex flex-row items-center gap-2 px-2 py-1 border-2 rounded-xl cursor-pointer text-sm font-semibold transition-all duration-150 min-w-[90px] min-h-[32px] bg-white
       ${checked ? 'border-slate-400' : 'border-slate-200'}
       hover:border-slate-400`}
     style={{ boxShadow: checked ? '0 0 0 2px #64748b' : undefined }}
