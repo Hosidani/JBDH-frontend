@@ -15,7 +15,7 @@ import { ProfilePage } from './features/profile';
 import { AccountPage } from './features/account';
 import { AddJobAdPage } from './features/boards';
 import { MatchingProfilePage } from './features/matching';
-import { JobsAndCvsPage, JobsAndCvsTblPage } from './features/jobs-and-cvs';
+import { JobsAndCvsPage } from './features/jobs-and-cvs';
 import { AtsResultsPage } from './features/ats';
 import { AiAnalysisResultPage } from './features/ai-analysis-result';
 import { JobDetailPage } from './features/jobs';
@@ -147,7 +147,6 @@ function App() {
           <Route path="/add-job-ad"   element={<RequireAuth roles={['Recruiter']}><AddJobAdPage /></RequireAuth>} />
           <Route path="/match-ad-cvs" element={<RequireAuth roles={['Recruiter']}><MatchAdToCvsPage /></RequireAuth>} />
           <Route path="/jobs-and-cvs"     element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsPage /></RequireAuth>} />
-          <Route path="/jobs-and-cvs-tbl" element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsTblPage /></RequireAuth>} />
           <Route path="/ats-results"      element={<RequireAuth roles={['Recruiter', 'Manager']}><AtsResultsPage /></RequireAuth>} />
           <Route path="/ai-analysis-result" element={<RequireAuth><AiAnalysisResultPage /></RequireAuth>} />
 
