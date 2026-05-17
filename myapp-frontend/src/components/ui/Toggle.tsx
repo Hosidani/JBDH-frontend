@@ -7,6 +7,7 @@ interface ToggleProps {
   yesLabel?: string;
   noLabel?: string;
   disabled?: boolean;
+  helpText?: string;
 }
 
 export const Toggle: React.FC<ToggleProps> = ({
@@ -16,9 +17,11 @@ export const Toggle: React.FC<ToggleProps> = ({
   yesLabel = 'Ja',
   noLabel = 'Nej',
   disabled = false,
+  helpText,
 }) => (
   <div className="flex flex-col items-center gap-1 min-w-[70px]">
     {label && <span className="font-semibold text-slate-700 text-xs mb-1">{label}</span>}
+    {helpText && <p className="text-xs text-slate-500 font-normal text-center">{helpText}</p>}
     <div className="flex items-center gap-1">
       <span className={`text-xs font-bold ${!checked ? 'text-slate-700' : 'text-slate-400'}`}>{noLabel}</span>
       <label className="relative inline-flex items-center cursor-pointer">

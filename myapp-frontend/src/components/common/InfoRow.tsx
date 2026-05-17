@@ -8,6 +8,7 @@ interface InfoRowProps {
   onChange?: (value: string) => void;
   onBlur?: () => void;
   placeholder?: string;
+  helpText?: string;
   type?: 'text' | 'email' | 'tel';
 }
 
@@ -18,6 +19,7 @@ export const InfoRow: React.FC<InfoRowProps> = ({
   onChange,
   onBlur,
   placeholder,
+  helpText,
   type = 'text',
 }) => (
   <TextInput
@@ -27,6 +29,7 @@ export const InfoRow: React.FC<InfoRowProps> = ({
     onChange={onChange}
     onBlur={onBlur}
     placeholder={placeholder}
+    helpText={helpText}
     type={type}
   />
 );

@@ -112,6 +112,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           readOnly={false}
           onChange={setName}
           onBlur={() => saveSettings()}
+          helpText={tSync('profilePage_name_help')}
         />
         <InfoRow
           label={tSync('profilePage_title_label')}
@@ -119,6 +120,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           readOnly={false}
           onChange={setTitle}
           onBlur={() => saveSettings()}
+          helpText={tSync('profilePage_title_help')}
         />
 
         {/* Row 2: Email | Phone */}
@@ -129,6 +131,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           readOnly={false}
           onChange={setEmail}
           onBlur={() => saveSettings()}
+          helpText={tSync('profilePage_email_help')}
         />
         <InfoRow
           label={tSync('settingsPage_phone_label')}
@@ -137,6 +140,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           readOnly={false}
           onChange={setPhone}
           onBlur={() => saveSettings()}
+          helpText={tSync('profilePage_phone_help')}
         />
 
         {/* Row 3: Location | Region */}
@@ -146,6 +150,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           readOnly={false}
           onChange={setLocation}
           onBlur={() => saveSettings()}
+          helpText={tSync('profilePage_location_help')}
         />
         <InfoRow
           label={tSync('profilePage_region_label')}
@@ -153,6 +158,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
           readOnly={false}
           onChange={setRegion}
           onBlur={() => saveSettings()}
+          helpText={tSync('profilePage_region_help')}
         />
 
         {/* Row 4: Workplace | Employment type */}
@@ -204,6 +210,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               setSearchable(v);
               await saveSettings({ searchable: v });
             }}
+            helpText={tSync('profilePage_searchable_help')}
           />
           <Toggle
             label={tSync('profilePage_travel_label')}
@@ -215,6 +222,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
               setWillingToTravel(v);
               await saveSettings({ travelAvailability: v });
             }}
+            helpText={tSync('profilePage_travel_help')}
           />
         </div>
       </div>

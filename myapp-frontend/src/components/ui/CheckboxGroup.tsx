@@ -11,6 +11,7 @@ interface CheckboxGroupProps {
   onChange: (selected: string[]) => void;
   layout?: 'row' | 'column';
   label?: string;
+  helpText?: string;
 }
 
 const OutlinedCheckbox = ({
@@ -44,6 +45,7 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
   onChange,
   layout = 'row',
   label,
+  helpText,
 }) => {
   const handleToggle = (value: string) => {
     const next = selected.includes(value)
@@ -55,6 +57,7 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
   return (
     <div className="flex flex-col gap-2">
       {label && <span className="text-sm font-medium text-slate-700">{label}</span>}
+      {helpText && <p className="text-xs text-slate-500 font-normal">{helpText}</p>}
       <div className={`flex ${layout === 'column' ? 'flex-col' : 'flex-row flex-wrap'} gap-2`}>
         {options.map(opt => (
           <OutlinedCheckbox
