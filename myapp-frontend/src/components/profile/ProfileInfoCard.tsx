@@ -104,7 +104,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
     <div className="flex flex-col gap-6">
       <h3 className="text-base font-semibold text-slate-700">{tSync('profilePage_basic_info_heading')}</h3>
       {/* 5-row × 2-column grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {/* Row 1: Name | Title */}
         <InfoRow
           label={tSync('settingsPage_name_label')}

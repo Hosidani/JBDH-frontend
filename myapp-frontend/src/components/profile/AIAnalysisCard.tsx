@@ -87,7 +87,7 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
       <div className="text-xs text-slate-400 mb-2">
         {d.createdAt ? new Date(d.createdAt).toLocaleString() : ''}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div>
           <div className="font-semibold mb-1 text-slate-700">
             {tSync('profilePage_analysis_bestJobTitles_titel')}
@@ -104,7 +104,7 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
         </div>
       </div>
       <hr className="my-2 border-slate-200" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div>
           <div className="font-semibold mb-1 text-slate-700">
             {tSync('profilePage_analysis_hardSkills_title')}
@@ -119,7 +119,7 @@ const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
         </div>
       </div>
       <hr className="my-2 border-slate-200" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {d.experiences && d.experiences.length > 0 && (
           <div>
             <div className="font-semibold mb-1 text-slate-700">
