@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
@@ -111,16 +111,16 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
   const navigate = useNavigate();
   const [recsPopupOpen, setRecsPopupOpen] = useState(false);
   const [sseFormData, setSseFormData] = useState<FormData | null>(null);
-  const [sseProgress, setSseProgress] = useState<{ progress: number; message?: string; vectorResult?: any } | null>(null);
+  const [sseProgress, setSseProgress] = useState<{ progress: number } | null>(null);
+  const [sseMessages, setSseMessages] = useState<string[]>([]);
   const [sseError, setSseError] = useState<string | null>(null);
-  const vectorResultRef = useRef<any>(null);
 
   useEffect(() => {
     if (!open) {
       setSseFormData(null);
       setSseProgress(null);
+      setSseMessages([]);
       setSseError(null);
-      vectorResultRef.current = null;
     }
   }, [open]);
 
@@ -129,15 +129,15 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
     sseFormData,
     (data) => {
       setSseProgress(data);
-      if (data.vectorResult) { vectorResultRef.current = data.vectorResult; }
+      if (data.message) setSseMessages(prev => [...prev, data.message!]);
     },
     (res) => {
       setSseProgress(null);
+      setSseMessages([]);
       onClose();
       navigate('/ai-analysis-result', {
         state: {
           sseResult: res,
-          vectorResult: vectorResultRef.current,
           title: `${result?.cv_name || ''} → ${result?.job_name || ''}`.trim(),
         },
       });
@@ -145,6 +145,7 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
     (err) => {
       setSseError(typeof err === 'string' ? err : tSync('ats_analyze_error'));
       setSseProgress(null);
+      setSseMessages([]);
     },
   );
 
@@ -152,7 +153,7 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
     if (!result) return;
     setSseError(null);
     setSseProgress(null);
-    vectorResultRef.current = null;
+    setSseMessages([]);
     const cvBlob = new Blob([result.cv_text], { type: 'text/plain' });
     const cvFile = new File([cvBlob], 'cv.txt', { type: 'text/plain' });
     const fd = new FormData();
@@ -305,7 +306,11 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
                   style={{ width: `${sseProgress.progress}%` }}
                 />
               </div>
-              <p className="text-xs text-slate-500">{sseProgress.message}</p>
+              <ul className="text-xs space-y-0.5 mt-1">
+                {sseMessages.map((msg, i) => (
+                  <li key={i} className={i === sseMessages.length - 1 ? 'font-semibold text-slate-700' : 'text-slate-400'}>{msg}</li>
+                ))}
+              </ul>
             </div>
           )}
 

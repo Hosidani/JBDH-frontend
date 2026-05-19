@@ -1,39 +1,20 @@
 import React from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { PageWrapper, PageBackground } from '../../components/common';
+import { PageWrapper, PageBackground, FieldAnalysisCard, Section, BulletList } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import presentationImg from '../../assets/img/Presentation.png';
+import type { SseAnalysisResult } from '../../types/analysis';
 
 interface AiAnalysisState {
-  sseResult: any;
-  vectorResult: any | null;
+  sseResult: SseAnalysisResult;
   title?: string;
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold text-blue-700 mb-2">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function BulletList({ items }: { items: any[] }) {
-  return (
-    <ul className="list-disc ml-6 text-gray-900 space-y-1 text-sm">
-      {items.map((item, i) => (
-        <li key={i}>{typeof item === 'string' ? item : item.name ?? JSON.stringify(item)}</li>
-      ))}
-    </ul>
-  );
 }
 
 const AiAnalysisResultPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const state = (location.state ?? {}) as Partial<AiAnalysisState>;
-  const { sseResult, vectorResult, title } = state;
+  const { sseResult, title } = state;
 
   if (!sseResult) {
     return <Navigate to="/" replace />;
@@ -56,26 +37,19 @@ const AiAnalysisResultPage: React.FC = () => {
           AI-analys – {title || 'Sammanfattning'}
         </h2>
 
-        {vectorResult?.similarityScore !== undefined && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border-l-4 border-emerald-400">
-            <span className="text-4xl font-black text-emerald-700">
-              {Number(vectorResult.similarityScore).toFixed(1)}%
-            </span>
-            <span className="ml-3 text-slate-700 font-semibold">Semantisk likhet (CV vs Jobbannons)</span>
-          </div>
+        {/* Field analysis (Template 6) */}
+        {sseResult.field_analysis && (
+          <FieldAnalysisCard fieldAnalysis={sseResult.field_analysis} />
         )}
 
-        {typeof sseResult.profession_vector_similarity === 'number' && (
-          <p className="mb-2 text-sm">
-            <span className="font-semibold">Profession-likhet (vektor): </span>
-            {sseResult.profession_vector_similarity}%
-          </p>
-        )}
+        {/* Skills similarity — big score */}
         {typeof sseResult.skills_vector_similarity === 'number' && (
-          <p className="mb-6 text-sm">
-            <span className="font-semibold">Kompetens-likhet (vektor): </span>
-            {sseResult.skills_vector_similarity}%
-          </p>
+          <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border-l-4 border-emerald-400">
+            <span className="text-4xl font-black text-emerald-700">
+              {Number(sseResult.skills_vector_similarity).toFixed(1)}%
+            </span>
+            <span className="ml-3 text-slate-700 font-semibold">Kompetenslikhet (CV vs Jobbannons)</span>
+          </div>
         )}
 
         {sseResult.summary && (

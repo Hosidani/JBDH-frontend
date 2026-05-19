@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import presentationImg from '../../assets/img/Presentation.png';
 import { useAuth } from '../../context/AuthContext';
-import { PageWrapper, PageBackground, FileDropZone } from '../../components/common';
+import { PageWrapper, PageBackground, FileDropZone, FieldAnalysisCard, Section, BulletList } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useSSE } from '../../hooks/useSSE';
@@ -9,6 +9,7 @@ import IconCvDocument from '../../components/icon_library/IconCvDocument';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { ApiService } from '../../services/ApiService';
+import type { SseAnalysisResult, AtsResult } from '../../types/analysis';
 
 type SavedItem = { id: number; name: string; text: string; created_at: string };
 
@@ -137,9 +138,10 @@ const CompareCvToJobAdPage: React.FC = () => {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [jobAdText, setJobAdText] = useState('');
   const [sseFormData, setSseFormData] = useState<FormData | null>(null);
-  const [sseProgress, setSseProgress] = useState<{progress: number, message?: string, vectorResult?: any} | null>(null);
+  const [sseProgress, setSseProgress] = useState<{progress: number} | null>(null);
+  const [sseMessages, setSseMessages] = useState<string[]>([]);
   const [sseError, setSseError] = useState<string | null>(null);
-  const vectorResultRef = useRef<any>(null);
+  const [partialResult, setPartialResult] = useState<{ atsResult?: AtsResult; finalResult?: SseAnalysisResult } | null>(null);
 
   // Saved CVs & Job Ads state
   const [savedCVs, setSavedCVs] = useState<SavedItem[]>([]);
@@ -227,6 +229,8 @@ const CompareCvToJobAdPage: React.FC = () => {
     e.preventDefault();
     setSseError(null);
     setSseProgress(null);
+    setSseMessages([]);
+    setPartialResult(null);
     if (!selectedCVId && !cvFile) {
       setSseError(tSync('compareCvToJobAdPage_error_cv_required'));
       return;
@@ -267,18 +271,19 @@ const CompareCvToJobAdPage: React.FC = () => {
     '/home/CompareCvJobSSE',
     sseFormData,
     (data) => {
-      setSseProgress(data);
-      if (data.vectorResult) { vectorResultRef.current = data.vectorResult; }
+      setSseProgress({ progress: data.progress });
+      if (data.message) setSseMessages(prev => [...prev, data.message!]);
+      if (data.atsResult) setPartialResult(prev => ({ ...(prev ?? {}), atsResult: data.atsResult }));
     },
     (result) => {
       setSseProgress(null);
-      navigate('/ai-analysis-result', {
-        state: { sseResult: result, vectorResult: vectorResultRef.current },
-      });
+      setSseMessages([]);
+      setPartialResult(prev => ({ ...(prev ?? {}), finalResult: result }));
     },
     (err) => {
       setSseError(typeof err === 'string' ? err : tSync('compareCvToJobAdPage_error_generic'));
       setSseProgress(null);
+      setSseMessages([]);
     }
   );
 
@@ -433,16 +438,133 @@ const CompareCvToJobAdPage: React.FC = () => {
                   style={{ width: `${sseProgress.progress}%` }}
                 />
               </div>
-              <div className="text-sm font-semibold mb-2">{sseProgress.message}</div>
-              {sseProgress.vectorResult && typeof sseProgress.vectorResult.similarityScore === 'number' && (
-                <div className="text-lg font-bold text-blue-700 mt-2">
-                  Likhetspoäng (vector): {sseProgress.vectorResult.similarityScore}%
-                </div>
-              )}
+              <ul className="text-sm space-y-1 mt-2">
+                {sseMessages.map((msg, i) => (
+                  <li key={i} className={i === sseMessages.length - 1 ? 'font-semibold' : 'text-slate-400'}>{msg}</li>
+                ))}
+              </ul>
             </div>
           )}
 
         </SectionCard>
+
+        {/* Progressive results — appear as SSE data arrives */}
+        {partialResult && (
+          <SectionCard>
+            {partialResult.finalResult ? (
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-blue-800">AI-analys – Resultat</h2>
+                <button
+                  type="button"
+                  onClick={() => { setPartialResult(null); setSseError(null); }}
+                  className="text-sm text-slate-500 hover:text-blue-600 font-semibold transition-colors"
+                >
+                  ✕ Stäng
+                </button>
+              </div>
+            ) : (
+              <h2 className="text-xl font-bold text-blue-800 mb-4">ATS-analys</h2>
+            )}
+
+            {/* ATS block — arrives at progress=60 */}
+            {partialResult.atsResult && (
+              <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <h3 className="text-base font-semibold text-slate-700 mb-3">ATS-poäng</h3>
+                <div className="flex flex-wrap gap-4 mb-3">
+                  {typeof partialResult.atsResult.totalScore === 'number' && (
+                    <div className="text-center">
+                      <div className="text-3xl font-black text-blue-700">{partialResult.atsResult.totalScore}%</div>
+                      <div className="text-xs text-slate-500 mt-1">ATS-totalpoäng</div>
+                    </div>
+                  )}
+                </div>
+                {Array.isArray(partialResult.atsResult.matchedSkills) && partialResult.atsResult.matchedSkills.length > 0 && (
+                  <div className="mb-2">
+                    <div className="text-xs font-semibold text-green-700 mb-1">Matchade kompetenser</div>
+                    <div className="flex flex-wrap gap-1">
+                      {partialResult.atsResult.matchedSkills.map((s: string, i: number) => (
+                        <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {Array.isArray(partialResult.atsResult.missingSkills) && partialResult.atsResult.missingSkills.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold text-red-700 mb-1">Saknade kompetenser</div>
+                    <div className="flex flex-wrap gap-1">
+                      {partialResult.atsResult.missingSkills.map((s: string, i: number) => (
+                        <span key={i} className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Full AI analysis — arrives at progress=100 */}
+            {partialResult.finalResult && (() => {
+              const r = partialResult.finalResult;
+              return (
+                <div>
+                  {/* Field analysis (Template 6) — pure data */}
+                  {r.field_analysis && (
+                    <FieldAnalysisCard fieldAnalysis={r.field_analysis} />
+                  )}
+
+                  {/* Skills vector similarity — big number */}
+                  {typeof r.skills_vector_similarity === 'number' && !partialResult.atsResult && (
+                    <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border-l-4 border-emerald-400">
+                      <span className="text-4xl font-black text-emerald-700">{Number(r.skills_vector_similarity).toFixed(1)}%</span>
+                      <span className="ml-3 text-slate-700 font-semibold">Kompetenslikhet (CV vs Jobbannons)</span>
+                    </div>
+                  )}
+
+                  {r.summary && (
+                    <Section title="Sammanfattning">
+                      <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100 text-sm">{r.summary}</p>
+                    </Section>
+                  )}
+
+                  {Array.isArray(r.matching_skills) && r.matching_skills.length > 0 && (
+                    <Section title="Matchande kompetenser">
+                      <BulletList items={r.matching_skills} />
+                    </Section>
+                  )}
+
+                  {Array.isArray(r.strengths) && r.strengths.length > 0 && (
+                    <Section title="Styrkor">
+                      <BulletList items={r.strengths} />
+                    </Section>
+                  )}
+
+                  {Array.isArray(r.missing_requirements) && r.missing_requirements.length > 0 && (
+                    <Section title="Saknade krav">
+                      <BulletList items={r.missing_requirements} />
+                    </Section>
+                  )}
+
+                  {Array.isArray(r.relevant_experiences) && r.relevant_experiences.length > 0 && (
+                    <Section title="Relevanta erfarenheter">
+                      <BulletList items={r.relevant_experiences} />
+                    </Section>
+                  )}
+
+                  {Array.isArray(r.education_and_certifications) && r.education_and_certifications.length > 0 && (
+                    <Section title="Utbildning & certifieringar">
+                      <BulletList items={r.education_and_certifications} />
+                    </Section>
+                  )}
+
+                  {Array.isArray(r.gaps) && r.gaps.length > 0 && (
+                    <Section title="Luckor">
+                      <BulletList items={r.gaps} />
+                    </Section>
+                  )}
+                </div>
+              );
+            })()}
+          </SectionCard>
+        )}
       </PageWrapper>
     </>
   );
