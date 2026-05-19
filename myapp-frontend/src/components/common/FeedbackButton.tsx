@@ -101,7 +101,7 @@ const FeedbackButton: React.FC = () => {
           autoFocus
         />
         <div className="flex gap-3 pt-4">
-          <Button variant="primary" size="lg" loading={submitting} onClick={handleSubmit}>
+          <Button variant="primary" size="lg" loading={submitting} disabled={text.trim().length < 10} onClick={handleSubmit}>
             {tSync('feedback_submit_button')}
           </Button>
           <Button variant="secondary" size="lg" disabled={submitting} onClick={handleCancel}>

@@ -375,7 +375,7 @@
   "feedback_button_label": "Give us feedback",
   "feedback_modal_title": "Feedback",
   "feedback_modal_description": "Here you can share what you think works well or what needs improvement.",
-  "feedback_placeholder": "Write your feedback here...",
+  "feedback_placeholder": "Write your feedback here... (Minimum 10 characters)",
   "feedback_submit_button": "Submit",
   "feedback_thanks_title": "THANK YOU!",
   "feedback_thanks_message": "Thank you for helping us improve. We may contact you to get more details about your feedback.",
