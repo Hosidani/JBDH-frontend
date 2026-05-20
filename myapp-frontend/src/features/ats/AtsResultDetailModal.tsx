@@ -138,7 +138,7 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
       navigate('/ai-analysis-result', {
         state: {
           sseResult: res,
-          title: `${result?.cv_name || ''} → ${result?.job_name || ''}`.trim(),
+          title: `${result?.cv_name || ''} → ${parseJobName(result?.job_name ?? '').title || result?.job_name || ''}`.trim(),
         },
       });
     },
