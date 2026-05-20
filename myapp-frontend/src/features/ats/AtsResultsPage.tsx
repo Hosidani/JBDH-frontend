@@ -142,12 +142,13 @@ const AtsResultsPage: React.FC = () => {
         )}
       </PageCard>
 
+    </PageWrapper>
+
       <AtsResultDetailModal
         open={modalOpen}
         result={detail}
         onClose={() => { setModalOpen(false); setDetail(null); }}
       />
-    </PageWrapper>
     </>
   );
 };
