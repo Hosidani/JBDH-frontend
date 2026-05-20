@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageBackground, PageWrapper, Modal } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
 import { Button } from '../../components/ui/Button';
@@ -6,8 +7,6 @@ import { NamePill } from '../../components/common/NamePill';
 import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { parseJobName } from '../../utils/parseJobName';
-import AddCvModal from './AddCvModal';
-import AddJobModal from './AddJobModal';
 import AtsResultDetailModal, { type AtsResultDetail } from '../ats/AtsResultDetailModal';
 import coffeBreakImg from '../../assets/img/Coffe-break.png';
 import noWayImg from '../../assets/graphics/NoWay.png';
@@ -250,6 +249,7 @@ const GraphicalTab: React.FC<{
 
 const JobsAndCvsPage: React.FC = () => {
   const { tSync } = useTranslation();
+  const navigate = useNavigate();
 
   const [cvs,  setCvs]  = useState<CvItem[]>([]);
   const [jobs, setJobs] = useState<JobItem[]>([]);
@@ -261,8 +261,6 @@ const JobsAndCvsPage: React.FC = () => {
   const [activeTab,    setActiveTab]    = useState<TabId>('cvs-jobs');
   const [filterCvOpen,  setFilterCvOpen]  = useState(false);
   const [filterJobOpen, setFilterJobOpen] = useState(false);
-  const [cvModalOpen,   setCvModalOpen]   = useState(false);
-  const [jobModalOpen,  setJobModalOpen]  = useState(false);
   const [detail,     setDetail]     = useState<AtsResultDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
@@ -355,11 +353,6 @@ const JobsAndCvsPage: React.FC = () => {
     }
   };
 
-  const channelSuggestions = useMemo(
-    () => [...new Set(jobs.map(j => j.channel).filter(Boolean) as string[])],
-    [jobs],
-  );
-
   const tabs: { id: TabId; label: string }[] = [
     { id: 'cvs-jobs',  label: tSync('jac_tab_cvs_jobs') },
     { id: 'jobs-cvs',  label: tSync('jac_tab_jobs_cvs') },
@@ -375,8 +368,8 @@ const JobsAndCvsPage: React.FC = () => {
           title={tSync('jac_result')}
           action={
             <div className="flex gap-2">
-              <Button variant="secondary" size="sm" onClick={() => setCvModalOpen(true)}>{tSync('jac_add_cv')}</Button>
-              <Button variant="secondary" size="sm" onClick={() => setJobModalOpen(true)}>{tSync('jac_add_job')}</Button>
+              <Button variant="secondary" size="sm" onClick={() => navigate('/cv_mgmt')}>{tSync('jac_manage_cv')}</Button>
+              <Button variant="secondary" size="sm" onClick={() => navigate('/job_mgmt')}>{tSync('jac_manage_job')}</Button>
             </div>
           }
         >
@@ -458,34 +451,6 @@ const JobsAndCvsPage: React.FC = () => {
         onChange={setSelectedJobIds}
         selectAllLabel={tSync('jac_select_all')}
         deselectAllLabel={tSync('jac_deselect_all')}
-      />
-      <AddCvModal
-        open={cvModalOpen}
-        onClose={() => setCvModalOpen(false)}
-        onAdded={item => {
-          const name = item.name || item.text.slice(0, 50);
-          setCvs(prev => [{ id: item.id, name, text: item.text }, ...prev]);
-          setSelectedCvIds(prev => new Set([...prev, item.id]));
-          refreshAtsResults();
-        }}
-      />
-      <AddJobModal
-        open={jobModalOpen}
-        onClose={() => setJobModalOpen(false)}
-        onAdded={item => {
-          const parsed = parseJobName(item.name || '');
-          const job: JobItem = {
-            id: item.id,
-            displayName: parsed.title || item.text.slice(0, 50),
-            rawName: item.name || '',
-            channel: parsed.channel || undefined,
-            text: item.text,
-          };
-          setJobs(prev => [job, ...prev]);
-          setSelectedJobIds(prev => new Set([...prev, item.id]));
-          refreshAtsResults();
-        }}
-        channelSuggestions={channelSuggestions}
       />
       <AtsResultDetailModal
         open={detailOpen}
