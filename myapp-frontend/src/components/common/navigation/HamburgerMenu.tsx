@@ -26,10 +26,12 @@ const MENU_ITEMS: MenuItem[] = [
   { to: '/profile',          labelKey: 'menu_profile',          roles: ['User'] },
   { to: '/search',           labelKey: 'menu_match_cv_ads',     roles: ['User'] },
   { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',       roles: ['User'] },
+  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',   roles: ['User'] },
   { to: '/add-job-ad',       labelKey: 'menu_post_ad',          roles: ['Recruiter'] },
   { to: '/jobs-and-cvs',     labelKey: 'menu_multi_match',      roles: ['Recruiter', 'Manager'] },
   { to: '/ats-results',      labelKey: 'menu_ats_results',       roles: ['Recruiter', 'Manager'] },
-  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',   roles: null },
+  { to: '/cv_mgmt',          labelKey: 'menu_manage_candidate_cvs', roles: ['Manager'] },
+  { to: '/jobs_mgmt',        labelKey: 'menu_manage_ads',           roles: ['Manager'] },
   { to: '/messages',         labelKey: 'menu_messages',         roles: [] },
   { to: '/about',            labelKey: 'menu_how_it_works',     roles: null },
 ];

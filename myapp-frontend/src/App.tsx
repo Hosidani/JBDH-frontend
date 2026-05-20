@@ -17,6 +17,8 @@ import { AddJobAdPage } from './features/boards';
 import { MatchingProfilePage } from './features/matching';
 import { JobsAndCvsPage } from './features/jobs-and-cvs';
 import { AtsResultsPage } from './features/ats';
+import CvMgmtPage from './features/cv-mgmt/CvMgmtPage';
+import JobMgmtPage from './features/job-mgmt/JobMgmtPage';
 import { AiAnalysisResultPage } from './features/ai-analysis-result';
 import { JobDetailPage } from './features/jobs';
 import { MessagesPage } from './features/messages';
@@ -132,7 +134,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/search" element={<RequireAuth><SearchJobsPage /></RequireAuth>} />
-          <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
+          <Route path="/compare-cv-jobad" element={<RequireAuth roles={['User']}><CompareCvToJobAdPage /></RequireAuth>} />
           <Route path="/about" element={<Suspense fallback={null}><AboutPage /></Suspense>} />
           <Route path="/messages" element={<MessagesPage />} />
 
@@ -147,6 +149,9 @@ function App() {
           <Route path="/add-job-ad"   element={<RequireAuth roles={['Recruiter']}><AddJobAdPage /></RequireAuth>} />
           <Route path="/match-ad-cvs" element={<RequireAuth roles={['Recruiter']}><MatchAdToCvsPage /></RequireAuth>} />
           <Route path="/jobs-and-cvs"     element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsPage /></RequireAuth>} />
+          <Route path="/cv_mgmt"          element={<RequireAuth roles={['Recruiter', 'Manager']}><CvMgmtPage /></RequireAuth>} />
+          <Route path="/job_mgmt"         element={<RequireAuth roles={['Recruiter', 'Manager']}><JobMgmtPage /></RequireAuth>} />
+          <Route path="/jobs_mgmt"        element={<RequireAuth roles={['Recruiter', 'Manager']}><JobMgmtPage /></RequireAuth>} />
           <Route path="/ats-results"      element={<RequireAuth roles={['Recruiter', 'Manager']}><AtsResultsPage /></RequireAuth>} />
           <Route path="/ai-analysis-result" element={<RequireAuth><AiAnalysisResultPage /></RequireAuth>} />
 
