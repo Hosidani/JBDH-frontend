@@ -2,14 +2,20 @@ import type { FieldAnalysis } from '../components/common/FieldAnalysisCard';
 
 export type SkillItem = string | { name: string; importance?: number; category?: string };
 
+/** Bilingual string returned by DeepSeek (sv + en). */
+export interface Bilingual {
+  sv: string;
+  en: string;
+}
+
 export interface SseAnalysisResult {
-  summary: string;
+  summary: Bilingual | string;
   matching_skills: SkillItem[];
   missing_requirements: SkillItem[];
   relevant_experiences: SkillItem[];
   education_and_certifications: SkillItem[];
-  strengths: SkillItem[];
-  gaps: SkillItem[];
+  strengths: (Bilingual | string)[];
+  gaps: (Bilingual | string)[];
   profession_vector_similarity: number;
   skills_vector_similarity: number;
   field_analysis?: FieldAnalysis;

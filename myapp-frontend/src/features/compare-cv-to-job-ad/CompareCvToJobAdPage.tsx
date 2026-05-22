@@ -9,7 +9,7 @@ import IconCvDocument from '../../components/icon_library/IconCvDocument';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { ApiService } from '../../services/ApiService';
-import type { SseAnalysisResult, AtsResult } from '../../types/analysis';
+import type { SseAnalysisResult, AtsResult, Bilingual } from '../../types/analysis';
 
 type SavedItem = { id: number; name: string; text: string; created_at: string };
 
@@ -126,8 +126,14 @@ function SavedTextPanel({
 
 const CompareCvToJobAdPage: React.FC = () => {
   const { user } = useAuth();
-  const { tSync } = useTranslation();
+  const { tSync, language } = useTranslation();
   const navigate = useNavigate();
+
+  const resolve = (value: Bilingual | string | undefined): string => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    return language === 'en' ? (value.en || value.sv) : (value.sv || value.en);
+  };
 
   React.useEffect(() => {
     if (!user) {
@@ -508,56 +514,62 @@ const CompareCvToJobAdPage: React.FC = () => {
                 <div>
                   {/* Field analysis (Template 6) — pure data */}
                   {r.field_analysis && (
-                    <FieldAnalysisCard fieldAnalysis={r.field_analysis} />
+                    <FieldAnalysisCard fieldAnalysis={r.field_analysis} lang={language} />
                   )}
 
                   {/* Skills vector similarity — big number */}
                   {typeof r.skills_vector_similarity === 'number' && !partialResult.atsResult && (
                     <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border-l-4 border-emerald-400">
                       <span className="text-4xl font-black text-emerald-700">{Number(r.skills_vector_similarity).toFixed(1)}%</span>
-                      <span className="ml-3 text-slate-700 font-semibold">Kompetenslikhet (CV vs Jobbannons)</span>
+                      <span className="ml-3 text-slate-700 font-semibold">
+                        {language === 'en' ? 'Competency similarity (CV vs Job)' : 'Kompetenslikhet (CV vs Jobbannons)'}
+                      </span>
                     </div>
                   )}
 
                   {r.summary && (
-                    <Section title="Sammanfattning">
-                      <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100 text-sm">{r.summary}</p>
+                    <Section title={language === 'en' ? 'Summary' : 'Sammanfattning'}>
+                      <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100 text-sm">{resolve(r.summary)}</p>
                     </Section>
                   )}
 
                   {Array.isArray(r.matching_skills) && r.matching_skills.length > 0 && (
-                    <Section title="Matchande kompetenser">
+                    <Section title={language === 'en' ? 'Matching skills' : 'Matchande kompetenser'}>
                       <BulletList items={r.matching_skills} />
                     </Section>
                   )}
 
                   {Array.isArray(r.strengths) && r.strengths.length > 0 && (
-                    <Section title="Styrkor">
-                      <BulletList items={r.strengths} />
+                    <Section title={language === 'en' ? 'Strengths' : 'Styrkor'}>
+                      <ul className="list-disc ml-6 text-gray-900 space-y-1 text-sm">
+                        {r.strengths.map((item, i) => <li key={i}>{resolve(item)}</li>)}
+                      </ul>
                     </Section>
                   )}
 
                   {Array.isArray(r.missing_requirements) && r.missing_requirements.length > 0 && (
-                    <Section title="Saknade krav">
+                    <Section title={language === 'en' ? 'Missing requirements' : 'Saknade krav'}>
                       <BulletList items={r.missing_requirements} />
                     </Section>
                   )}
 
                   {Array.isArray(r.relevant_experiences) && r.relevant_experiences.length > 0 && (
-                    <Section title="Relevanta erfarenheter">
+                    <Section title={language === 'en' ? 'Relevant experiences' : 'Relevanta erfarenheter'}>
                       <BulletList items={r.relevant_experiences} />
                     </Section>
                   )}
 
                   {Array.isArray(r.education_and_certifications) && r.education_and_certifications.length > 0 && (
-                    <Section title="Utbildning & certifieringar">
+                    <Section title={language === 'en' ? 'Education & certifications' : 'Utbildning & certifieringar'}>
                       <BulletList items={r.education_and_certifications} />
                     </Section>
                   )}
 
                   {Array.isArray(r.gaps) && r.gaps.length > 0 && (
-                    <Section title="Luckor">
-                      <BulletList items={r.gaps} />
+                    <Section title={language === 'en' ? 'Gaps' : 'Luckor'}>
+                      <ul className="list-disc ml-6 text-gray-900 space-y-1 text-sm">
+                        {r.gaps.map((item, i) => <li key={i}>{resolve(item)}</li>)}
+                      </ul>
                     </Section>
                   )}
                 </div>

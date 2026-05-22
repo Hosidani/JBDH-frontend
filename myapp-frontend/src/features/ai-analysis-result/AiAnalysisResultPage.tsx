@@ -3,7 +3,8 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { PageWrapper, PageBackground, FieldAnalysisCard, Section, BulletList } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import presentationImg from '../../assets/img/Presentation.png';
-import type { SseAnalysisResult } from '../../types/analysis';
+import { useTranslation } from '../../hooks/TranslationProvider';
+import type { SseAnalysisResult, Bilingual } from '../../types/analysis';
 
 interface AiAnalysisState {
   sseResult: SseAnalysisResult;
@@ -13,8 +14,16 @@ interface AiAnalysisState {
 const AiAnalysisResultPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { language } = useTranslation();
   const state = (location.state ?? {}) as Partial<AiAnalysisState>;
   const { sseResult, title } = state;
+
+  /** Resolve a bilingual value to the current UI language. */
+  const resolve = (value: Bilingual | string | undefined): string => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    return language === 'en' ? (value.en || value.sv) : (value.sv || value.en);
+  };
 
   if (!sseResult) {
     return <Navigate to="/" replace />;
@@ -39,7 +48,7 @@ const AiAnalysisResultPage: React.FC = () => {
 
         {/* Field analysis (Template 6) */}
         {sseResult.field_analysis && (
-          <FieldAnalysisCard fieldAnalysis={sseResult.field_analysis} />
+          <FieldAnalysisCard fieldAnalysis={sseResult.field_analysis} lang={language} />
         )}
 
         {/* Skills similarity — big score */}
@@ -48,49 +57,55 @@ const AiAnalysisResultPage: React.FC = () => {
             <span className="text-4xl font-black text-emerald-700">
               {Number(sseResult.skills_vector_similarity).toFixed(1)}%
             </span>
-            <span className="ml-3 text-slate-700 font-semibold">Kompetenslikhet (CV vs Jobbannons)</span>
+            <span className="ml-3 text-slate-700 font-semibold">
+              {language === 'en' ? 'Competency similarity (CV vs Job)' : 'Kompetenslikhet (CV vs Jobbannons)'}
+            </span>
           </div>
         )}
 
         {sseResult.summary && (
-          <Section title="Sammanfattning">
-            <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100 text-sm">{sseResult.summary}</p>
+          <Section title={language === 'en' ? 'Summary' : 'Sammanfattning'}>
+            <p className="text-gray-800 bg-blue-50 rounded p-3 border border-blue-100 text-sm">{resolve(sseResult.summary)}</p>
           </Section>
         )}
 
         {Array.isArray(sseResult.matching_skills) && sseResult.matching_skills.length > 0 && (
-          <Section title="Matchande kompetenser">
+          <Section title={language === 'en' ? 'Matching skills' : 'Matchande kompetenser'}>
             <BulletList items={sseResult.matching_skills} />
           </Section>
         )}
 
         {Array.isArray(sseResult.missing_requirements) && sseResult.missing_requirements.length > 0 && (
-          <Section title="Saknade krav">
+          <Section title={language === 'en' ? 'Missing requirements' : 'Saknade krav'}>
             <BulletList items={sseResult.missing_requirements} />
           </Section>
         )}
 
         {Array.isArray(sseResult.relevant_experiences) && sseResult.relevant_experiences.length > 0 && (
-          <Section title="Relevanta erfarenheter">
+          <Section title={language === 'en' ? 'Relevant experiences' : 'Relevanta erfarenheter'}>
             <BulletList items={sseResult.relevant_experiences} />
           </Section>
         )}
 
         {Array.isArray(sseResult.education_and_certifications) && sseResult.education_and_certifications.length > 0 && (
-          <Section title="Utbildning & certifieringar">
+          <Section title={language === 'en' ? 'Education & certifications' : 'Utbildning & certifieringar'}>
             <BulletList items={sseResult.education_and_certifications} />
           </Section>
         )}
 
         {Array.isArray(sseResult.strengths) && sseResult.strengths.length > 0 && (
-          <Section title="Styrkor">
-            <BulletList items={sseResult.strengths} />
+          <Section title={language === 'en' ? 'Strengths' : 'Styrkor'}>
+            <ul className="list-disc ml-6 text-gray-900 space-y-1 text-sm">
+              {sseResult.strengths.map((item, i) => <li key={i}>{resolve(item)}</li>)}
+            </ul>
           </Section>
         )}
 
         {Array.isArray(sseResult.gaps) && sseResult.gaps.length > 0 && (
-          <Section title="Luckor">
-            <BulletList items={sseResult.gaps} />
+          <Section title={language === 'en' ? 'Gaps' : 'Luckor'}>
+            <ul className="list-disc ml-6 text-gray-900 space-y-1 text-sm">
+              {sseResult.gaps.map((item, i) => <li key={i}>{resolve(item)}</li>)}
+            </ul>
           </Section>
         )}
 
