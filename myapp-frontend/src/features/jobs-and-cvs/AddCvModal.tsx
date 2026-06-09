@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import { parseCvFile } from '../../utils/parseCvFile';
+import { parseCvFile, ACCEPT_STRING } from '../../utils/parseCvFile';
 
 interface AddCvModalProps {
   open: boolean;
@@ -114,7 +114,7 @@ const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded, onUpdat
         <div className="flex flex-col gap-4">
           <FileDropZone
             onFileSelected={handleFileSelected}
-            accept=".pdf,.docx"
+            accept={ACCEPT_STRING}
             disabled={step === 'parsing'}
             className="p-6 text-center"
           >
