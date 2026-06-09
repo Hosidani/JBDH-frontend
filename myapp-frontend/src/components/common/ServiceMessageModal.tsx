@@ -3,6 +3,7 @@ import { type ServiceMessage, type MessageCategory } from '../../config/serviceM
 import MarkdownRenderer from './MarkdownRenderer';
 import { Button } from '../ui/Button';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { useDraggable } from '../../hooks/useDraggable';
 
 interface ServiceMessageModalProps {
   message: ServiceMessage;
@@ -21,6 +22,7 @@ const ServiceMessageModal: React.FC<ServiceMessageModalProps> = ({ message, onAc
   const { tSync, language } = useTranslation();
   const content = language === 'sv' ? message.contentSv : message.contentEn;
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const { position, dialogRef, onHeaderMouseDown } = useDraggable(true);
 
   const handleConfirm = () => {
     if (dontShowAgain) {
@@ -30,12 +32,21 @@ const ServiceMessageModal: React.FC<ServiceMessageModalProps> = ({ message, onAc
     }
   };
 
+  const isDragged = position !== null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className={`fixed inset-0 z-50 ${isDragged ? '' : 'flex items-center justify-center'}`}>
       <div className="absolute inset-0 bg-black bg-opacity-50" />
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 z-10 flex flex-col max-h-[85vh]">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-8 pt-8 pb-4 border-b border-slate-100">
+      <div
+        ref={dialogRef}
+        className={`relative bg-white rounded-2xl shadow-xl w-full max-w-lg z-10 flex flex-col max-h-[85vh] ${isDragged ? '' : 'mx-4'}`}
+        style={isDragged ? { position: 'absolute', left: position.x, top: position.y } : {}}
+      >
+        {/* Header — drag handle */}
+        <div
+          className="flex items-center gap-3 px-8 pt-8 pb-4 border-b border-slate-100 cursor-grab select-none active:cursor-grabbing"
+          onMouseDown={onHeaderMouseDown}
+        >
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${categoryColors[message.category]}`}>
             {tSync(`serviceMessages_category_${message.category}`)}
           </span>
