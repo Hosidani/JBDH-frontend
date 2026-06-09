@@ -48,7 +48,12 @@ const RTF_HEX_MAP: Record<string, string> = {
 };
 
 export function parseRtfText(raw: string): string {
-  return raw
+  // Strip the RTF preamble (fonttbl, colortbl, stylesheet, etc.) — all before first \pard.
+  // Those header groups are not document content and produce ; artifacts and font names.
+  const pardIdx = raw.search(/\\pard\b/);
+  const body = pardIdx > 0 ? raw.slice(pardIdx) : raw;
+
+  return body
     // Unicode-escapes: \u229? → char
     .replace(/\\u(\d+)\??/g, (_, n) => String.fromCharCode(parseInt(n, 10)))
     // Stycke-/radbrytningar → newlines
@@ -63,6 +68,11 @@ export function parseRtfText(raw: string): string {
     .replace(/\\([{}\\])/g, '$1')
     // Ta bort kvarvarande måsvingar
     .replace(/[{}]/g, '')
+    // Rensa kvarvarande backslashar (RTF-kontrollsymboler som \- \~ \; etc.)
+    .replace(/\\/g, '')
+    // Rensa semikolon-artefakter (från fonttbl/colortbl om de ändå läckt igenom)
+    .replace(/;{2,}/g, '')
+    .replace(/^\s*;\s*$/mg, '')
     // Normalisera blankrader
     .replace(/\r\n?/g, '\n')
     .replace(/\n{3,}/g, '\n\n')

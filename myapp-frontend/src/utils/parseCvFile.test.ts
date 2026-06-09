@@ -182,7 +182,6 @@ describe('parseRtfText', () => {
   });
 
   it('konverterar svenska hex-escapes', () => {
-    const rtf = "Namn: Anna \\e5 \\e4 \\f6";
     // \'e5 = å, \'e4 = ä, \'f6 = ö
     const rtfWithEscapes = "Namn: Anna \\'e5\\'e4\\'f6";
     const result = parseRtfText(rtfWithEscapes);
@@ -197,6 +196,16 @@ describe('parseRtfText', () => {
     expect(result).toContain('Ren text');
     expect(result).not.toContain('\\f0');
     expect(result).not.toContain('\\fs24');
+  });
+
+  it('tar bort semikolon- och backslash-artefakter', () => {
+    // Realistisk RTF med fonttbl (skapar ; och fontnamn som artefakter om ej strippad)
+    const rtf = '{\\rtf1\\ansi{\\fonttbl{\\f0\\fswiss Arial;}}{\\colortbl ;\\red0\\green0\\blue0;}\\pard\\f0\\fs24 CV-text\\par}';
+    const result = parseRtfText(rtf);
+    expect(result).toContain('CV-text');
+    expect(result).not.toContain(';');
+    expect(result).not.toContain('\\');
+    expect(result).not.toContain('Arial');
   });
 });
 
