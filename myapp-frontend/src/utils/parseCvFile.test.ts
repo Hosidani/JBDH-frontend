@@ -134,7 +134,7 @@ describe('parseCvFile', () => {
           })
         ),
       }),
-    } as ReturnType<typeof getDocument>);
+    } as unknown as ReturnType<typeof getDocument>);
 
     const file = new File(['dummy'], 'cv.pdf', { type: 'application/pdf' });
     const result = await parseCvFile(file);
