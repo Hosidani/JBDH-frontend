@@ -4,46 +4,55 @@ import { PageCard } from '../../components/common/PageCard';
 import { Modal } from '../../components/common';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
-import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import AddCvModal from '../jobs-and-cvs/AddCvModal';
+import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
+import { LocalDbService } from '../../db/LocalDbService';
+import { ApiService } from '../../services/ApiService';
+import type { CV } from '../../db/types';
+import AddCvForCandidateModal from '../candidate/AddCvForCandidateModal';
 import coffeBreakImg from '../../assets/img/Coffe-break.png';
-
-interface CvItem { id: number; name: string; text: string }
 
 const CvMgmtPage: React.FC = () => {
   const { tSync } = useTranslation();
-  const [cvs, setCvs] = useState<CvItem[]>([]);
-  const [checked, setChecked] = useState<Set<number>>(new Set());
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
-  const [editItem, setEditItem] = useState<{ id: number; name: string } | undefined>(undefined);
+  const { data: account } = useLocalAccount();
+  const { data: candidates } = useLocalCandidates(account?.account_id);
+
+  const [allCvs, setAllCvs] = useState<CV[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    ApiService.getExternalCVs().then(data => {
-      setCvs(data.map(c => ({ id: c.id, name: c.name || c.text.slice(0, 50), text: c.text })));
-    }).catch(() => {});
-  }, []);
+    if (!candidates.length) { setAllCvs([]); return; }
+    Promise.all(candidates.map(c => LocalDbService.getCVsForCandidate(c.candidate_id)))
+      .then(results => setAllCvs(results.flat()))
+      .catch(() => {});
+  }, [candidates, refreshKey]);
 
-  const toggleCheck = (id: number) => {
-    setChecked(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
+  const candidateMap = Object.fromEntries(candidates.map(c => [c.candidate_id, c.name]));
 
-  const toggleAll = () => {
-    setChecked(prev => prev.size === cvs.length ? new Set() : new Set(cvs.map(c => c.id)));
-  };
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editCv, setEditCv] = useState<CV | undefined>(undefined);
+
+  const toggleCheck = (id: string) =>
+    setChecked(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+
+  const toggleAll = () =>
+    setChecked(prev => prev.size === allCvs.length ? new Set() : new Set(allCvs.map(c => c.cv_id)));
 
   const handleDeleteConfirmed = async () => {
     setDeleting(true);
     try {
-      await Promise.all([...checked].map(id => ApiService.deleteExternalCV(id)));
-      setCvs(prev => prev.filter(c => !checked.has(c.id)));
+      const cvRecords = await Promise.all([...checked].map(id => LocalDbService.getCV(id)));
+      await Promise.allSettled(
+        cvRecords
+          .filter((cv): cv is NonNullable<typeof cv> => !!cv?.backend_id)
+          .map(cv => ApiService.deleteExternalCV(cv.backend_id!))
+      );
+      await Promise.all([...checked].map(id => LocalDbService.deleteCV(id)));
       setChecked(new Set());
+      setRefreshKey(k => k + 1);
     } catch { /* silently ignore */ }
     finally {
       setDeleting(false);
@@ -51,17 +60,28 @@ const CvMgmtPage: React.FC = () => {
     }
   };
 
-  const handleEdit = (cv: CvItem) => {
-    setEditItem({ id: cv.id, name: cv.name });
-    setAddOpen(true);
+  const openAdd = () => {
+    setEditCv(undefined);
+    setModalOpen(true);
   };
 
-  const handleAddClose = () => {
-    setAddOpen(false);
-    setEditItem(undefined);
+  const openEdit = (cv: CV) => {
+    setEditCv(cv);
+    setModalOpen(true);
   };
 
-  const allChecked = cvs.length > 0 && checked.size === cvs.length;
+  const handleModalClose = () => { setModalOpen(false); setEditCv(undefined); };
+
+  const mimeToFormat = (mime: string): string => {
+    if (mime.includes('pdf')) return 'PDF';
+    if (mime.includes('wordprocessingml') || mime.includes('docx')) return 'DOCX';
+    if (mime.includes('rtf')) return 'RTF';
+    if (mime.includes('markdown')) return 'MD';
+    if (mime.includes('plain')) return 'TXT';
+    return mime;
+  };
+
+  const allChecked = allCvs.length > 0 && checked.size === allCvs.length;
   const someChecked = checked.size > 0;
 
   return (
@@ -73,16 +93,17 @@ const CvMgmtPage: React.FC = () => {
           action={
             <div className="flex items-center gap-2">
               <button
-                onClick={() => { setEditItem(undefined); setAddOpen(true); }}
-                title={tSync('jac_add_cv')}
-                className="p-1.5 rounded-md text-slate-600 hover:bg-slate-100 transition-colors"
+                onClick={openAdd}
+                disabled={candidates.length === 0}
+                title={tSync('candidate_cv_add_title')}
+                className="p-1.5 rounded-md text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <Icon name="add" size={22} />
               </button>
               <button
-                onClick={() => setConfirmOpen(true)}
+                onClick={() => someChecked && setConfirmOpen(true)}
                 disabled={!someChecked}
-                title={tSync('jac_delete_cv')}
+                title={tSync('candidate_cv_delete_confirm_title')}
                 className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <Icon name="delete" size={22} />
@@ -90,7 +111,7 @@ const CvMgmtPage: React.FC = () => {
             </div>
           }
         >
-          {cvs.length === 0 ? (
+          {allCvs.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-6">{tSync('jac_empty')}</p>
           ) : (
             <ul className="flex flex-col divide-y divide-slate-100">
@@ -103,22 +124,42 @@ const CvMgmtPage: React.FC = () => {
                 />
                 <span className="text-xs text-slate-400 select-none">{tSync('jac_select_all')}</span>
               </li>
-              {cvs.map(cv => (
-                <li
-                  key={cv.id}
-                  className="group flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md"
-                >
+              {allCvs.map(cv => (
+                <li key={cv.cv_id} className="group flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md">
                   <input
                     type="checkbox"
-                    checked={checked.has(cv.id)}
-                    onChange={() => toggleCheck(cv.id)}
+                    checked={checked.has(cv.cv_id)}
+                    onChange={() => toggleCheck(cv.cv_id)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                   />
-                  <span className="flex-1 text-sm text-slate-700 truncate">{cv.name}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm text-slate-700 truncate">
+                        {cv.cv_title || 'CV'}
+                      </span>
+                      {cv.cv_published ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200 whitespace-nowrap">
+                          {tSync('cv_status_published')}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white text-slate-500 border border-slate-300 whitespace-nowrap">
+                          {tSync('cv_status_unpublished')}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {candidateMap[cv.candidate_id] && (
+                        <span className="text-xs text-slate-500">{candidateMap[cv.candidate_id]}</span>
+                      )}
+                      {cv.cv_file_type && (
+                        <span className="text-xs text-slate-400">{mimeToFormat(cv.cv_file_type)}</span>
+                      )}
+                    </div>
+                  </div>
                   <button
-                    onClick={() => handleEdit(cv)}
-                    title={tSync('jac_edit_cv_title')}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                    onClick={() => openEdit(cv)}
+                    title={tSync('candidate_cv_edit_title')}
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all flex-shrink-0"
                   >
                     <Icon name="edit" size={18} />
                   </button>
@@ -129,12 +170,8 @@ const CvMgmtPage: React.FC = () => {
         </PageCard>
       </PageWrapper>
 
-      <Modal
-        open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        title={tSync('jac_delete_cv_confirm_title')}
-      >
-        <p className="text-sm text-slate-600 mb-6">{tSync('jac_delete_cv_confirm_message')}</p>
+      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title={tSync('candidate_cv_delete_confirm_title')}>
+        <p className="text-sm text-slate-600 mb-6">{tSync('candidate_cv_delete_confirm_message')}</p>
         <div className="flex gap-2 justify-end">
           <Button variant="ghost" size="lg" onClick={() => setConfirmOpen(false)}>
             {tSync('button_cancel')}
@@ -145,19 +182,13 @@ const CvMgmtPage: React.FC = () => {
         </div>
       </Modal>
 
-      <AddCvModal
-        open={addOpen}
-        onClose={handleAddClose}
-        editItem={editItem}
-        onAdded={item => {
-          const name = item.name || item.text.slice(0, 50);
-          setCvs(prev => [{ id: item.id, name, text: item.text }, ...prev]);
-          handleAddClose();
-        }}
-        onUpdated={item => {
-          setCvs(prev => prev.map(c => c.id === item.id ? { ...c, name: item.name, text: item.text } : c));
-          handleAddClose();
-        }}
+      <AddCvForCandidateModal
+        open={modalOpen}
+        onClose={handleModalClose}
+        defaultCandidateId={editCv?.candidate_id ?? candidates[0]?.candidate_id ?? ''}
+        candidates={candidates}
+        editCv={editCv}
+        onSaved={() => { setRefreshKey(k => k + 1); handleModalClose(); }}
       />
     </>
   );
