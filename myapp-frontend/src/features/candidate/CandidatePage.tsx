@@ -35,8 +35,6 @@ const EMPTY: FormState = {
   travel: false, searchable: false,
 };
 
-type SaveStatus = 'idle' | 'saving' | 'saved';
-
 const CandidatePage: React.FC = () => {
   const { tSync } = useTranslation();
   const navigate = useNavigate();
@@ -55,8 +53,6 @@ const CandidatePage: React.FC = () => {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [loadError, setLoadError] = useState('');
   const [nameError, setNameError] = useState('');
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-
   // CV section state
   const [cvChecked, setCvChecked] = useState<Set<string>>(new Set());
   const [addCvOpen, setAddCvOpen] = useState(false);
@@ -84,7 +80,6 @@ const CandidatePage: React.FC = () => {
     const current: FormState = { ...form, ...overrides };
     if (!current.name.trim()) return;
 
-    setSaveStatus('saving');
     try {
       if (localIdRef.current) {
         await LocalDbService.updateCandidate(localIdRef.current, {
@@ -104,11 +99,7 @@ const CandidatePage: React.FC = () => {
         localIdRef.current = saved.candidate_id;
         setSavedCandidateId(saved.candidate_id);
       }
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch {
-      setSaveStatus('idle');
-    }
+    } catch { /* silently ignore */ }
   }, [account, form]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
@@ -147,6 +138,25 @@ const CandidatePage: React.FC = () => {
     return mime;
   };
 
+  const mimeToExt = (mime: string): string => {
+    if (mime.includes('pdf')) return '.pdf';
+    if (mime.includes('wordprocessingml') || mime.includes('docx')) return '.docx';
+    if (mime.includes('rtf')) return '.rtf';
+    if (mime.includes('markdown')) return '.md';
+    if (mime.includes('plain')) return '.txt';
+    return '';
+  };
+
+  const downloadCv = (cv: CV) => {
+    if (!cv.cv_file) return;
+    const url = URL.createObjectURL(cv.cv_file);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (cv.cv_title || 'cv') + mimeToExt(cv.cv_file_type);
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (accountLoading) return null;
 
   return (
@@ -158,7 +168,21 @@ const CandidatePage: React.FC = () => {
           {loadError && <p className="text-red-600 text-sm">{loadError}</p>}
 
           {/* Grunduppgifter */}
-          <PageCard title={tSync('candidate_form_page_title')}>
+          <PageCard
+            title={
+              savedCandidateId && form.name.trim()
+                ? `${tSync('candidate_form_page_title')} '${form.name.trim()}'`
+                : tSync('candidate_form_create_title')
+            }
+            action={
+              <button
+                onClick={() => navigate('/candidate_mgmt')}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                {tSync('candidate_list_candidates')}
+              </button>
+            }
+          >
             <div className="flex flex-col gap-4">
               <div>
                 <TextInput
@@ -290,6 +314,15 @@ const CandidatePage: React.FC = () => {
                           <span className="block text-xs text-slate-400">{mimeToFormat(cv.cv_file_type)}</span>
                         )}
                       </div>
+                      {cv.cv_file && (
+                        <button
+                          onClick={e => { e.stopPropagation(); downloadCv(cv); }}
+                          title={tSync('candidate_cv_download')}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all flex-shrink-0"
+                        >
+                          <Icon name="download" size={18} />
+                        </button>
+                      )}
                       <button
                         onClick={e => { e.stopPropagation(); setConfirmCvId(cv.cv_id); }}
                         title={tSync('candidate_cv_delete_confirm_title')}
@@ -303,18 +336,6 @@ const CandidatePage: React.FC = () => {
               )}
             </PageCard>
           )}
-
-          {/* Navigation */}
-          <PageCard title="">
-            <div className="flex items-center justify-between">
-              <span className={`text-sm transition-opacity duration-500 ${saveStatus === 'saved' ? 'text-green-600 opacity-100' : 'opacity-0'}`}>
-                ✓ {tSync('candidate_form_saved')}
-              </span>
-              <Button variant="ghost" size="lg" onClick={() => navigate('/candidate_mgmt')}>
-                {tSync('candidate_form_back')}
-              </Button>
-            </div>
-          </PageCard>
 
         </div>
       </PageWrapper>
