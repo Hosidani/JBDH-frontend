@@ -11,6 +11,7 @@ import { Toggle } from '../../components/ui/Toggle';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useLocalAccount, useLocalCandidates, useLocalCVs } from '../../db/useLocalDb';
 import { LocalDbService } from '../../db/LocalDbService';
+import { ApiService } from '../../services/ApiService';
 import { WORKPLACE_TYPES, EMPLOYMENT_TYPES } from '../../db/types';
 import type { CV, WorkplaceType, EmploymentType } from '../../db/types';
 import AddCvForCandidateModal from './AddCvForCandidateModal';
@@ -109,6 +110,13 @@ const CandidatePage: React.FC = () => {
   const doDeleteCvs = async (ids: string[]) => {
     setDeletingCv(true);
     try {
+      // Fetch CVs to get backend_id, then delete from backend (best-effort) and IndexedDB
+      const cvRecords = await Promise.all(ids.map(id => LocalDbService.getCV(id)));
+      await Promise.allSettled(
+        cvRecords
+          .filter((cv): cv is NonNullable<typeof cv> => !!cv?.backend_id)
+          .map(cv => ApiService.deleteExternalCV(cv.backend_id!))
+      );
       await Promise.all(ids.map(cvId => LocalDbService.deleteCV(cvId)));
       setCvChecked(prev => { const n = new Set(prev); ids.forEach(id => n.delete(id)); return n; });
       await refreshCvs();
@@ -188,6 +196,7 @@ const CandidatePage: React.FC = () => {
                 <TextInput
                   label={tSync('candidate_form_name')}
                   value={form.name}
+                  helpText={tSync('candidate_form_name_help')}
                   onChange={v => { set('name', v); setNameError(''); }}
                   onBlur={() => {
                     if (!form.name.trim()) { setNameError(tSync('candidate_form_name_required')); return; }
@@ -196,10 +205,10 @@ const CandidatePage: React.FC = () => {
                 />
                 {nameError && <p className="text-red-500 text-xs mt-1">{nameError}</p>}
               </div>
-              <TextInput label={tSync('candidate_form_job_title')} value={form.title}     onChange={v => set('title', v)}     onBlur={() => autoSave()} />
-              <TextInput label={tSync('candidate_form_location')}  value={form.location}  onChange={v => set('location', v)}  onBlur={() => autoSave()} />
-              <TextInput label={tSync('candidate_form_email')}     value={form.email}     onChange={v => set('email', v)}     onBlur={() => autoSave()} type="email" />
-              <TextInput label={tSync('candidate_form_telephone')} value={form.telephone} onChange={v => set('telephone', v)} onBlur={() => autoSave()} type="tel" />
+              <TextInput label={tSync('candidate_form_job_title')} helpText={tSync('candidate_form_job_title_help')} value={form.title}     onChange={v => set('title', v)}     onBlur={() => autoSave()} />
+              <TextInput label={tSync('candidate_form_location')}  helpText={tSync('candidate_form_location_help')}  value={form.location}  onChange={v => set('location', v)}  onBlur={() => autoSave()} />
+              <TextInput label={tSync('candidate_form_email')}     helpText={tSync('candidate_form_email_help')}     value={form.email}     onChange={v => set('email', v)}     onBlur={() => autoSave()} type="email" />
+              <TextInput label={tSync('candidate_form_telephone')} helpText={tSync('candidate_form_telephone_help')} value={form.telephone} onChange={v => set('telephone', v)} onBlur={() => autoSave()} type="tel" />
             </div>
           </PageCard>
 
@@ -248,7 +257,7 @@ const CandidatePage: React.FC = () => {
           {/* Kandidatens CV — visas när kandidaten är sparad */}
           {savedCandidateId && (
             <PageCard
-              title={tSync('candidate_cv_section_title')}
+              title={`${tSync('candidate_cv_section_title')} "${form.name.trim() || '...'}"`}
               action={
                 <div className="flex items-center gap-2">
                   <button

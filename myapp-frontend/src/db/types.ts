@@ -40,6 +40,7 @@ export interface Candidate {
 export interface CV {
   cv_id: string;             // UUID, primary key
   candidate_id: string;      // FK → Candidate
+  backend_id?: number;       // ID returned from backend after upload
   cv_title?: string;         // display name / label for this CV
   cv_anonymized: string;
   cv_json: string;

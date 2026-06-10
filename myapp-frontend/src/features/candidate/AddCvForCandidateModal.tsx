@@ -106,10 +106,11 @@ const AddCvForCandidateModal: React.FC<Props> = ({
     setError(null);
     try {
       // Send the client-extracted, masked text to backend
-      await ApiService.createExternalCV(cvText.trim(), cvTitle.trim() || undefined);
+      const backendCv = await ApiService.createExternalCV(cvText.trim(), cvTitle.trim() || undefined);
 
       if (isEdit && editCv) {
         const updated = await LocalDbService.updateCV(editCv.cv_id, {
+          backend_id: backendCv.id,
           cv_title: cvTitle,
           candidate_id: candidateId,
           cv_published: published,
@@ -120,6 +121,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
         onSaved(updated!);
       } else {
         const saved = await LocalDbService.addCV({
+          backend_id: backendCv.id,
           candidate_id: candidateId,
           cv_title: cvTitle.trim() || file!.name,
           cv_anonymized: cvText.trim(),
