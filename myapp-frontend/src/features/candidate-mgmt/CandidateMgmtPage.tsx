@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageBackground, PageWrapper } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
@@ -16,10 +16,20 @@ const CandidateMgmtPage: React.FC = () => {
   const { data: account } = useLocalAccount();
   const { data: candidates, refresh } = useLocalCandidates(account?.account_id);
 
+  const [cvCounts, setCvCounts] = useState<Record<string, number>>({});
   const [checked, setChecked] = useState<Set<string>>(new Set());
-  const [confirmId, setConfirmId] = useState<string | null>(null); // single-row delete
-  const [confirmBulk, setConfirmBulk] = useState(false);           // bulk delete
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [confirmBulk, setConfirmBulk] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (candidates.length === 0) { setCvCounts({}); return; }
+    Promise.all(
+      candidates.map(c =>
+        LocalDbService.getCVsForCandidate(c.candidate_id).then(cvs => [c.candidate_id, cvs.length] as const)
+      )
+    ).then(entries => setCvCounts(Object.fromEntries(entries))).catch(() => {});
+  }, [candidates]);
 
   const toggleCheck = (id: string) => {
     setChecked(prev => {
@@ -49,6 +59,12 @@ const CandidateMgmtPage: React.FC = () => {
       setConfirmId(null);
       setConfirmBulk(false);
     }
+  };
+
+  const cvLabel = (id: string) => {
+    const n = cvCounts[id];
+    if (n === undefined) return '';
+    return n === 0 ? tSync('candidate_cv_count_none') : `${n} CV`;
   };
 
   const allChecked = candidates.length > 0 && checked.size === candidates.length;
@@ -96,31 +112,31 @@ const CandidateMgmtPage: React.FC = () => {
               {candidates.map(c => (
                 <li
                   key={c.candidate_id}
-                  className="group flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md"
+                  onClick={() => navigate(`/candidate/${c.candidate_id}`)}
+                  className="group flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={checked.has(c.candidate_id)}
-                    onChange={() => toggleCheck(c.candidate_id)}
+                    onChange={e => { e.stopPropagation(); toggleCheck(c.candidate_id); }}
+                    onClick={e => e.stopPropagation()}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <span className="block text-sm text-slate-700 truncate">{c.name}</span>
+                    <span className="text-sm text-slate-700 truncate">
+                      {c.name}
+                      {cvCounts[c.candidate_id] !== undefined && (
+                        <span className="text-slate-400 ml-2">{cvLabel(c.candidate_id)}</span>
+                      )}
+                    </span>
                     {c.title && (
                       <span className="block text-xs text-slate-400 truncate">{c.title}</span>
                     )}
                   </div>
                   <button
-                    onClick={() => navigate(`/candidate/${c.candidate_id}`)}
-                    title={tSync('candidate_form_edit_title')}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                  >
-                    <Icon name="edit" size={18} />
-                  </button>
-                  <button
-                    onClick={() => setConfirmId(c.candidate_id)}
+                    onClick={e => { e.stopPropagation(); setConfirmId(c.candidate_id); }}
                     title={tSync('candidate_mgmt_delete_confirm_title')}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all flex-shrink-0"
                   >
                     <Icon name="delete" size={18} />
                   </button>

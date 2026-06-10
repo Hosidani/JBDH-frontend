@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { ApiService } from "../services/ApiService";
+import { LocalDbService } from "../db/LocalDbService";
+import { BACKEND_ROLE_TO_IDB } from "../db/types";
+import type { Role } from "../db/types";
 
 export interface AuthUser {
   email: string;
@@ -59,16 +62,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, loading]);
 
-  // Always fetch roles and name from account settings on login — account settings is source of truth
+  // Always fetch roles and name from account settings on login — account settings is source of truth.
+  // Also seeds IndexedDB Account on first login.
   useEffect(() => {
     if (user) {
       ApiService.getAccountSettings()
-        .then(settings => {
+        .then(async settings => {
           setUser(prev => prev ? {
             ...prev,
             roles: settings.roles ?? [],
             name: settings.accountName || prev.name,
           } : prev);
+
+          // Seed IndexedDB Account if none exists for this email
+          try {
+            const email = settings.accountEmail ?? '';
+            const existing = await LocalDbService.getAccountByEmail(email);
+            if (!existing) {
+              await LocalDbService.saveAccount({
+                name: settings.accountName ?? '',
+                email,
+                telephone: settings.accountPhone ?? '',
+                role: ((settings.roles ?? []) as string[])
+                  .map(r => BACKEND_ROLE_TO_IDB[r])
+                  .filter((r): r is Role => !!r),
+              });
+            }
+          } catch (e) {
+            console.error('[IndexedDB] Account seeding failed:', e);
+          }
         })
         .catch(() => {
           setUser(prev => prev ? { ...prev, roles: prev.roles ?? [] } : prev);

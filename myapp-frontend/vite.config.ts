@@ -17,6 +17,9 @@ export default defineConfig({
     },
   },
   plugins: [react()],
+  optimizeDeps: {
+    include: ['idb'],
+  },
   server: {
     proxy: {
       '/api': {

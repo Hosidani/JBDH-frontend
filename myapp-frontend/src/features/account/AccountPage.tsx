@@ -3,6 +3,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService } from '../../services/ApiService';
 import { useNavigate } from 'react-router-dom';
+import { LocalDbService } from '../../db/LocalDbService';
+import { BACKEND_ROLE_TO_IDB } from '../../db/types';
+import type { Role } from '../../db/types';
 import { TextInput } from '../../components/ui/TextInput';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -128,6 +131,23 @@ const AccountPage: React.FC = () => {
     } catch {
       // ignore silently
     }
+
+    // Mirror relevant fields to IndexedDB Account
+    try {
+      const patch: Partial<{ name: string; email: string; telephone: string; role: Role[] }> = {};
+      if ('accountName'  in fields) patch.name      = fields.accountName  ?? '';
+      if ('accountEmail' in fields) patch.email     = fields.accountEmail ?? '';
+      if ('accountPhone' in fields) patch.telephone = fields.accountPhone ?? '';
+      if ('roles'        in fields) patch.role      = (fields.roles as string[] ?? [])
+        .map(r => BACKEND_ROLE_TO_IDB[r])
+        .filter((r): r is Role => !!r);
+
+      if (Object.keys(patch).length > 0) {
+        await LocalDbService.updateAccount(patch);
+      }
+    } catch {
+      // IndexedDB errors must not affect UI
+    }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -234,9 +254,7 @@ const AccountPage: React.FC = () => {
             <InfoRow
               label={tSync('account_email')}
               value={formData.accountEmail}
-              readOnly={accountSettings.isTerminated}
-              onChange={v => handleInputChange('accountEmail', v)}
-              onBlur={() => saveField({ accountEmail: formData.accountEmail })}
+              readOnly
               type="email"
               helpText={tSync('account_email_help')}
             />

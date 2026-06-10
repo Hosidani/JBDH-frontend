@@ -138,6 +138,15 @@ const CandidatePage: React.FC = () => {
   const allCvsChecked = cvs.length > 0 && cvChecked.size === cvs.length;
   const someCvsChecked = cvChecked.size > 0;
 
+  const mimeToFormat = (mime: string): string => {
+    if (mime.includes('pdf')) return 'PDF';
+    if (mime.includes('wordprocessingml') || mime.includes('docx')) return 'DOCX';
+    if (mime.includes('rtf')) return 'RTF';
+    if (mime.includes('markdown')) return 'MD';
+    if (mime.includes('plain')) return 'TXT';
+    return mime;
+  };
+
   if (accountLoading) return null;
 
   return (
@@ -250,27 +259,41 @@ const CandidatePage: React.FC = () => {
                     <span className="text-xs text-slate-400 select-none">{tSync('jac_select_all')}</span>
                   </li>
                   {cvs.map(cv => (
-                    <li key={cv.cv_id} className="group flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md">
+                    <li
+                      key={cv.cv_id}
+                      onClick={() => { setEditCv(cv); setAddCvOpen(true); }}
+                      className="group flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md cursor-pointer"
+                    >
                       <input
                         type="checkbox"
                         checked={cvChecked.has(cv.cv_id)}
-                        onChange={() => toggleCvCheck(cv.cv_id)}
+                        onChange={e => { e.stopPropagation(); toggleCvCheck(cv.cv_id); }}
+                        onClick={e => e.stopPropagation()}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                       />
-                      <span className="flex-1 text-sm text-slate-700 truncate">
-                        {cv.cv_title || cv.cv_file_type || 'CV'}
-                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm text-slate-700 truncate">
+                            {cv.cv_title || 'CV'}
+                          </span>
+                          {cv.cv_published ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200 whitespace-nowrap">
+                              {tSync('cv_status_published')}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white text-slate-500 border border-slate-300 whitespace-nowrap">
+                              {tSync('cv_status_unpublished')}
+                            </span>
+                          )}
+                        </div>
+                        {cv.cv_file_type && (
+                          <span className="block text-xs text-slate-400">{mimeToFormat(cv.cv_file_type)}</span>
+                        )}
+                      </div>
                       <button
-                        onClick={() => { setEditCv(cv); setAddCvOpen(true); }}
-                        title={tSync('candidate_cv_edit_title')}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                      >
-                        <Icon name="edit" size={18} />
-                      </button>
-                      <button
-                        onClick={() => setConfirmCvId(cv.cv_id)}
+                        onClick={e => { e.stopPropagation(); setConfirmCvId(cv.cv_id); }}
                         title={tSync('candidate_cv_delete_confirm_title')}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all flex-shrink-0"
                       >
                         <Icon name="delete" size={18} />
                       </button>

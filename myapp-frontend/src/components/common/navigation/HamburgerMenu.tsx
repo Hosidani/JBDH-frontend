@@ -22,14 +22,15 @@ interface MenuItem {
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { to: '/account',          labelKey: 'menu_account_settings', roles: [] },
-  { to: '/profile',          labelKey: 'menu_profile',          roles: ['User'] },
-  { to: '/search',           labelKey: 'menu_match_cv_ads',     roles: ['User'] },
-  { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',       roles: ['User'] },
-  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',   roles: ['User'] },
-  { to: '/add-job-ad',       labelKey: 'menu_post_ad',          roles: ['Recruiter'] },
-  { to: '/jobs-and-cvs',     labelKey: 'menu_multi_match',      roles: ['Recruiter', 'Manager'] },
-  { to: '/ats-results',      labelKey: 'menu_ats_results',       roles: ['Recruiter', 'Manager'] },
+  { to: '/account',          labelKey: 'menu_account_settings',    roles: [] },
+  { to: '/candidate_mgmt',   labelKey: 'menu_manage_candidates',   roles: [] },
+  { to: '/profile',          labelKey: 'menu_profile',             roles: ['User'] },
+  { to: '/search',           labelKey: 'menu_match_cv_ads',        roles: ['User'] },
+  { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',          roles: ['User'] },
+  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',      roles: ['User'] },
+  { to: '/add-job-ad',       labelKey: 'menu_post_ad',             roles: ['Recruiter'] },
+  { to: '/jobs-and-cvs',     labelKey: 'menu_multi_match',         roles: ['Recruiter', 'Manager'] },
+  { to: '/ats-results',      labelKey: 'menu_ats_results',         roles: ['Recruiter', 'Manager'] },
   { to: '/cv_mgmt',          labelKey: 'menu_manage_candidate_cvs', roles: ['Manager'] },
   { to: '/jobs_mgmt',        labelKey: 'menu_manage_ads',           roles: ['Manager'] },
   { to: '/messages',         labelKey: 'menu_messages',         roles: [] },
