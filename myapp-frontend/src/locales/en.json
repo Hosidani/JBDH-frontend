@@ -515,5 +515,23 @@
   "ats_score_excellent": "Excellent",
   "ats_recs_send": "Send recommendations",
   "ats_recs_copy": "Copy",
-  "ats_recs_copied": "Copied!"
+  "ats_recs_copied": "Copied!",
+
+  "ai_settings_title": "AI Settings",
+  "ai_settings_provider_label": "AI Provider",
+  "ai_settings_openai_key": "OpenAI API Key",
+  "ai_settings_anthropic_key": "Anthropic API Key",
+  "ai_settings_gemini_key": "Google Gemini API Key",
+  "ai_settings_ollama_url": "Ollama URL",
+  "ai_settings_ollama_model": "Ollama Model",
+  "ai_settings_key_set": "Key saved",
+  "ai_settings_key_not_set": "No key",
+  "ai_settings_change": "Change",
+  "ai_settings_save": "Save",
+  "ai_settings_cancel": "Cancel",
+  "ai_settings_key_placeholder": "sk-…",
+  "ai_settings_ollama_url_placeholder": "http://localhost:11434",
+  "ai_settings_ollama_model_placeholder": "llama3",
+  "ai_settings_saved": "Saved",
+  "ai_settings_help": "API keys are stored locally in your browser (IndexedDB) and are never sent to our server."
 }

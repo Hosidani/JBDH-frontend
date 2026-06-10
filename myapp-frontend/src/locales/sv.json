@@ -515,5 +515,23 @@
   "ats_score_excellent": "Strålande",
   "ats_recs_send": "Skicka rekommendationer",
   "ats_recs_copy": "Kopiera",
-  "ats_recs_copied": "Kopierat!"
+  "ats_recs_copied": "Kopierat!",
+
+  "ai_settings_title": "AI-inställningar",
+  "ai_settings_provider_label": "AI-leverantör",
+  "ai_settings_openai_key": "OpenAI API-nyckel",
+  "ai_settings_anthropic_key": "Anthropic API-nyckel",
+  "ai_settings_gemini_key": "Google Gemini API-nyckel",
+  "ai_settings_ollama_url": "Ollama URL",
+  "ai_settings_ollama_model": "Ollama modell",
+  "ai_settings_key_set": "Nyckel inlagd",
+  "ai_settings_key_not_set": "Ingen nyckel",
+  "ai_settings_change": "Ändra",
+  "ai_settings_save": "Spara",
+  "ai_settings_cancel": "Avbryt",
+  "ai_settings_key_placeholder": "sk-…",
+  "ai_settings_ollama_url_placeholder": "http://localhost:11434",
+  "ai_settings_ollama_model_placeholder": "llama3",
+  "ai_settings_saved": "Sparat",
+  "ai_settings_help": "API-nycklar lagras lokalt i din webbläsare (IndexedDB) och skickas aldrig till vår server."
 }
