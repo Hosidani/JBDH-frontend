@@ -162,6 +162,14 @@ const AddCvModal: React.FC<AddCvModalProps> = ({ open, onClose, onAdded, onUpdat
             <p>{tSync('jac_cv_review_help')}</p>
           </div>
 
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder={tSync('jac_add_cv_name_placeholder')}
+            className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
           <textarea
             value={cvText}
             onChange={e => setCvText(e.target.value)}
