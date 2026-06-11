@@ -141,7 +141,7 @@ const CandidatePage: React.FC = () => {
     if (!textEditCv) return;
     setTextEditSaving(true);
     try {
-      await LocalDbService.updateCV(textEditCv.cv_id, { cv_anonymized: textEditValue });
+      await LocalDbService.updateCV(textEditCv.cv_id, { cv_anonymized: textEditValue, cv_json: '' });
       await refreshCvs();
       setTextEditCv(null);
     } catch { /* silently ignore */ }

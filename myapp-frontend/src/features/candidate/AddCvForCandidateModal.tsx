@@ -115,6 +115,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
           candidate_id: candidateId,
           cv_published: published,
           cv_anonymized: cvText.trim(),
+          cv_json: '',
           cv_file: file,
           cv_file_type: file!.type,
         });

@@ -62,6 +62,7 @@ export interface StructuredJob {
 }
 
 export interface SeekerProfile {
+  job_title?: string;
   preferred_city?: string;
   preferred_employment_type?: string;
   preferred_workplace?: string;
@@ -289,7 +290,7 @@ Regler:
 - Sortera skills och experiences med högst poäng först
 - Erfarenhets-id:n ska matcha [ID:x]-prefixet i kandidatens erfarenheter
 ${hasSeekerProfile
-  ? '- Bygg profile_fit för aspekterna: Ort, Anställningsform, Arbetstid, Arbetsplats, Domän — jämför jobbets värde mot kandidatens preferens\n- Sänk overall_score minst 20 poäng om jobbets domän finns i excluded_domains'
+  ? '- Bygg profile_fit för aspekterna: Yrkesroll, Ort, Anställningsform, Arbetsplats, Domän — jämför jobbets värde mot kandidatens uppgifter\n- job_title är kandidatens nuvarande/önskade yrkesroll — bedöm om jobbet passar den rollen\n- Sänk overall_score minst 20 poäng om jobbets domän finns i excluded_domains'
   : '- Lämna profile_fit som tom lista []'}
 ${_langInstruction()}`;
 }

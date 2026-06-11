@@ -5,7 +5,7 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 import { parseJobName } from '../../utils/parseJobName';
 import { useSSE } from '../../hooks/useSSE';
 import { structureCV, analyzeJob, matchJobStructured } from '../../ai/ai';
-import type { MatchResult, StructuredCV } from '../../ai/ai';
+import type { MatchResult, StructuredCV, SeekerProfile } from '../../ai/ai';
 import { LocalDbService } from '../../db/LocalDbService';
 import noWayImg     from '../../assets/graphics/NoWay.png';
 import poorImg      from '../../assets/graphics/Poor.png';
@@ -192,10 +192,25 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
         const period = [w.start_date, w.end_date ?? 'nuvarande'].filter(Boolean).join('–');
         return `${w.position ?? '?'} hos ${w.company ?? '?'}${period ? ` (${period})` : ''}`;
       });
+
+      let seekerProfile: SeekerProfile | undefined;
+      if (idbCv?.candidate_id) {
+        const candidate = await LocalDbService.getCandidate(idbCv.candidate_id);
+        if (candidate) {
+          seekerProfile = {
+            job_title: candidate.title || undefined,
+            preferred_city: candidate.location || undefined,
+            preferred_workplace: candidate.workplace.length ? candidate.workplace.join(', ') : undefined,
+            preferred_employment_type: candidate.employment_type.length ? candidate.employment_type.join(', ') : undefined,
+          };
+        }
+      }
+
       const matchResult = await matchJobStructured(
         structuredCv.skills,
         experiences,
         structuredJob,
+        seekerProfile,
       );
       setLlmResult(matchResult);
       setLlmStep('done');
