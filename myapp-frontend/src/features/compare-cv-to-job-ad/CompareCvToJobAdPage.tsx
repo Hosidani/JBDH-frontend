@@ -3,6 +3,7 @@ import presentationImg from '../../assets/img/Presentation.png';
 import { useAuth } from '../../context/AuthContext';
 import { PageWrapper, PageBackground, FileDropZone, FieldAnalysisCard, Section, BulletList } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
+import { AIDisclaimer } from '../../components/common/AIDisclaimer';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useSSE } from '../../hooks/useSSE';
 import IconCvDocument from '../../components/icon_library/IconCvDocument';
@@ -577,6 +578,7 @@ const CompareCvToJobAdPage: React.FC = () => {
             })()}
           </SectionCard>
         )}
+      <AIDisclaimer />
       </PageWrapper>
     </>
   );

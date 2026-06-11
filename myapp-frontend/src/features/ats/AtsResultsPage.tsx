@@ -7,6 +7,9 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 import AtsResultDetailModal, { type AtsResultDetail } from './AtsResultDetailModal';
 import { Icon } from '../../components/ui/Icon';
 import { parseJobName } from '../../utils/parseJobName';
+import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
+import { LocalDbService } from '../../db/LocalDbService';
+import { AIDisclaimer } from '../../components/common/AIDisclaimer';
 
 interface AtsResultPreview {
   id: number;
@@ -36,6 +39,30 @@ const AtsResultsPage: React.FC = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
+  const { data: account } = useLocalAccount();
+  const { data: candidates } = useLocalCandidates(account?.account_id);
+  const [cvTitleToCandidate, setCvTitleToCandidate] = useState<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    if (!candidates.length) return;
+    Promise.all(candidates.map(c => LocalDbService.getCVsForCandidate(c.candidate_id)))
+      .then(arrays => {
+        const map = new Map<string, string>();
+        arrays.forEach((cvList, i) => {
+          cvList.forEach(cv => {
+            if (cv.cv_title) map.set(cv.cv_title, candidates[i].name);
+          });
+        });
+        setCvTitleToCandidate(map);
+      })
+      .catch(() => {});
+  }, [candidates]);
+
+  const cvLabel = (cvName: string): string => {
+    const candidate = cvTitleToCandidate.get(cvName);
+    return candidate ? `${candidate}, ${cvName}` : cvName;
+  };
+
   useEffect(() => {
     ApiService.getAtsResults()
       .then(data => setResults(data.filter(r => r.cv_name?.trim() && r.job_name?.trim())))
@@ -55,12 +82,13 @@ const AtsResultsPage: React.FC = () => {
   const sorted = useMemo(() => {
     return [...results].sort((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
-      if (sortKey === 'cv_name') return a.cv_name.localeCompare(b.cv_name, 'sv') * dir;
+      if (sortKey === 'cv_name') return cvLabel(a.cv_name).localeCompare(cvLabel(b.cv_name), 'sv') * dir;
       if (sortKey === 'job_name') return (parseJobName(a.job_name).title || a.job_name).localeCompare(parseJobName(b.job_name).title || b.job_name, 'sv') * dir;
       if (sortKey === 'overall_score') return ((a.overall_score ?? -1) - (b.overall_score ?? -1)) * dir;
       return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
     });
-  }, [results, sortKey, sortDir]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results, sortKey, sortDir, cvTitleToCandidate]);
 
   const handleRowClick = async (id: number) => {
     setDetailLoading(true);
@@ -118,7 +146,7 @@ const AtsResultsPage: React.FC = () => {
                     className="border-t border-slate-100 hover:bg-blue-50 cursor-pointer transition-colors"
                     onClick={() => handleRowClick(row.id)}
                   >
-                    <td className="py-3 pr-4 text-slate-700 truncate max-w-[200px]">{row.cv_name || '—'}</td>
+                    <td className="py-3 pr-4 text-slate-700 truncate max-w-[200px]">{cvLabel(row.cv_name) || '—'}</td>
                     <td className="py-3 pr-4 text-slate-700 truncate max-w-[200px]">{parseJobName(row.job_name).title || row.job_name || '—'}</td>
                     <td className="py-3 pr-4 text-right font-mono text-slate-600">
                       {row.overall_score != null ? `${Math.round(row.overall_score)}%` : '—'}
@@ -141,7 +169,7 @@ const AtsResultsPage: React.FC = () => {
           </div>
         )}
       </PageCard>
-
+      <AIDisclaimer />
     </PageWrapper>
 
       <AtsResultDetailModal

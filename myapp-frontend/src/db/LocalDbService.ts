@@ -97,6 +97,11 @@ export class LocalDbService {
     return db.getAllFromIndex('cvs', 'by-candidate', candidateId);
   }
 
+  static async getAllCVs(): Promise<CV[]> {
+    const db = await getDb();
+    return db.getAll('cvs');
+  }
+
   static async updateCV(
     cvId: string,
     patch: Partial<Omit<CV, 'cv_id'>>,

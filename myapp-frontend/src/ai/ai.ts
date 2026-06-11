@@ -9,6 +9,108 @@ export const AI_PROVIDERS: Record<AiProvider, string> = {
   ollama: 'Ollama (lokal)',
 };
 
+// ── Public types ──────────────────────────────────────────────────────────────
+
+export interface StructuredCV {
+  personal_info: {
+    full_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    location?: string | null;
+    linkedin?: string | null;
+  };
+  summary?: string | null;
+  work_experience: Array<{
+    company?: string;
+    position?: string;
+    start_date?: string;
+    end_date?: string;
+    current?: boolean;
+    description?: string;
+    achievements?: string[];
+    technologies?: string[];
+  }>;
+  education: Array<{
+    institution?: string;
+    degree?: string;
+    field_of_study?: string;
+    start_date?: string;
+    end_date?: string;
+  }>;
+  skills: string[];
+  certifications: Array<{
+    name?: string;
+    issuing_organization?: string;
+    issue_date?: string;
+  }>;
+}
+
+export interface StructuredJob {
+  title?: string | null;
+  required_skills?: string[];
+  nice_to_have_skills?: string[];
+  personal_qualities?: string[];
+  min_experience_years?: number | null;
+  seniority_level?: 'Junior' | 'Mid' | 'Senior' | 'Lead' | null;
+  required_education?: string | null;
+  city?: string | null;
+  employment_type?: 'Heltid' | 'Deltid' | null;
+  duration?: 'Tillsvidare' | 'Tidsbegränsat' | null;
+  workplace?: 'På plats' | 'Hybrid' | 'Distans' | null;
+  domain?: string | null;
+  summary?: string | null;
+}
+
+export interface SeekerProfile {
+  preferred_city?: string;
+  preferred_employment_type?: string;
+  preferred_workplace?: string;
+  preferred_domains?: string[];
+  excluded_domains?: string[];
+}
+
+export interface SkillMatch {
+  skill_name: string;
+  score: number;
+  reason: string;
+  is_required: boolean;
+}
+
+export interface ExperienceMatch {
+  id: string;
+  score: number;
+  reason: string;
+}
+
+export interface ProfileFitItem {
+  aspect: string;
+  job_value: string;
+  preference: string;
+  match: boolean | null;
+  note: string;
+}
+
+export interface MatchResult {
+  overall_score: number;
+  summary: string;
+  job_info: {
+    city?: string | null;
+    employment_type?: string | null;
+    duration?: string | null;
+    workplace?: string | null;
+    domain?: string | null;
+  };
+  profile_fit: ProfileFitItem[];
+  skills: SkillMatch[];
+  experiences: ExperienceMatch[];
+  missing_required_skills: string[];
+  missing_nice_to_have_skills: string[];
+  matching_personal_qualities: string[];
+  missing_personal_qualities: string[];
+}
+
+// ── Internal chat opts ────────────────────────────────────────────────────────
+
 interface ChatOpts {
   temperature?: number;
   jsonMode?: boolean;
@@ -119,19 +221,120 @@ async function _chatJSON<T = unknown>(system: string, user: string, opts: ChatOp
   return JSON.parse(_stripMarkdown(raw)) as T;
 }
 
+// ── System prompts ────────────────────────────────────────────────────────────
+
+const STRUCTURE_CV_SYSTEM = `Du är en expert på att extrahera strukturerad information från CV:n.
+Svara ENDAST med JSON:
+{
+  "personal_info": { "full_name": null, "email": null, "phone": null, "location": null, "linkedin": null },
+  "summary": null,
+  "work_experience": [{
+    "company": null, "position": null, "start_date": null, "end_date": null, "current": false,
+    "description": null, "achievements": [], "technologies": []
+  }],
+  "education": [{ "institution": null, "degree": null, "field_of_study": null, "start_date": null, "end_date": null }],
+  "skills": [],
+  "certifications": [{ "name": null, "issuing_organization": null, "issue_date": null }]
+}
+Behåll all text på originalspråket. Extrahera ALL information.`;
+
+const ANALYZE_JOB_SYSTEM = `Du är en expert på arbetsmarknad och rekrytering.
+Svara ENDAST med JSON:
+{
+  "title": null, "required_skills": [], "nice_to_have_skills": [],
+  "personal_qualities": [],
+  "min_experience_years": null,
+  "seniority_level": null,
+  "required_education": null,
+  "city": null, "employment_type": null,
+  "duration": null,
+  "workplace": null,
+  "domain": null,
+  "summary": null
+}
+Skilja tekniska kompetenser (required_skills, nice_to_have_skills) från personliga egenskaper (personal_qualities).
+seniority_level är ett av: "Junior" | "Mid" | "Senior" | "Lead" | null
+employment_type är ett av: "Heltid" | "Deltid" | null
+duration är ett av: "Tillsvidare" | "Tidsbegränsat" | null
+workplace är ett av: "På plats" | "Hybrid" | "Distans" | null
+Om information saknas, sätt null.`;
+
+function _matchSystem(hasSeekerProfile: boolean): string {
+  return `Du är en expert på rekrytering och kandidatmatchning. Svara ENDAST med JSON:
+{
+  "overall_score": 0,
+  "summary": "",
+  "job_info": { "city": null, "employment_type": null, "duration": null, "workplace": null, "domain": null },
+  "profile_fit": [],
+  "skills": [{ "skill_name": "", "score": 0, "reason": "", "is_required": false }],
+  "experiences": [{ "id": "", "score": 0, "reason": "" }],
+  "missing_required_skills": [],
+  "missing_nice_to_have_skills": [],
+  "matching_personal_qualities": [],
+  "missing_personal_qualities": []
+}
+Regler:
+- overall_score (0–100): sänk minst 20 poäng om obligatoriska kompetenser saknas
+- Inkludera bara skills och experiences med score >= 25
+- Sortera skills och experiences med högst poäng först
+- Erfarenhets-id:n ska matcha [ID:x]-prefixet i kandidatens erfarenheter
+${hasSeekerProfile
+  ? '- Bygg profile_fit för aspekterna: Ort, Anställningsform, Arbetstid, Arbetsplats, Domän — jämför jobbets värde mot kandidatens preferens\n- Sänk overall_score minst 20 poäng om jobbets domän finns i excluded_domains'
+  : '- Lämna profile_fit som tom lista []'}`;
+}
+
+function _formatExperiences(experiences: string[]): string {
+  return experiences.map((e, i) => `[ID:${i}] ${e}`).join('\n');
+}
+
 // ── Public domain functions ───────────────────────────────────────────────────
 
-export async function structureCV(text: string): Promise<unknown> {
-  return _chatJSON(
-    'Du är en expert på CV-analys. Returnera alltid giltig JSON utan förklaring.',
-    `Strukturera följande CV-text som JSON med fälten: name, title, skills (array), experience (array), education (array), languages (array).\n\n${text}`,
+export async function structureCV(cvText: string): Promise<StructuredCV> {
+  return _chatJSON<StructuredCV>(
+    STRUCTURE_CV_SYSTEM,
+    `Strukturera detta CV:\n\n${cvText}`,
+    { temperature: 0.1 },
   );
 }
 
-export async function matchJob(cvText: string, jobText: string): Promise<unknown> {
-  return _chatJSON(
-    'Du är en expert på rekrytering och matchning av kandidater. Returnera alltid giltig JSON utan förklaring.',
-    `Matcha CV mot jobbannonsen. Returnera JSON med: score (0–100), strengths (array), gaps (array), summary (sträng).\n\nCV:\n${cvText}\n\nJobbannons:\n${jobText}`,
+export async function analyzeJob(title: string, description: string): Promise<StructuredJob> {
+  return _chatJSON<StructuredJob>(
+    ANALYZE_JOB_SYSTEM,
+    `Jobbtitel: ${title}\n\nJobbannons:\n${description}`,
+    { temperature: 0.1 },
+  );
+}
+
+export async function matchJob(
+  skills: string[],
+  experiences: string[],
+  jobTitle: string,
+  jobDescription: string,
+  seekerProfile?: SeekerProfile,
+): Promise<MatchResult> {
+  const seekerSection = seekerProfile
+    ? `\nKANDIDATENS PREFERENSER:\n${JSON.stringify(seekerProfile, null, 2)}\n`
+    : '';
+  return _chatJSON<MatchResult>(
+    _matchSystem(!!seekerProfile),
+    `Matcha kandidaten mot jobbannonsen.\n\nKANDIDATENS KOMPETENSER:\n${skills.join('\n')}\n\nKANDIDATENS ERFARENHETER:\n${_formatExperiences(experiences)}\n\nJOBBTITEL: ${jobTitle}\nJOBBANNONS:\n${jobDescription}${seekerSection}`,
+    { temperature: 0.2 },
+  );
+}
+
+export async function matchJobStructured(
+  skills: string[],
+  experiences: string[],
+  structuredJob: StructuredJob,
+  seekerProfile?: SeekerProfile,
+): Promise<MatchResult> {
+  const seekerSection = seekerProfile
+    ? `\nKANDIDATENS PREFERENSER:\n${JSON.stringify(seekerProfile, null, 2)}\n`
+    : '';
+  return _chatJSON<MatchResult>(
+    _matchSystem(!!seekerProfile),
+    `Matcha kandidaten mot det strukturerade jobbet.\n\nKANDIDATENS KOMPETENSER:\n${skills.join('\n')}\n\nKANDIDATENS ERFARENHETER:\n${_formatExperiences(experiences)}\n\nSTRUKTURERAT JOBB:\n${JSON.stringify(structuredJob, null, 2)}${seekerSection}`,
+    { temperature: 0.2 },
   );
 }
 
@@ -148,7 +351,9 @@ export async function suggestJobTitles(cvText: string): Promise<string[]> {
 if (typeof window !== 'undefined') {
   (window as unknown as Record<string, unknown>).cvAI = {
     structureCV,
+    analyzeJob,
     matchJob,
+    matchJobStructured,
     suggestJobTitles,
   };
 }

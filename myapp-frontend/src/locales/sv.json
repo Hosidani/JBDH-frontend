@@ -44,7 +44,7 @@
   "menu_multi_match": "Multi-match",
   "menu_multi_match_tbl": "Multi-match (tabell)",
   "menu_ats_results": "ATS-resultat",
-  "menu_match_cv_jobad": "Matcha CV mot jobbannons",
+  "menu_match_cv_jobad": "Matcha CV mot jobbannons (OLD)",
   "menu_messages": "Meddelanden",
   "menu_how_it_works": "Hur funkar JBDH?",
   "menu_saved_jobs": "Mina sparade jobb",
@@ -67,6 +67,7 @@
   "candidate_cv_empty": "Inga CV tillagda.",
   "candidate_cv_add_title": "Lägg till CV",
   "candidate_cv_edit_title": "Redigera CV",
+  "candidate_cv_view_text": "Visa/redigera CV-text",
   "candidate_cv_field_title": "Titel på CV",
   "candidate_cv_field_candidate": "Kandidat",
   "candidate_cv_field_published": "Publicerad",
@@ -533,5 +534,19 @@
   "ai_settings_ollama_url_placeholder": "http://localhost:11434",
   "ai_settings_ollama_model_placeholder": "llama3",
   "ai_settings_saved": "Sparat",
-  "ai_settings_help": "API-nycklar lagras lokalt i din webbläsare (IndexedDB) och skickas aldrig till vår server."
+  "ai_settings_help": "API-nycklar lagras lokalt i din webbläsare (IndexedDB) och skickas aldrig till vår server.",
+
+  "llm_match_button": "AI-matcha",
+  "llm_match_loading_cv": "Strukturerar CV…",
+  "llm_match_loading_job": "Analyserar annons…",
+  "llm_match_loading_match": "Matchar profiler…",
+  "llm_match_title": "AI-matchning",
+  "llm_match_skills": "Kompetenser",
+  "llm_match_missing_required": "Saknade (obligatoriska)",
+  "llm_match_missing_nice": "Saknade (merit)",
+  "llm_match_experiences": "Erfarenheter",
+  "llm_match_personal_qualities_match": "Personliga egenskaper (matchade)",
+  "llm_match_personal_qualities_missing": "Personliga egenskaper (saknas)",
+  "llm_match_required": "Obligatorisk",
+  "llm_match_error": "AI-matchning misslyckades. Kontrollera att en API-nyckel är angiven under Inställningar."
 }

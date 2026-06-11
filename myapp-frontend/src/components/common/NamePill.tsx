@@ -26,13 +26,14 @@ export function getPillColor(id: number) {
 interface NamePillProps {
   id: number;
   title: string;
+  initialsFrom?: string;
   size?: 'sm' | 'md';
   onClick?: () => void;
 }
 
-export const NamePill: React.FC<NamePillProps> = ({ id, title, size = 'md', onClick }) => {
+export const NamePill: React.FC<NamePillProps> = ({ id, title, initialsFrom, size = 'md', onClick }) => {
   const { bg, text } = getPillColor(id);
-  const initials = getInitials(title);
+  const initials = getInitials(initialsFrom ?? title);
 
   const sizeClass = size === 'sm'
     ? 'text-xs font-bold px-1.5 py-0.5 min-w-[28px] h-[22px]'

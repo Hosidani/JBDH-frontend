@@ -4,6 +4,9 @@ import { Modal } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { parseJobName } from '../../utils/parseJobName';
 import { useSSE } from '../../hooks/useSSE';
+import { structureCV, analyzeJob, matchJobStructured } from '../../ai/ai';
+import type { MatchResult, StructuredCV } from '../../ai/ai';
+import { LocalDbService } from '../../db/LocalDbService';
 import noWayImg     from '../../assets/graphics/NoWay.png';
 import poorImg      from '../../assets/graphics/Poor.png';
 import notLikelyImg from '../../assets/graphics/NotLikely.png';
@@ -61,6 +64,8 @@ function SkillPill({ label, variant }: { label: string; variant: 'green' | 'red'
   return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{label}</span>;
 }
 
+type LlmStep = 'idle' | 'structuring-cv' | 'analyzing-job' | 'matching' | 'done' | 'error';
+
 interface RecsPopupProps {
   text: string;
   onClose: () => void;
@@ -115,12 +120,20 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
   const [sseMessages, setSseMessages] = useState<string[]>([]);
   const [sseError, setSseError] = useState<string | null>(null);
 
+  // LLM match state
+  const [llmStep, setLlmStep] = useState<LlmStep>('idle');
+  const [llmResult, setLlmResult] = useState<MatchResult | null>(null);
+  const [llmError, setLlmError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!open) {
       setSseFormData(null);
       setSseProgress(null);
       setSseMessages([]);
       setSseError(null);
+      setLlmStep('idle');
+      setLlmResult(null);
+      setLlmError(null);
     }
   }, [open]);
 
@@ -148,6 +161,49 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
       setSseMessages([]);
     },
   );
+
+  const handleLlmMatch = async () => {
+    if (!result) return;
+    setLlmError(null);
+    setLlmResult(null);
+    try {
+      setLlmStep('structuring-cv');
+
+      // Use cached cv_json from IndexedDB if available
+      let structuredCv: StructuredCV;
+      const allCvs = await LocalDbService.getAllCVs();
+      const idbCv = allCvs.find(cv => cv.cv_title === result.cv_name);
+
+      if (idbCv?.cv_json) {
+        structuredCv = JSON.parse(idbCv.cv_json) as StructuredCV;
+      } else {
+        structuredCv = await structureCV(result.cv_text);
+        if (idbCv) {
+          await LocalDbService.updateCV(idbCv.cv_id, { cv_json: JSON.stringify(structuredCv) });
+        }
+      }
+
+      setLlmStep('analyzing-job');
+      const jobTitle = parseJobName(result.job_name ?? '').title || result.job_name || '';
+      const structuredJob = await analyzeJob(jobTitle, result.job_text);
+
+      setLlmStep('matching');
+      const experiences = structuredCv.work_experience.map(w => {
+        const period = [w.start_date, w.end_date ?? 'nuvarande'].filter(Boolean).join('–');
+        return `${w.position ?? '?'} hos ${w.company ?? '?'}${period ? ` (${period})` : ''}`;
+      });
+      const matchResult = await matchJobStructured(
+        structuredCv.skills,
+        experiences,
+        structuredJob,
+      );
+      setLlmResult(matchResult);
+      setLlmStep('done');
+    } catch (e) {
+      setLlmError(e instanceof Error ? e.message : tSync('llm_match_error'));
+      setLlmStep('error');
+    }
+  };
 
   const handleAnalyze = () => {
     if (!result) return;
@@ -286,6 +342,16 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
               >
                 {analyzing ? tSync('ats_analyzing') : tSync('ats_analyze')}
               </button>
+              <button
+                onClick={handleLlmMatch}
+                disabled={llmStep !== 'idle' && llmStep !== 'done' && llmStep !== 'error'}
+                className="px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
+              >
+                {llmStep === 'structuring-cv' ? tSync('llm_match_loading_cv') :
+                 llmStep === 'analyzing-job'  ? tSync('llm_match_loading_job') :
+                 llmStep === 'matching'        ? tSync('llm_match_loading_match') :
+                                                tSync('llm_match_button')}
+              </button>
               {recs.length > 0 && (
                 <button
                   onClick={() => setRecsPopupOpen(true)}
@@ -317,6 +383,145 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
           {/* SSE error */}
           {sseError && (
             <p className="text-sm text-red-600">{sseError}</p>
+          )}
+
+          {/* LLM match error */}
+          {llmStep === 'error' && llmError && (
+            <p className="text-sm text-red-600">{llmError}</p>
+          )}
+
+          {/* LLM match result */}
+          {llmResult && (
+            <section className="border-t border-slate-200 pt-5">
+              <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4">
+                {tSync('llm_match_title')}
+              </h3>
+
+              {/* Score + summary */}
+              <div className="flex items-start gap-4 mb-5">
+                <span className={`flex-shrink-0 text-2xl font-bold px-3 py-1 rounded-lg ${
+                  llmResult.overall_score > 86 ? 'bg-green-100 text-green-700' :
+                  llmResult.overall_score > 74 ? 'bg-blue-100 text-blue-700' :
+                  llmResult.overall_score > 55 ? 'bg-yellow-100 text-yellow-700' :
+                  llmResult.overall_score > 25 ? 'bg-orange-100 text-orange-700' :
+                                                  'bg-red-100 text-red-700'
+                }`}>
+                  {llmResult.overall_score}
+                </span>
+                <p className="text-sm text-slate-700 leading-relaxed">{llmResult.summary}</p>
+              </div>
+
+              {/* Skills */}
+              {llmResult.skills.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                    {tSync('llm_match_skills')}
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    {llmResult.skills.map((s, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0">
+                          <div
+                            className={`h-1.5 rounded-full ${s.score >= 75 ? 'bg-green-500' : s.score >= 50 ? 'bg-yellow-400' : 'bg-orange-400'}`}
+                            style={{ width: `${s.score}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-slate-700 w-28 flex-shrink-0 truncate">{s.skill_name}</span>
+                        {s.is_required && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 flex-shrink-0">
+                            {tSync('llm_match_required')}
+                          </span>
+                        )}
+                        <span className="text-xs text-slate-500 truncate">{s.reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Missing skills */}
+              {(llmResult.missing_required_skills.length > 0 || llmResult.missing_nice_to_have_skills.length > 0) && (
+                <div className="mb-4 flex flex-wrap gap-4">
+                  {llmResult.missing_required_skills.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                        {tSync('llm_match_missing_required')}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {llmResult.missing_required_skills.map(s => (
+                          <span key={s} className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {llmResult.missing_nice_to_have_skills.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                        {tSync('llm_match_missing_nice')}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {llmResult.missing_nice_to_have_skills.map(s => (
+                          <span key={s} className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Experiences */}
+              {llmResult.experiences.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                    {tSync('llm_match_experiences')}
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    {llmResult.experiences.map((e, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0">
+                          <div
+                            className={`h-1.5 rounded-full ${e.score >= 75 ? 'bg-green-500' : e.score >= 50 ? 'bg-yellow-400' : 'bg-orange-400'}`}
+                            style={{ width: `${e.score}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-slate-400 w-12 flex-shrink-0">{e.id}</span>
+                        <span className="text-xs text-slate-600 truncate">{e.reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Personal qualities */}
+              {(llmResult.matching_personal_qualities.length > 0 || llmResult.missing_personal_qualities.length > 0) && (
+                <div className="flex flex-wrap gap-4">
+                  {llmResult.matching_personal_qualities.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                        {tSync('llm_match_personal_qualities_match')}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {llmResult.matching_personal_qualities.map(q => (
+                          <span key={q} className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{q}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {llmResult.missing_personal_qualities.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                        {tSync('llm_match_personal_qualities_missing')}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {llmResult.missing_personal_qualities.map(q => (
+                          <span key={q} className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{q}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
           )}
 
         </div>

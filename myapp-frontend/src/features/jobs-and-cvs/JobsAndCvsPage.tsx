@@ -7,6 +7,9 @@ import { NamePill } from '../../components/common/NamePill';
 import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { parseJobName } from '../../utils/parseJobName';
+import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
+import { LocalDbService } from '../../db/LocalDbService';
+import { Icon } from '../../components/ui/Icon';
 import AtsResultDetailModal, { type AtsResultDetail } from '../ats/AtsResultDetailModal';
 import coffeBreakImg from '../../assets/img/Coffe-break.png';
 import noWayImg from '../../assets/graphics/NoWay.png';
@@ -61,10 +64,11 @@ interface FilterModalProps {
   onChange: (next: Set<number>) => void;
   selectAllLabel: string;
   deselectAllLabel: string;
+  onDeleteItem?: (id: number) => void;
 }
 
 const FilterModal: React.FC<FilterModalProps> = ({
-  open, onClose, title, items, selected, onChange, selectAllLabel, deselectAllLabel,
+  open, onClose, title, items, selected, onChange, selectAllLabel, deselectAllLabel, onDeleteItem,
 }) => {
   const toggle = (id: number) => {
     const next = new Set(selected);
@@ -79,16 +83,25 @@ const FilterModal: React.FC<FilterModalProps> = ({
       </div>
       <ul className="flex flex-col gap-0.5 max-h-72 overflow-y-auto">
         {items.map(item => (
-          <li key={item.id}>
-            <label className="flex items-center gap-2 cursor-pointer py-1.5 px-2 hover:bg-slate-50 rounded-md text-sm text-slate-700">
+          <li key={item.id} className="group flex items-center gap-1 py-1.5 px-2 hover:bg-slate-50 rounded-md">
+            <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer text-sm text-slate-700">
               <input
                 type="checkbox"
                 checked={selected.has(item.id)}
                 onChange={() => toggle(item.id)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
               />
-              {item.label}
+              <span className="truncate">{item.label}</span>
             </label>
+            {onDeleteItem && (
+              <button
+                onClick={() => onDeleteItem(item.id)}
+                className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
+                title="Ta bort"
+              >
+                <Icon name="delete" size={16} />
+              </button>
+            )}
           </li>
         ))}
       </ul>
@@ -186,11 +199,12 @@ const GraphicalTab: React.FC<{
   activeCvs: CvItem[];
   activeJobs: JobItem[];
   atsMap: Map<string, AtsResult>;
+  backendIdToName: Map<number, string>;
   onPillClick: (atsResultId: number) => void;
   emptyLabel: string;
   colLowMatch: string;
   colHighMatch: string;
-}> = ({ activeCvs, activeJobs, atsMap, onPillClick, emptyLabel, colLowMatch, colHighMatch }) => {
+}> = ({ activeCvs, activeJobs, atsMap, backendIdToName, onPillClick, emptyLabel, colLowMatch, colHighMatch }) => {
   if (activeCvs.length === 0 || activeJobs.length === 0) {
     return <p className="text-sm text-slate-400 text-center py-6">{emptyLabel}</p>;
   }
@@ -229,6 +243,7 @@ const GraphicalTab: React.FC<{
                         <NamePill
                           id={cv.id}
                           title={cv.name}
+                          initialsFrom={backendIdToName.get(cv.id)}
                           size="sm"
                           onClick={hasScore ? () => onPillClick(match.id) : undefined}
                         />
@@ -264,8 +279,34 @@ const JobsAndCvsPage: React.FC = () => {
   const [detail,     setDetail]     = useState<AtsResultDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
+  // kandidatnamn per backend-CV-id
+  const { data: account } = useLocalAccount();
+  const { data: candidates } = useLocalCandidates(account?.account_id);
+  const [backendIdToName, setBackendIdToName] = useState<Map<number, string>>(new Map());
+
+  useEffect(() => {
+    if (!candidates.length) return;
+    Promise.all(candidates.map(c => LocalDbService.getCVsForCandidate(c.candidate_id)))
+      .then(arrays => {
+        const map = new Map<number, string>();
+        arrays.forEach((cvList, i) => {
+          cvList.forEach(cv => {
+            if (cv.backend_id != null) map.set(cv.backend_id, candidates[i].name);
+          });
+        });
+        setBackendIdToName(map);
+      })
+      .catch(() => {});
+  }, [candidates]);
+
   const refreshAtsResults = () => {
     ApiService.getAtsResults().then(setAtsResults).catch(() => {});
+  };
+
+  const handleDeleteCv = (id: number) => {
+    ApiService.deleteExternalCV(id).catch(() => {});
+    setCvs(prev => prev.filter(c => c.id !== id));
+    setSelectedCvIds(prev => { const n = new Set(prev); n.delete(id); return n; });
   };
 
   useEffect(() => {
@@ -315,12 +356,17 @@ const JobsAndCvsPage: React.FC = () => {
     return m;
   }, [atsResults]);
 
+  const cvLabel = (cv: CvItem): string => {
+    const candidate = backendIdToName.get(cv.id);
+    return candidate ? `${candidate}, ${cv.name}` : cv.name;
+  };
+
   const tableRows = useMemo((): CompactRow[] => {
     if (activeTab === 'cvs-jobs') {
       return activeCvs.flatMap(cv =>
         activeJobs.map(job => {
           const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-          return { primaryLine: cv.name, secondaryLine: job.displayName, score: match?.overall_score ?? null, atsResultId: match?.id };
+          return { primaryLine: cvLabel(cv), secondaryLine: job.displayName, score: match?.overall_score ?? null, atsResultId: match?.id };
         })
       );
     }
@@ -328,7 +374,7 @@ const JobsAndCvsPage: React.FC = () => {
       return activeJobs.flatMap(job =>
         activeCvs.map(cv => {
           const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-          return { primaryLine: job.displayName, secondaryLine: cv.name, score: match?.overall_score ?? null, atsResultId: match?.id };
+          return { primaryLine: job.displayName, secondaryLine: cvLabel(cv), score: match?.overall_score ?? null, atsResultId: match?.id };
         })
       );
     }
@@ -336,12 +382,13 @@ const JobsAndCvsPage: React.FC = () => {
       return activeCvs.flatMap(cv =>
         activeJobs.map(job => {
           const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-          return { primaryLine: cv.name, secondaryLine: job.displayName, score: match?.overall_score ?? null, atsResultId: match?.id };
+          return { primaryLine: cvLabel(cv), secondaryLine: job.displayName, score: match?.overall_score ?? null, atsResultId: match?.id };
         })
       ).filter(r => r.score != null);
     }
     return [];
-  }, [activeCvs, activeJobs, atsMap, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCvs, activeJobs, atsMap, activeTab, backendIdToName]);
 
   const handleRowClick = async (atsResultId: number) => {
     setDetailOpen(true);
@@ -416,6 +463,7 @@ const JobsAndCvsPage: React.FC = () => {
               activeCvs={activeCvs}
               activeJobs={activeJobs}
               atsMap={atsMap}
+              backendIdToName={backendIdToName}
               onPillClick={handleRowClick}
               emptyLabel={tSync('jac_result_empty')}
               colLowMatch={tSync('jac_col_low_match')}
@@ -436,11 +484,12 @@ const JobsAndCvsPage: React.FC = () => {
         open={filterCvOpen}
         onClose={() => setFilterCvOpen(false)}
         title={tSync('jac_filter_title_cvs')}
-        items={cvs.map(c => ({ id: c.id, label: c.name }))}
+        items={cvs.map(c => ({ id: c.id, label: cvLabel(c) }))}
         selected={selectedCvIds}
         onChange={setSelectedCvIds}
         selectAllLabel={tSync('jac_select_all')}
         deselectAllLabel={tSync('jac_deselect_all')}
+        onDeleteItem={handleDeleteCv}
       />
       <FilterModal
         open={filterJobOpen}

@@ -61,6 +61,10 @@ const CandidatePage: React.FC = () => {
   const [confirmCvId, setConfirmCvId] = useState<string | null>(null);
   const [confirmCvBulk, setConfirmCvBulk] = useState(false);
   const [deletingCv, setDeletingCv] = useState(false);
+  // CV text editor modal
+  const [textEditCv, setTextEditCv] = useState<CV | null>(null);
+  const [textEditValue, setTextEditValue] = useState('');
+  const [textEditSaving, setTextEditSaving] = useState(false);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -126,6 +130,22 @@ const CandidatePage: React.FC = () => {
       setConfirmCvId(null);
       setConfirmCvBulk(false);
     }
+  };
+
+  const openTextEdit = (cv: CV) => {
+    setTextEditCv(cv);
+    setTextEditValue(cv.cv_anonymized);
+  };
+
+  const saveTextEdit = async () => {
+    if (!textEditCv) return;
+    setTextEditSaving(true);
+    try {
+      await LocalDbService.updateCV(textEditCv.cv_id, { cv_anonymized: textEditValue });
+      await refreshCvs();
+      setTextEditCv(null);
+    } catch { /* silently ignore */ }
+    finally { setTextEditSaving(false); }
   };
 
   const toggleCvCheck = (cvId: string) =>
@@ -323,6 +343,20 @@ const CandidatePage: React.FC = () => {
                           <span className="block text-xs text-slate-400">{mimeToFormat(cv.cv_file_type)}</span>
                         )}
                       </div>
+                      <button
+                        onClick={e => { e.stopPropagation(); openTextEdit(cv); }}
+                        title={tSync('candidate_cv_view_text')}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex-shrink-0"
+                      >
+                        <Icon name="visibility" size={18} />
+                      </button>
+                      <button
+                        onClick={e => { e.stopPropagation(); setEditCv(cv); setAddCvOpen(true); }}
+                        title={tSync('candidate_cv_edit_title')}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all flex-shrink-0"
+                      >
+                        <Icon name="edit" size={18} />
+                      </button>
                       {cv.cv_file && (
                         <button
                           onClick={e => { e.stopPropagation(); downloadCv(cv); }}
@@ -379,6 +413,29 @@ const CandidatePage: React.FC = () => {
           <Button variant="ghost" size="lg" onClick={() => setConfirmCvBulk(false)}>{tSync('button_cancel')}</Button>
           <Button variant="danger" size="lg" loading={deletingCv} onClick={() => doDeleteCvs([...cvChecked])}>
             {tSync('jac_delete_confirm_ok')}
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Visa / redigera CV-text */}
+      <Modal
+        open={textEditCv !== null}
+        onClose={() => setTextEditCv(null)}
+        title={textEditCv?.cv_title || 'CV'}
+        maxWidth="max-w-3xl"
+      >
+        <textarea
+          value={textEditValue}
+          onChange={e => setTextEditValue(e.target.value)}
+          rows={20}
+          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-slate-50 resize-y focus:outline-none focus:ring-2 focus:ring-blue-400 font-mono leading-relaxed"
+        />
+        <div className="flex gap-2 justify-end mt-4">
+          <Button variant="ghost" size="lg" onClick={() => setTextEditCv(null)}>
+            {tSync('button_cancel')}
+          </Button>
+          <Button variant="primary" size="lg" loading={textEditSaving} onClick={saveTextEdit}>
+            {tSync('button_save')}
           </Button>
         </div>
       </Modal>

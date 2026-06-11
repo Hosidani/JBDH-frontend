@@ -4,6 +4,7 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 import { PageWrapper, PageBackground } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
 import { MatchingAssignmentsList, MatchingAnalysisTab } from '../../components/common/cards';
+import { AIDisclaimer } from '../../components/common/AIDisclaimer';
 import { getMatchingJobs } from '../../services/mockData';
 import type { MatchingAssignment } from '../../components/common/cards';
 
@@ -110,6 +111,7 @@ const MatchingProfilePage: React.FC = () => {
             />
           )}
         </SectionCard>
+      <AIDisclaimer />
       </PageWrapper>
     </>
   );

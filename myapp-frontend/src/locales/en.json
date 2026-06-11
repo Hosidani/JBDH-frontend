@@ -44,7 +44,7 @@
   "menu_multi_match": "Multi-match",
   "menu_multi_match_tbl": "Multi-match (table)",
   "menu_ats_results": "ATS results",
-  "menu_match_cv_jobad": "Match CV to job ad",
+  "menu_match_cv_jobad": "Match CV to job ad (OLD)",
   "menu_messages": "Messages",
   "menu_how_it_works": "How does JBDH work?",
   "menu_saved_jobs": "My saved jobs",
@@ -67,6 +67,7 @@
   "candidate_cv_empty": "No CVs added.",
   "candidate_cv_add_title": "Add CV",
   "candidate_cv_edit_title": "Edit CV",
+  "candidate_cv_view_text": "View/edit CV text",
   "candidate_cv_field_title": "CV title",
   "candidate_cv_field_candidate": "Candidate",
   "candidate_cv_field_published": "Published",
@@ -533,5 +534,19 @@
   "ai_settings_ollama_url_placeholder": "http://localhost:11434",
   "ai_settings_ollama_model_placeholder": "llama3",
   "ai_settings_saved": "Saved",
-  "ai_settings_help": "API keys are stored locally in your browser (IndexedDB) and are never sent to our server."
+  "ai_settings_help": "API keys are stored locally in your browser (IndexedDB) and are never sent to our server.",
+
+  "llm_match_button": "AI Match",
+  "llm_match_loading_cv": "Structuring CV…",
+  "llm_match_loading_job": "Analysing job…",
+  "llm_match_loading_match": "Matching profiles…",
+  "llm_match_title": "AI Matching",
+  "llm_match_skills": "Skills",
+  "llm_match_missing_required": "Missing (required)",
+  "llm_match_missing_nice": "Missing (nice-to-have)",
+  "llm_match_experiences": "Experience",
+  "llm_match_personal_qualities_match": "Personal qualities (matched)",
+  "llm_match_personal_qualities_missing": "Personal qualities (missing)",
+  "llm_match_required": "Required",
+  "llm_match_error": "AI matching failed. Check that an API key is set under Settings."
 }

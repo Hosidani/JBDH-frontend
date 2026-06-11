@@ -53,7 +53,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end bg-black bg-opacity-30" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-lg mt-8 mr-8 p-6 w-64 relative" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-lg shadow-lg mt-8 mr-8 p-6 w-[331px] relative" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
           <span className="font-semibold text-lg">{tSync('menu_title')}</span>
           <button onClick={onClose} className="text-2xl leading-none">&times;</button>
