@@ -14,6 +14,8 @@ import { LocalDbService } from '../../db/LocalDbService';
 import { ApiService } from '../../services/ApiService';
 import { WORKPLACE_TYPES, EMPLOYMENT_TYPES } from '../../db/types';
 import type { CV, WorkplaceType, EmploymentType } from '../../db/types';
+import { generatePortrait } from '../../ai/ai';
+import type { PortraitCandidate, StructuredCV } from '../../ai/ai';
 import AddCvForCandidateModal from './AddCvForCandidateModal';
 import oneOnOneImg from '../../assets/img/one-on-one.png';
 
@@ -65,6 +67,10 @@ const CandidatePage: React.FC = () => {
   const [textEditCv, setTextEditCv] = useState<CV | null>(null);
   const [textEditValue, setTextEditValue] = useState('');
   const [textEditSaving, setTextEditSaving] = useState(false);
+  // Portrait
+  const [portrait, setPortrait] = useState('');
+  const [portraitGenerating, setPortraitGenerating] = useState(false);
+  const [portraitError, setPortraitError] = useState('');
 
   useEffect(() => {
     if (!isEdit) return;
@@ -77,6 +83,7 @@ const CandidatePage: React.FC = () => {
         available_from: c.available_from,
         travel: c.travel, searchable: c.searchable,
       });
+      if (c.portrait) setPortrait(c.portrait);
     }).catch(() => setLoadError('Kunde inte läsa kandidaten.'));
   }, [id, isEdit]);
 
@@ -146,6 +153,74 @@ const CandidatePage: React.FC = () => {
       setTextEditCv(null);
     } catch { /* silently ignore */ }
     finally { setTextEditSaving(false); }
+  };
+
+  const handleGeneratePortrait = async () => {
+    if (!savedCandidateId) return;
+    setPortraitGenerating(true);
+    setPortraitError('');
+    try {
+      const allCvs = await LocalDbService.getCVsForCandidate(savedCandidateId);
+      const skills: PortraitCandidate['skills'] = [];
+      const experiences: PortraitCandidate['experiences'] = [];
+      const education: PortraitCandidate['education'] = [];
+      const certifications: PortraitCandidate['certifications'] = [];
+      const seenSkills = new Set<string>();
+
+      for (const cv of allCvs) {
+        if (!cv.cv_json) continue;
+        try {
+          const parsed = JSON.parse(cv.cv_json) as StructuredCV;
+          for (const s of parsed.skills ?? []) {
+            if (!seenSkills.has(s)) { seenSkills.add(s); skills.push({ skill_name: s }); }
+          }
+          for (const e of parsed.work_experience ?? []) {
+            experiences.push({
+              title: e.position ?? '?',
+              organization: e.company,
+              start_date: e.start_date,
+              end_date: e.end_date,
+              is_current: e.current,
+              description: e.description,
+              achievements: e.achievements,
+            });
+          }
+          for (const e of parsed.education ?? []) {
+            education.push({ degree: e.degree ?? '?', field_of_study: e.field_of_study, institution: e.institution, end_date: e.end_date });
+          }
+          for (const c of parsed.certifications ?? []) {
+            certifications.push({ name: c.name ?? '?', issuer: c.issuing_organization, date: c.issue_date });
+          }
+        } catch { /* skip malformed cv_json */ }
+      }
+
+      const candidateInput: PortraitCandidate = {
+        roles: form.title || null,
+        desired_city: form.location || null,
+        desired_employment: form.employment_type,
+        desired_workplace: form.workplace,
+        willing_to_commute: form.travel,
+        available_from: form.available_from || null,
+        skills,
+        experiences,
+        education,
+        certifications,
+      };
+
+      const result = await generatePortrait(candidateInput);
+      setPortrait(result);
+      await LocalDbService.updateCandidate(savedCandidateId, { portrait: result });
+    } catch (e) {
+      setPortraitError(e instanceof Error ? e.message : 'Kunde inte generera porträtt.');
+    } finally {
+      setPortraitGenerating(false);
+    }
+  };
+
+  const savePortrait = async (value: string) => {
+    if (!savedCandidateId) return;
+    setPortrait(value);
+    await LocalDbService.updateCandidate(savedCandidateId, { portrait: value }).catch(() => {});
   };
 
   const toggleCvCheck = (cvId: string) =>
@@ -377,6 +452,38 @@ const CandidatePage: React.FC = () => {
                   ))}
                 </ul>
               )}
+            </PageCard>
+          )}
+
+          {/* Kandidatporträtt */}
+          {savedCandidateId && (
+            <PageCard title="Kandidatporträtt">
+              <div className="flex flex-col gap-4">
+                <p className="text-sm text-slate-500">
+                  En sammansatt beskrivning av kandidaten baserad på kandidatens olika CV och uppgifter.
+                </p>
+                <textarea
+                  value={portrait}
+                  onChange={e => setPortrait(e.target.value)}
+                  onBlur={e => savePortrait(e.target.value)}
+                  rows={12}
+                  placeholder="Porträttet visas här när det genererats…"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-slate-50 resize-y focus:outline-none focus:ring-2 focus:ring-blue-400 leading-relaxed"
+                />
+                {portraitError && (
+                  <p className="text-xs text-red-500">{portraitError}</p>
+                )}
+                <div className="flex justify-end">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    loading={portraitGenerating}
+                    onClick={handleGeneratePortrait}
+                  >
+                    Generera ett porträtt
+                  </Button>
+                </div>
+              </div>
             </PageCard>
           )}
 

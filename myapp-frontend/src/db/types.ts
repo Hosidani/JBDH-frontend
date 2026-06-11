@@ -35,6 +35,7 @@ export interface Candidate {
   available_from: string;    // ISO date string, e.g. "2026-09-01"
   travel: boolean;
   searchable: boolean;
+  portrait?: string;
 }
 
 export interface CV {

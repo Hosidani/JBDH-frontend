@@ -358,6 +358,117 @@ export async function suggestJobTitles(cvText: string): Promise<string[]> {
   return result.titles ?? [];
 }
 
+// ── Candidate portrait ───────────────────────────────────────────────────────
+
+export interface PortraitSkill {
+  skill_name: string;
+  category?: string;
+  skill_level?: string;
+}
+
+export interface PortraitExperience {
+  title: string;
+  organization?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  is_current?: boolean;
+  description?: string | null;
+  achievements?: string[];
+}
+
+export interface PortraitEducation {
+  degree: string;
+  field_of_study?: string | null;
+  institution?: string | null;
+  end_date?: string | null;
+}
+
+export interface PortraitCertification {
+  name: string;
+  issuer?: string | null;
+  date?: string | null;
+}
+
+export interface PortraitCandidate {
+  roles?: string | null;
+  desired_city?: string | null;
+  desired_employment?: string[];
+  desired_workplace?: string[];
+  willing_to_commute?: boolean;
+  available_from?: string | null;
+  description?: string | null;
+  personal_qualities?: string[];
+  skills?: PortraitSkill[];
+  experiences?: PortraitExperience[];
+  education?: PortraitEducation[];
+  certifications?: PortraitCertification[];
+}
+
+export async function generatePortrait(candidate: PortraitCandidate): Promise<string> {
+  const skillsByCategory: Record<string, string[]> = {};
+  for (const s of candidate.skills ?? []) {
+    const cat = s.category ?? 'Övrigt';
+    if (!skillsByCategory[cat]) skillsByCategory[cat] = [];
+    skillsByCategory[cat].push(s.skill_level ? `${s.skill_name} (${s.skill_level})` : s.skill_name);
+  }
+  const skillsText = Object.entries(skillsByCategory)
+    .map(([cat, list]) => `${cat}: ${list.join(', ')}`)
+    .join('\n') || '(inga kompetenser)';
+
+  const expsText = (candidate.experiences ?? []).map(e => {
+    const period = [e.start_date, e.is_current ? 'idag' : e.end_date].filter(Boolean).join('–');
+    const lines = [`${e.title}${e.organization ? ' på ' + e.organization : ''}${period ? ' (' + period + ')' : ''}`];
+    if (e.description) lines.push(e.description);
+    if (e.achievements?.length) lines.push('Prestationer: ' + e.achievements.join('; '));
+    return lines.join('\n');
+  }).join('\n\n') || '(ingen erfarenhet)';
+
+  const eduText = (candidate.education ?? []).map(e =>
+    `${e.degree}${e.field_of_study ? ', ' + e.field_of_study : ''}${e.institution ? ' – ' + e.institution : ''}${e.end_date ? ' (' + e.end_date + ')' : ''}`
+  ).join('\n') || '(ingen utbildning)';
+
+  const certsText = (candidate.certifications ?? []).map(c =>
+    `${c.name}${c.issuer ? ', ' + c.issuer : ''}${c.date ? ' (' + c.date + ')' : ''}`
+  ).join('\n');
+
+  const userPrompt = `Skriv ett professionellt kandidatportätt på svenska, 300–400 ord.
+
+Regler:
+- Skriv i tredje person — använd konsekvent "kandidaten" och "hen"/"hens"
+- Avslöja aldrig kön, ålder eller personliga identifieringsuppgifter
+- Nämn inga specifika årtal som avslöjar ålder — använd relativa termer ("mångårig erfarenhet", "över tio år")
+- Inled med en mening som sammanfattar kandidatens profil och vad hen söker
+- Väv in kompetenser och erfarenheter som löptext — inga punktlistor
+- Lyft fram konkreta prestationer där sådana finns
+- Avsluta med vad kandidaten söker: roll, ort, anställningsform och tillgänglighet
+- Texten ska vara optimerad för semantisk matchning mot jobbannonser
+
+--- KANDIDATDATA ---
+Sökt roll/titel: ${candidate.roles ?? '(ej angivet)'}
+Önskad ort: ${candidate.desired_city ?? '(ej angivet)'}
+Anställningsform: ${(candidate.desired_employment ?? []).join(', ') || '(ej angivet)'}
+Arbetsplats: ${(candidate.desired_workplace ?? []).join(', ') || '(ej angivet)'}
+Kan pendla: ${candidate.willing_to_commute ? 'Ja' : 'Nej'}
+Tillgänglig från: ${candidate.available_from ?? 'Omgående'}
+Personlig beskrivning: ${candidate.description ?? '(ingen)'}
+Personliga egenskaper: ${(candidate.personal_qualities ?? []).join(', ') || '(ej angivet)'}
+
+KOMPETENSER:
+${skillsText}
+
+ARBETSLIVSERFARENHET:
+${expsText}
+
+UTBILDNING:
+${eduText}${certsText ? '\n\nCERTIFIERINGAR:\n' + certsText : ''}`;
+
+  return _chat(
+    'Du är en erfaren rekryteringskonsult som skriver professionella kandidatportätt.',
+    userPrompt,
+    { temperature: 0.6 },
+  );
+}
+
 // ── Window exposure for console debugging ────────────────────────────────────
 
 if (typeof window !== 'undefined') {
@@ -367,5 +478,7 @@ if (typeof window !== 'undefined') {
     matchJob,
     matchJobStructured,
     suggestJobTitles,
+    generatePortrait,
+    chat: (system: string, user: string, opts?: ChatOpts) => _chat(system, user, opts),
   };
 }
