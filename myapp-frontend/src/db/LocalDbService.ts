@@ -75,6 +75,8 @@ export class LocalDbService {
 
   static async deleteCandidate(candidateId: string): Promise<void> {
     const db = await getDb();
+    const cvs = await db.getAllFromIndex('cvs', 'by-candidate', candidateId);
+    await Promise.all(cvs.map(cv => db.delete('cvs', cv.cv_id)));
     await db.delete('candidates', candidateId);
   }
 
@@ -118,4 +120,28 @@ export class LocalDbService {
     const db = await getDb();
     await db.delete('cvs', cvId);
   }
+
+  // ── Debug / maintenance ────────────────────────────────────────────────────
+
+  static async cleanOrphanCVs(): Promise<{ deleted: number; titles: string[] }> {
+    const db = await getDb();
+    const allCandidates = await db.getAll('candidates');
+    const candidateIds = new Set(allCandidates.map(c => c.candidate_id));
+    const allCvs = await db.getAll('cvs');
+    const orphans = allCvs.filter(cv => !candidateIds.has(cv.candidate_id));
+    await Promise.all(orphans.map(cv => db.delete('cvs', cv.cv_id)));
+    return { deleted: orphans.length, titles: orphans.map(cv => cv.cv_title) };
+  }
+}
+
+// ── Window exposure for console debugging ────────────────────────────────────
+
+if (typeof window !== 'undefined') {
+  (window as unknown as Record<string, unknown>).dbDebug = {
+    cleanOrphanCVs: () => LocalDbService.cleanOrphanCVs().then(r => {
+      if (r.deleted === 0) console.log('[dbDebug] Inga orphan-CV hittades.');
+      else console.log(`[dbDebug] Raderade ${r.deleted} orphan-CV:`, r.titles);
+      return r;
+    }),
+  };
 }
