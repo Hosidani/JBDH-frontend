@@ -221,6 +221,14 @@ async function _chatJSON<T = unknown>(system: string, user: string, opts: ChatOp
   return JSON.parse(_stripMarkdown(raw)) as T;
 }
 
+// ── Language helper ──────────────────────────────────────────────────────────
+
+function _langInstruction(): string {
+  const lang = (typeof localStorage !== 'undefined' ? localStorage.getItem('language') : null) ?? 'sv';
+  if (lang === 'en') return '\nAll generated text fields (summary, reason, etc.) must be written in English.';
+  return '\nAlla genererade textfält (summary, reason, etc.) ska skrivas på svenska.';
+}
+
 // ── System prompts ────────────────────────────────────────────────────────────
 
 const STRUCTURE_CV_SYSTEM = `Du är en expert på att extrahera strukturerad information från CV:n.
@@ -238,7 +246,8 @@ Svara ENDAST med JSON:
 }
 Behåll all text på originalspråket. Extrahera ALL information.`;
 
-const ANALYZE_JOB_SYSTEM = `Du är en expert på arbetsmarknad och rekrytering.
+function ANALYZE_JOB_SYSTEM(): string {
+  return `Du är en expert på arbetsmarknad och rekrytering.
 Svara ENDAST med JSON:
 {
   "title": null, "required_skills": [], "nice_to_have_skills": [],
@@ -257,7 +266,8 @@ seniority_level är ett av: "Junior" | "Mid" | "Senior" | "Lead" | null
 employment_type är ett av: "Heltid" | "Deltid" | null
 duration är ett av: "Tillsvidare" | "Tidsbegränsat" | null
 workplace är ett av: "På plats" | "Hybrid" | "Distans" | null
-Om information saknas, sätt null.`;
+Om information saknas, sätt null.${_langInstruction()}`;
+}
 
 function _matchSystem(hasSeekerProfile: boolean): string {
   return `Du är en expert på rekrytering och kandidatmatchning. Svara ENDAST med JSON:
@@ -280,7 +290,8 @@ Regler:
 - Erfarenhets-id:n ska matcha [ID:x]-prefixet i kandidatens erfarenheter
 ${hasSeekerProfile
   ? '- Bygg profile_fit för aspekterna: Ort, Anställningsform, Arbetstid, Arbetsplats, Domän — jämför jobbets värde mot kandidatens preferens\n- Sänk overall_score minst 20 poäng om jobbets domän finns i excluded_domains'
-  : '- Lämna profile_fit som tom lista []'}`;
+  : '- Lämna profile_fit som tom lista []'}
+${_langInstruction()}`;
 }
 
 function _formatExperiences(experiences: string[]): string {
@@ -299,7 +310,7 @@ export async function structureCV(cvText: string): Promise<StructuredCV> {
 
 export async function analyzeJob(title: string, description: string): Promise<StructuredJob> {
   return _chatJSON<StructuredJob>(
-    ANALYZE_JOB_SYSTEM,
+    ANALYZE_JOB_SYSTEM(),
     `Jobbtitel: ${title}\n\nJobbannons:\n${description}`,
     { temperature: 0.1 },
   );
