@@ -5,12 +5,25 @@ import { Modal } from '../../components/common';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { ApiService } from '../../services/ApiService';
+import { LocalDbService } from '../../db/LocalDbService';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { parseJobName } from '../../utils/parseJobName';
+import type { StructuredJob } from '../../ai/ai';
 import AddJobModal from '../jobs-and-cvs/AddJobModal';
 import coffeBreakImg from '../../assets/img/Coffe-break.png';
 
-interface JobItem { id: number; displayName: string; rawName: string; channel?: string; text: string }
+interface JobItem {
+  id: number;
+  displayName: string;
+  rawName: string;
+  channel?: string;
+  text: string;
+  // from job_json
+  idbTitle?: string;
+  company?: string;
+  applyLatest?: string;
+  domain?: string;
+}
 
 const JobMgmtPage: React.FC = () => {
   const { tSync } = useTranslation();
@@ -22,10 +35,29 @@ const JobMgmtPage: React.FC = () => {
   const [editItem, setEditItem] = useState<{ id: number; name: string; text: string } | undefined>(undefined);
 
   useEffect(() => {
-    ApiService.getExternalJobAds().then(data => {
-      setJobs(data.map(j => {
+    Promise.all([
+      ApiService.getExternalJobAds(),
+      LocalDbService.getAllJobs(),
+    ]).then(([backendJobs, idbJobs]) => {
+      const idbByBackendId = new Map(idbJobs.map(j => [j.backend_id, j]));
+      setJobs(backendJobs.map(j => {
         const parsed = parseJobName(j.name || '');
-        return { id: j.id, displayName: parsed.title || j.text.slice(0, 50), rawName: j.name || '', channel: parsed.channel || undefined, text: j.text };
+        const idb = idbByBackendId.get(j.id);
+        let structured: StructuredJob | null = null;
+        if (idb?.job_json) {
+          try { structured = JSON.parse(idb.job_json) as StructuredJob; } catch { /* skip */ }
+        }
+        return {
+          id: j.id,
+          displayName: parsed.title || j.text.slice(0, 50),
+          rawName: j.name || '',
+          channel: parsed.channel || undefined,
+          text: j.text,
+          idbTitle: structured?.title ?? idb?.job_title ?? undefined,
+          company: structured?.job_company ?? undefined,
+          applyLatest: structured?.job_apply_latest ?? undefined,
+          domain: structured?.domain ?? undefined,
+        };
       }));
     }).catch(() => {});
   }, []);
@@ -124,8 +156,18 @@ const JobMgmtPage: React.FC = () => {
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-700 truncate">{job.displayName}</p>
-                    {job.channel && <p className="text-xs text-slate-400 truncate">{job.channel}</p>}
+                    <p className="text-sm text-slate-700 truncate">
+                      {[
+                        job.idbTitle || job.displayName,
+                        job.company,
+                        job.applyLatest ? new Date(job.applyLatest).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' }) : null,
+                      ].filter(Boolean).join(', ')}
+                    </p>
+                    {(job.domain || job.channel) && (
+                      <p className="text-xs text-slate-400 truncate">
+                        {[job.domain, job.channel].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
                   </div>
                   <button
                     onClick={() => handleEdit(job)}

@@ -4,7 +4,7 @@ import { Heading } from '../ui/Heading';
 interface ModalProps {
   open: boolean;
   onClose: () => void;
-  title?: string;
+  title?: React.ReactNode;
   children: React.ReactNode;
   maxWidth?: string;
 }

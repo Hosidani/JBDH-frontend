@@ -7,6 +7,7 @@ import { NamePill } from '../../components/common/NamePill';
 import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { parseJobName } from '../../utils/parseJobName';
+import type { StructuredJob } from '../../ai/ai';
 import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
 import { LocalDbService } from '../../db/LocalDbService';
 import { Icon } from '../../components/ui/Icon';
@@ -21,7 +22,16 @@ import excelentImg from '../../assets/graphics/Excelent.png';
 // ─── types ────────────────────────────────────────────────────────────────────
 
 interface CvItem  { id: number; name: string; text: string }
-interface JobItem { id: number; displayName: string; rawName: string; channel?: string; text: string }
+interface JobItem {
+  id: number;
+  displayName: string;
+  rawName: string;
+  channel?: string;
+  text: string;
+  company?: string;
+  applyLatest?: string;
+  domain?: string;
+}
 interface AtsResult {
   id: number;
   cv_name: string;
@@ -316,20 +326,30 @@ const JobsAndCvsPage: React.FC = () => {
       setSelectedCvIds(new Set(items.map(c => c.id)));
     }).catch(() => {});
 
-    ApiService.getExternalJobAds().then(data => {
-      const items: JobItem[] = data.map(j => {
-        const parsed = parseJobName(j.name || '');
-        return {
-          id: j.id,
-          displayName: parsed.title || j.text.slice(0, 50),
-          rawName: j.name || '',
-          channel: parsed.channel || undefined,
-          text: j.text,
-        };
-      });
-      setJobs(items);
-      setSelectedJobIds(new Set(items.map(j => j.id)));
-    }).catch(() => {});
+    Promise.all([ApiService.getExternalJobAds(), LocalDbService.getAllJobs()])
+      .then(([data, idbJobs]) => {
+        const idbByBackendId = new Map(idbJobs.map(j => [j.backend_id, j]));
+        const items: JobItem[] = data.map(j => {
+          const parsed = parseJobName(j.name || '');
+          const idb = idbByBackendId.get(j.id);
+          let structured: StructuredJob | null = null;
+          if (idb?.job_json) {
+            try { structured = JSON.parse(idb.job_json) as StructuredJob; } catch { /* skip */ }
+          }
+          return {
+            id: j.id,
+            displayName: parsed.title || j.text.slice(0, 50),
+            rawName: j.name || '',
+            channel: parsed.channel || undefined,
+            text: j.text,
+            company: structured?.job_company ?? undefined,
+            applyLatest: structured?.job_apply_latest ?? undefined,
+            domain: structured?.domain ?? undefined,
+          };
+        });
+        setJobs(items);
+        setSelectedJobIds(new Set(items.map(j => j.id)));
+      }).catch(() => {});
 
     refreshAtsResults();
   }, []);
@@ -361,12 +381,19 @@ const JobsAndCvsPage: React.FC = () => {
     return candidate ? `${candidate}, ${cv.name}` : cv.name;
   };
 
+  const jobLabel = (job: JobItem): string => {
+    const parts: string[] = [job.displayName];
+    if (job.company) parts.push(job.company);
+    if (job.applyLatest) parts.push(new Date(job.applyLatest).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' }));
+    return parts.join(', ');
+  };
+
   const tableRows = useMemo((): CompactRow[] => {
     if (activeTab === 'cvs-jobs') {
       return activeCvs.flatMap(cv =>
         activeJobs.map(job => {
           const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-          return { primaryLine: cvLabel(cv), secondaryLine: job.displayName, score: match?.overall_score ?? null, atsResultId: match?.id };
+          return { primaryLine: cvLabel(cv), secondaryLine: jobLabel(job), score: match?.overall_score ?? null, atsResultId: match?.id };
         })
       );
     }
@@ -374,7 +401,7 @@ const JobsAndCvsPage: React.FC = () => {
       return activeJobs.flatMap(job =>
         activeCvs.map(cv => {
           const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-          return { primaryLine: job.displayName, secondaryLine: cvLabel(cv), score: match?.overall_score ?? null, atsResultId: match?.id };
+          return { primaryLine: jobLabel(job), secondaryLine: cvLabel(cv), score: match?.overall_score ?? null, atsResultId: match?.id };
         })
       );
     }
@@ -382,7 +409,7 @@ const JobsAndCvsPage: React.FC = () => {
       return activeCvs.flatMap(cv =>
         activeJobs.map(job => {
           const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-          return { primaryLine: cvLabel(cv), secondaryLine: job.displayName, score: match?.overall_score ?? null, atsResultId: match?.id };
+          return { primaryLine: cvLabel(cv), secondaryLine: jobLabel(job), score: match?.overall_score ?? null, atsResultId: match?.id };
         })
       ).filter(r => r.score != null);
     }

@@ -221,6 +221,10 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
   const [portraitResult, setPortraitResult] = useState<MatchResult | null>(null);
   const [portraitError, setPortraitError] = useState<string | null>(null);
 
+  // Header display state
+  const [headerCandidateName, setHeaderCandidateName] = useState<string | null>(null);
+  const [headerJobCompany, setHeaderJobCompany] = useState<string | null>(null);
+
   useEffect(() => {
     if (!open) {
       setSseFormData(null);
@@ -234,8 +238,32 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
       setPortraitResult(null);
       setPortraitError(null);
       setSseResult(null);
+      setHeaderCandidateName(null);
+      setHeaderJobCompany(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !result) return;
+    (async () => {
+      const [allCvs, allJobs] = await Promise.all([
+        LocalDbService.getAllCVs(),
+        LocalDbService.getAllJobs(),
+      ]);
+      const idbCv = allCvs.find(cv => cv.cv_title === result.cv_name);
+      if (idbCv?.candidate_id) {
+        const candidate = await LocalDbService.getCandidate(idbCv.candidate_id);
+        if (candidate) setHeaderCandidateName(candidate.name);
+      }
+      const idbJob = allJobs.find(j => j.job_description === result.job_text);
+      if (idbJob?.job_json) {
+        try {
+          const structured = JSON.parse(idbJob.job_json);
+          if (structured?.job_company) setHeaderJobCompany(structured.job_company);
+        } catch { /* skip */ }
+      }
+    })().catch(() => {});
+  }, [open, result]);
 
   useSSE(
     '/home/CompareCvJobSSE',
@@ -385,7 +413,19 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
 
   return (
     <>
-      <Modal open={open} onClose={onClose} maxWidth="max-w-3xl" title={`${result.cv_name || tSync('ats_unknown_cv')} → ${parseJobName(result.job_name ?? '').title || result.job_name || tSync('ats_unknown_job')}`}>
+      <Modal open={open} onClose={onClose} maxWidth="max-w-3xl" title={
+        <div className="flex flex-col gap-0.5">
+          <span className="text-base font-bold text-slate-800 leading-tight">
+            {headerCandidateName || result.cv_name}
+          </span>
+          <span className="text-sm font-normal text-slate-500 leading-tight">
+            CV: {result.cv_name}
+          </span>
+          <span className="text-sm font-normal text-slate-500 leading-tight">
+            Jobb: {[parseJobName(result.job_name ?? '').title || result.job_name, headerJobCompany].filter(Boolean).join(', ')}
+          </span>
+        </div>
+      }>
         <div className="flex flex-col gap-6">
 
           {/* Score image */}
