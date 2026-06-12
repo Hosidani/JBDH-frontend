@@ -10,6 +10,7 @@ import { CheckboxGroup } from '../../components/ui/CheckboxGroup';
 import { Toggle } from '../../components/ui/Toggle';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useLocalAccount, useLocalCandidates, useLocalCVs } from '../../db/useLocalDb';
+import { useAuth } from '../../context/AuthContext';
 import { LocalDbService } from '../../db/LocalDbService';
 import { ApiService } from '../../services/ApiService';
 import { WORKPLACE_TYPES, EMPLOYMENT_TYPES } from '../../db/types';
@@ -44,7 +45,8 @@ const CandidatePage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const isEdit = !!id;
 
-  const { data: account, loading: accountLoading } = useLocalAccount();
+  const { user } = useAuth();
+  const { data: account, loading: accountLoading } = useLocalAccount(user?.email);
   const { data: allCandidates, refresh: refreshCandidates } = useLocalCandidates(account?.account_id);
 
   // savedCandidateId: tracks when the candidate has been persisted (needed for CV section)

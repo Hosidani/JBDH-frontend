@@ -8,12 +8,14 @@ import { Icon } from '../../components/ui/Icon';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
 import { LocalDbService } from '../../db/LocalDbService';
+import { useAuth } from '../../context/AuthContext';
 import coffeBreakImg from '../../assets/img/Coffe-break.png';
 
 const CandidateMgmtPage: React.FC = () => {
   const { tSync } = useTranslation();
   const navigate = useNavigate();
-  const { data: account } = useLocalAccount();
+  const { user } = useAuth();
+  const { data: account } = useLocalAccount(user?.email);
   const { data: candidates, refresh } = useLocalCandidates(account?.account_id);
 
   const [cvCounts, setCvCounts] = useState<Record<string, number>>({});
