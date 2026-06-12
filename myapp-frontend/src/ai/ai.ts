@@ -486,6 +486,18 @@ ${eduText}${certsText ? '\n\nCERTIFIERINGAR:\n' + certsText : ''}`;
   );
 }
 
+export async function isLlmConfigured(): Promise<boolean> {
+  const provider = ((await SettingsService.get('ai_provider')) ?? 'openai') as AiProvider;
+  if (provider === 'ollama') return true;
+  const keyMap: Record<string, string> = {
+    openai: 'openai_key',
+    anthropic: 'anthropic_key',
+    gemini: 'gemini_key',
+  };
+  const key = await SettingsService.get(keyMap[provider] ?? '');
+  return !!key?.trim();
+}
+
 // ── Window exposure for console debugging ────────────────────────────────────
 
 if (typeof window !== 'undefined') {

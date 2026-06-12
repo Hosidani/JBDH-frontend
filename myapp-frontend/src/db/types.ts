@@ -11,7 +11,7 @@ export const BACKEND_ROLE_TO_IDB: Record<string, Role> = {
 export const WORKPLACE_TYPES = ['På plats', 'Hybrid', 'Distans'] as const;
 export type WorkplaceType = (typeof WORKPLACE_TYPES)[number];
 
-export const EMPLOYMENT_TYPES = ['Heltid', 'Deltid', 'Timmar', 'Projekt', 'Konsult'] as const;
+export const EMPLOYMENT_TYPES = ['Heltid', 'Deltid', 'Timmar', 'Fastanställd', 'Projekt', 'Konsult'] as const;
 export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
 
 export interface Account {

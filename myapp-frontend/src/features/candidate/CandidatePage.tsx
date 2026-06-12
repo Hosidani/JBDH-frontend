@@ -14,7 +14,7 @@ import { LocalDbService } from '../../db/LocalDbService';
 import { ApiService } from '../../services/ApiService';
 import { WORKPLACE_TYPES, EMPLOYMENT_TYPES } from '../../db/types';
 import type { CV, WorkplaceType, EmploymentType } from '../../db/types';
-import { generatePortrait } from '../../ai/ai';
+import { generatePortrait, isLlmConfigured } from '../../ai/ai';
 import type { PortraitCandidate, StructuredCV } from '../../ai/ai';
 import AddCvForCandidateModal from './AddCvForCandidateModal';
 import oneOnOneImg from '../../assets/img/one-on-one.png';
@@ -71,9 +71,12 @@ const CandidatePage: React.FC = () => {
   const [portrait, setPortrait] = useState('');
   const [portraitGenerating, setPortraitGenerating] = useState(false);
   const [portraitError, setPortraitError] = useState('');
+  const [llmReady, setLlmReady] = useState(false);
   // Personal traits
   const [personalTreats, setPersonalTreats] = useState<string[]>([]);
   const [newTreat, setNewTreat] = useState('');
+
+  useEffect(() => { isLlmConfigured().then(setLlmReady); }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -527,7 +530,9 @@ const CandidatePage: React.FC = () => {
             <PageCard title="Kandidatporträtt">
               <div className="flex flex-col gap-4">
                 <p className="text-sm text-slate-500">
-                  En sammansatt beskrivning av kandidaten baserad på kandidatens olika CV och uppgifter.
+                  En ai-genererad beskrivning av kandidaten baserad på kandidatens olika CV och uppgifter. För att kunna generera ett kandidatporträtt behöver du lägga till en API-nyckel till en LLM-leverantör. Du lägger till API-nyckeln under "Kontoinställningar" (se menyn).
+                  <br /><br />
+                  Du behöver också ha lagt till minst ett CV till kandidaten.
                 </p>
                 <textarea
                   value={portrait}
@@ -545,6 +550,7 @@ const CandidatePage: React.FC = () => {
                     variant="primary"
                     size="lg"
                     loading={portraitGenerating}
+                    disabled={!llmReady || cvs.length === 0}
                     onClick={handleGeneratePortrait}
                   >
                     Generera ett porträtt
