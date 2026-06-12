@@ -87,7 +87,7 @@ const CandidatePage: React.FC = () => {
         travel: c.travel, searchable: c.searchable,
       });
       if (c.portrait) setPortrait(c.portrait);
-      if (c.personal_treats?.length) setPersonalTreats(c.personal_treats);
+      if (c.personal_qualities?.length) setPersonalTreats(c.personal_qualities);
     }).catch(() => setLoadError('Kunde inte läsa kandidaten.'));
   }, [id, isEdit]);
 
@@ -210,6 +210,7 @@ const CandidatePage: React.FC = () => {
         experiences,
         education,
         certifications,
+        personal_qualities: personalTreats.length ? personalTreats : undefined,
       };
 
       const result = await generatePortrait(candidateInput);
@@ -235,7 +236,7 @@ const CandidatePage: React.FC = () => {
     setPersonalTreats(updated);
     setNewTreat('');
     setPortrait('');
-    await LocalDbService.updateCandidate(savedCandidateId, { personal_treats: updated, portrait: '' }).catch(() => {});
+    await LocalDbService.updateCandidate(savedCandidateId, { personal_qualities: updated, portrait: '' }).catch(() => {});
   };
 
   const removeTreat = async (trait: string) => {
@@ -243,7 +244,7 @@ const CandidatePage: React.FC = () => {
     const updated = personalTreats.filter(t => t !== trait);
     setPersonalTreats(updated);
     setPortrait('');
-    await LocalDbService.updateCandidate(savedCandidateId, { personal_treats: updated, portrait: '' }).catch(() => {});
+    await LocalDbService.updateCandidate(savedCandidateId, { personal_qualities: updated, portrait: '' }).catch(() => {});
   };
 
   const toggleCvCheck = (cvId: string) =>

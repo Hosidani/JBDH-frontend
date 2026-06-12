@@ -1,4 +1,5 @@
 import { getDb } from './db';
+import { ApiService } from '../services/ApiService';
 import type { Account, Candidate, CV, Job } from './types';
 
 type AccountInput = Omit<Account, 'account_id'>;
@@ -76,6 +77,11 @@ export class LocalDbService {
   static async deleteCandidate(candidateId: string): Promise<void> {
     const db = await getDb();
     const cvs = await db.getAllFromIndex('cvs', 'by-candidate', candidateId);
+    await Promise.allSettled(
+      cvs
+        .filter(cv => cv.backend_id != null)
+        .map(cv => ApiService.deleteExternalCV(cv.backend_id!))
+    );
     await Promise.all(cvs.map(cv => db.delete('cvs', cv.cv_id)));
     await db.delete('candidates', candidateId);
   }

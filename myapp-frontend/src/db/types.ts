@@ -36,7 +36,7 @@ export interface Candidate {
   travel: boolean;
   searchable: boolean;
   portrait?: string;
-  personal_treats?: string[];
+  personal_qualities?: string[];
 }
 
 export interface Job {
