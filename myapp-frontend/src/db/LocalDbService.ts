@@ -1,5 +1,5 @@
 import { getDb } from './db';
-import type { Account, Candidate, CV } from './types';
+import type { Account, Candidate, CV, Job } from './types';
 
 type AccountInput = Omit<Account, 'account_id'>;
 type CandidateInput = Omit<Candidate, 'candidate_id'>;
@@ -119,6 +119,39 @@ export class LocalDbService {
   static async deleteCV(cvId: string): Promise<void> {
     const db = await getDb();
     await db.delete('cvs', cvId);
+  }
+
+  // ── Job ────────────────────────────────────────────────────────────────────
+
+  static async addJob(data: Omit<Job, 'job_id'>): Promise<Job> {
+    const db = await getDb();
+    const job: Job = { ...data, job_id: crypto.randomUUID() };
+    await db.put('jobs', job);
+    return job;
+  }
+
+  static async getJobByBackendId(backendId: number): Promise<Job | undefined> {
+    const db = await getDb();
+    return db.getFromIndex('jobs', 'by-backend-id', backendId);
+  }
+
+  static async updateJob(jobId: string, patch: Partial<Omit<Job, 'job_id'>>): Promise<Job | undefined> {
+    const db = await getDb();
+    const existing = await db.get('jobs', jobId);
+    if (!existing) return undefined;
+    const updated: Job = { ...existing, ...patch };
+    await db.put('jobs', updated);
+    return updated;
+  }
+
+  static async getAllJobs(): Promise<Job[]> {
+    const db = await getDb();
+    return db.getAll('jobs');
+  }
+
+  static async deleteJob(jobId: string): Promise<void> {
+    const db = await getDb();
+    await db.delete('jobs', jobId);
   }
 
   // ── Debug / maintenance ────────────────────────────────────────────────────

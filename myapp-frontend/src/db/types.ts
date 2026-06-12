@@ -38,6 +38,16 @@ export interface Candidate {
   portrait?: string;
 }
 
+export interface Job {
+  job_id: string;          // UUID, primary key — generated on first save, never changes
+  backend_id?: number;     // ID returned from backend
+  job_title: string;
+  job_channel: string;
+  job_description: string;
+  job_json: string;        // populated later after analysis
+  job_url: string;
+}
+
 export interface CV {
   cv_id: string;             // UUID, primary key
   candidate_id: string;      // FK → Candidate

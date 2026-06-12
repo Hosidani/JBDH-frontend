@@ -285,7 +285,17 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
 
       setLlmStep('analyzing-job');
       const jobTitle = parseJobName(result.job_name ?? '').title || result.job_name || '';
-      const structuredJob = await analyzeJob(jobTitle, result.job_text);
+      const allJobs = await LocalDbService.getAllJobs();
+      const idbJob = allJobs.find(j => j.job_description === result.job_text);
+      let structuredJob: Awaited<ReturnType<typeof analyzeJob>>;
+      if (idbJob?.job_json) {
+        structuredJob = JSON.parse(idbJob.job_json);
+      } else {
+        structuredJob = await analyzeJob(jobTitle, result.job_text);
+        if (idbJob) {
+          await LocalDbService.updateJob(idbJob.job_id, { job_json: JSON.stringify(structuredJob) });
+        }
+      }
 
       setLlmStep('matching');
       const experiences = structuredCv.work_experience.map(w => {

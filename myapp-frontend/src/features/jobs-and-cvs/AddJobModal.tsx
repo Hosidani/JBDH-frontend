@@ -3,6 +3,8 @@ import { Modal } from '../../components/common';
 import { Button } from '../../components/ui/Button';
 import { ComboInput } from '../../components/ui/ComboInput';
 import { ApiService } from '../../services/ApiService';
+import { LocalDbService } from '../../db/LocalDbService';
+import { analyzeJob } from '../../ai/ai';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { parseJobName, buildJobName } from '../../utils/parseJobName';
 
@@ -53,6 +55,12 @@ const AddJobModal: React.FC<AddJobModalProps> = ({
     onClose();
   };
 
+  const triggerAnalysis = (jobId: string, title: string, description: string) => {
+    analyzeJob(title, description)
+      .then(structured => LocalDbService.updateJob(jobId, { job_json: JSON.stringify(structured) }))
+      .catch(() => {});
+  };
+
   const handleSave = async () => {
     if (!text.trim()) return;
     setSaving(true);
@@ -61,9 +69,40 @@ const AddJobModal: React.FC<AddJobModalProps> = ({
     try {
       if (isEdit && editItem) {
         const updated = await ApiService.updateExternalJobAd(editItem.id, text.trim(), name || undefined);
+        const existing = await LocalDbService.getJobByBackendId(editItem.id);
+        if (existing) {
+          await LocalDbService.updateJob(existing.job_id, {
+            job_title: jobTitle.trim(),
+            job_channel: channel.trim(),
+            job_description: text.trim(),
+            job_json: '',
+            job_url: url.trim(),
+            backend_id: editItem.id,
+          });
+          triggerAnalysis(existing.job_id, jobTitle.trim(), text.trim());
+        } else {
+          const created = await LocalDbService.addJob({
+            backend_id: editItem.id,
+            job_title: jobTitle.trim(),
+            job_channel: channel.trim(),
+            job_description: text.trim(),
+            job_json: '',
+            job_url: url.trim(),
+          });
+          triggerAnalysis(created.job_id, jobTitle.trim(), text.trim());
+        }
         onUpdated?.({ id: updated.id, name: updated.name, text: updated.text });
       } else {
         const created = await ApiService.createExternalJobAd(text.trim(), name || undefined);
+        const idbJob = await LocalDbService.addJob({
+          backend_id: created.id,
+          job_title: jobTitle.trim(),
+          job_channel: channel.trim(),
+          job_description: text.trim(),
+          job_json: '',
+          job_url: url.trim(),
+        });
+        triggerAnalysis(idbJob.job_id, jobTitle.trim(), text.trim());
         onAdded(created);
       }
       handleClose();

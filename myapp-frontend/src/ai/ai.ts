@@ -59,6 +59,8 @@ export interface StructuredJob {
   workplace?: 'På plats' | 'Hybrid' | 'Distans' | null;
   domain?: string | null;
   summary?: string | null;
+  job_apply_latest?: string | null;
+  job_company?: string | null;
 }
 
 export interface SeekerProfile {
@@ -260,13 +262,17 @@ Svara ENDAST med JSON:
   "duration": null,
   "workplace": null,
   "domain": null,
-  "summary": null
+  "summary": null,
+  "job_apply_latest": null,
+  "job_company": null
 }
 Skilja tekniska kompetenser (required_skills, nice_to_have_skills) från personliga egenskaper (personal_qualities).
 seniority_level är ett av: "Junior" | "Mid" | "Senior" | "Lead" | null
 employment_type är ett av: "Heltid" | "Deltid" | null
 duration är ett av: "Tillsvidare" | "Tidsbegränsat" | null
 workplace är ett av: "På plats" | "Hybrid" | "Distans" | null
+job_apply_latest: sista ansökningsdag som ISO-datum (YYYY-MM-DD). Om det inte framgår av annonsen, sätt null.
+job_company: namnet på det företag eller den organisation där man faktiskt kommer att vara anställd (inte eventuellt rekryteringsbolag). Om det inte framgår, sätt null.
 Om information saknas, sätt null.${_langInstruction()}`;
 }
 

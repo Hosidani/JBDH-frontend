@@ -1,8 +1,8 @@
 import { openDB, type IDBPDatabase } from 'idb';
-import type { Account, Candidate, CV } from './types';
+import type { Account, Candidate, CV, Job } from './types';
 
 const DB_NAME = 'jbdh';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export interface JbdhSchema {
   accounts: {
@@ -24,6 +24,11 @@ export interface JbdhSchema {
     key: string;
     value: { key: string; value: string };
   };
+  jobs: {
+    key: string;
+    value: Job;
+    indexes: { 'by-backend-id': number };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<JbdhSchema>> | null = null;
@@ -44,6 +49,10 @@ export function getDb(): Promise<IDBPDatabase<JbdhSchema>> {
         }
         if (oldVersion < 2) {
           db.createObjectStore('settings', { keyPath: 'key' });
+        }
+        if (oldVersion < 3) {
+          const jobs = db.createObjectStore('jobs', { keyPath: 'job_id' });
+          jobs.createIndex('by-backend-id', 'backend_id');
         }
       },
     });
