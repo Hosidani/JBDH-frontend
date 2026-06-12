@@ -572,6 +572,11 @@ const CandidatePage: React.FC = () => {
           candidates={allCandidates}
           editCv={editCv}
           onSaved={() => { refreshCvs(); setAddCvOpen(false); setEditCv(undefined); }}
+          onTraitsUpdated={() => {
+            LocalDbService.getCandidate(savedCandidateId).then(c => {
+              if (c?.personal_qualities) setPersonalTreats(c.personal_qualities);
+            }).catch(() => {});
+          }}
         />
       )}
 

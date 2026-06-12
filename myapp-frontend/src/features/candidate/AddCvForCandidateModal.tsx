@@ -18,12 +18,13 @@ interface Props {
   candidates: Candidate[];
   editCv?: CV;
   onSaved: (cv: CV) => void;
+  onTraitsUpdated?: () => void;
 }
 
 type Step = 'drop' | 'parsing' | 'review';
 
 const AddCvForCandidateModal: React.FC<Props> = ({
-  open, onClose, defaultCandidateId, candidates, editCv, onSaved,
+  open, onClose, defaultCandidateId, candidates, editCv, onSaved, onTraitsUpdated,
 }) => {
   const { tSync } = useTranslation();
   const isEdit = !!editCv;
@@ -80,9 +81,21 @@ const AddCvForCandidateModal: React.FC<Props> = ({
     }
   };
 
-  const triggerCvAnalysis = (cvId: string, text: string) => {
+  const triggerCvAnalysis = (cvId: string, candId: string, text: string) => {
     structureCV(text)
-      .then(structured => LocalDbService.updateCV(cvId, { cv_json: JSON.stringify(structured) }))
+      .then(async structured => {
+        await LocalDbService.updateCV(cvId, { cv_json: JSON.stringify(structured) });
+        if (structured.personal_qualities?.length) {
+          const candidate = await LocalDbService.getCandidate(candId);
+          if (candidate) {
+            const merged = [...new Set([...(candidate.personal_qualities ?? []), ...structured.personal_qualities])];
+            if (merged.length !== (candidate.personal_qualities ?? []).length) {
+              await LocalDbService.updateCandidate(candId, { personal_qualities: merged, portrait: '' });
+              onTraitsUpdated?.();
+            }
+          }
+        }
+      })
       .catch(() => {});
   };
 
@@ -126,7 +139,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
           cv_file: file,
           cv_file_type: file!.type,
         });
-        triggerCvAnalysis(editCv.cv_id, cvText.trim());
+        triggerCvAnalysis(editCv.cv_id, candidateId, cvText.trim());
         onSaved(updated!);
       } else {
         const saved = await LocalDbService.addCV({
@@ -139,7 +152,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
           cv_file_type: file!.type,
           cv_published: published,
         });
-        triggerCvAnalysis(saved.cv_id, cvText.trim());
+        triggerCvAnalysis(saved.cv_id, candidateId, cvText.trim());
         onSaved(saved);
       }
       handleClose();
