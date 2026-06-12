@@ -575,6 +575,7 @@ const CandidatePage: React.FC = () => {
           onTraitsUpdated={() => {
             LocalDbService.getCandidate(savedCandidateId).then(c => {
               if (c?.personal_qualities) setPersonalTreats(c.personal_qualities);
+              setPortrait(c?.portrait ?? '');
             }).catch(() => {});
           }}
         />
