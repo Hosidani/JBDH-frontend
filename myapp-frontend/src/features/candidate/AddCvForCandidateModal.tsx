@@ -8,6 +8,7 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService } from '../../services/ApiService';
 import { LocalDbService } from '../../db/LocalDbService';
 import { parseCvFile, ACCEPT_STRING } from '../../utils/parseCvFile';
+import { structureCV } from '../../ai/ai';
 import type { CV, Candidate } from '../../db/types';
 
 interface Props {
@@ -79,6 +80,12 @@ const AddCvForCandidateModal: React.FC<Props> = ({
     }
   };
 
+  const triggerCvAnalysis = (cvId: string, text: string) => {
+    structureCV(text)
+      .then(structured => LocalDbService.updateCV(cvId, { cv_json: JSON.stringify(structured) }))
+      .catch(() => {});
+  };
+
   // Edit mode: save metadata changes without uploading a new file
   const handleMetaSave = async () => {
     if (!isEdit || !editCv) return;
@@ -119,6 +126,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
           cv_file: file,
           cv_file_type: file!.type,
         });
+        triggerCvAnalysis(editCv.cv_id, cvText.trim());
         onSaved(updated!);
       } else {
         const saved = await LocalDbService.addCV({
@@ -131,6 +139,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
           cv_file_type: file!.type,
           cv_published: published,
         });
+        triggerCvAnalysis(saved.cv_id, cvText.trim());
         onSaved(saved);
       }
       handleClose();

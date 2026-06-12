@@ -45,7 +45,7 @@ const CandidatePage: React.FC = () => {
   const isEdit = !!id;
 
   const { data: account, loading: accountLoading } = useLocalAccount();
-  const { data: allCandidates } = useLocalCandidates(account?.account_id);
+  const { data: allCandidates, refresh: refreshCandidates } = useLocalCandidates(account?.account_id);
 
   // savedCandidateId: tracks when the candidate has been persisted (needed for CV section)
   const [savedCandidateId, setSavedCandidateId] = useState<string | null>(id ?? null);
@@ -114,9 +114,10 @@ const CandidatePage: React.FC = () => {
         });
         localIdRef.current = saved.candidate_id;
         setSavedCandidateId(saved.candidate_id);
+        refreshCandidates();
       }
     } catch { /* silently ignore */ }
-  }, [account, form]);
+  }, [account, form, refreshCandidates]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm(prev => ({ ...prev, [key]: value }));
