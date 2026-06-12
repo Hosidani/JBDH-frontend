@@ -22,14 +22,15 @@ interface MenuItem {
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { to: '/account',          labelKey: 'menu_account_settings', roles: [] },
-  { to: '/profile',          labelKey: 'menu_profile',          roles: ['User'] },
-  { to: '/search',           labelKey: 'menu_match_cv_ads',     roles: ['User'] },
-  { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',       roles: ['User'] },
-  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',   roles: ['User'] },
-  { to: '/add-job-ad',       labelKey: 'menu_post_ad',          roles: ['Recruiter'] },
-  { to: '/jobs-and-cvs',     labelKey: 'menu_multi_match',      roles: ['Recruiter', 'Manager'] },
-  { to: '/ats-results',      labelKey: 'menu_ats_results',       roles: ['Recruiter', 'Manager'] },
+  { to: '/account',          labelKey: 'menu_account_settings',    roles: [] },
+  { to: '/candidate_mgmt',   labelKey: 'menu_manage_candidates',   roles: [] },
+  { to: '/profile',          labelKey: 'menu_profile',             roles: ['User'] },
+  { to: '/search',           labelKey: 'menu_match_cv_ads',        roles: ['User'] },
+  { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',          roles: ['User'] },
+  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',      roles: ['User'] },
+  { to: '/add-job-ad',       labelKey: 'menu_post_ad',             roles: ['Recruiter'] },
+  { to: '/jobs-and-cvs',     labelKey: 'menu_multi_match',         roles: ['Recruiter', 'Manager'] },
+  { to: '/ats-results',      labelKey: 'menu_ats_results',         roles: ['Recruiter', 'Manager'] },
   { to: '/cv_mgmt',          labelKey: 'menu_manage_candidate_cvs', roles: ['Manager'] },
   { to: '/jobs_mgmt',        labelKey: 'menu_manage_ads',           roles: ['Manager'] },
   { to: '/messages',         labelKey: 'menu_messages',         roles: [] },
@@ -52,7 +53,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end bg-black bg-opacity-30" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-lg mt-8 mr-8 p-6 w-64 relative" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-lg shadow-lg mt-8 mr-8 p-6 w-[331px] relative" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
           <span className="font-semibold text-lg">{tSync('menu_title')}</span>
           <button onClick={onClose} className="text-2xl leading-none">&times;</button>

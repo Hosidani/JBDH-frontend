@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { PageWrapper, PageBackground, FieldAnalysisCard, Section, BulletList } from '../../components/common';
 import { SectionCard } from '../../components/common/SectionCard';
+import { AIDisclaimer } from '../../components/common/AIDisclaimer';
 import presentationImg from '../../assets/img/Presentation.png';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import type { SseAnalysisResult, Bilingual } from '../../types/analysis';
@@ -110,6 +111,7 @@ const AiAnalysisResultPage: React.FC = () => {
         )}
 
       </SectionCard>
+      <AIDisclaimer />
       </PageWrapper>
     </>
   );

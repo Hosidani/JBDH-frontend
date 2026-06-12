@@ -3,6 +3,12 @@ import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService } from '../../services/ApiService';
 import { useNavigate } from 'react-router-dom';
+import { LocalDbService } from '../../db/LocalDbService';
+import { BACKEND_ROLE_TO_IDB } from '../../db/types';
+import type { Role } from '../../db/types';
+import { SettingsService } from '../../db/SettingsService';
+import { AI_PROVIDERS } from '../../ai/ai';
+import type { AiProvider } from '../../ai/ai';
 import { TextInput } from '../../components/ui/TextInput';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -71,6 +77,14 @@ const AccountPage: React.FC = () => {
   const [pwLoading, setPwLoading] = useState(false);
   const [pwMessage, setPwMessage] = useState<string | null>(null);
 
+  // AI settings state
+  const [aiProvider, setAiProvider] = useState<AiProvider>('openai');
+  const [aiKeysSet, setAiKeysSet] = useState<Record<string, boolean>>({});
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [keyInputValue, setKeyInputValue] = useState('');
+  const [ollamaUrl, setOllamaUrl] = useState('http://localhost:11434');
+  const [ollamaModel, setOllamaModel] = useState('llama3');
+
   useEffect(() => {
     const fetchAccountSettings = async () => {
       if (!user) {
@@ -113,6 +127,28 @@ const AccountPage: React.FC = () => {
     fetchAccountSettings();
   }, [user]);
 
+  useEffect(() => {
+    const loadAiSettings = async () => {
+      const [provider, openaiKey, anthropicKey, geminiKey, url, model] = await Promise.all([
+        SettingsService.get('ai_provider'),
+        SettingsService.get('openai_key'),
+        SettingsService.get('anthropic_key'),
+        SettingsService.get('gemini_key'),
+        SettingsService.get('ollama_url'),
+        SettingsService.get('ollama_model'),
+      ]);
+      if (provider) setAiProvider(provider as AiProvider);
+      setAiKeysSet({
+        openai_key: !!openaiKey,
+        anthropic_key: !!anthropicKey,
+        gemini_key: !!geminiKey,
+      });
+      if (url) setOllamaUrl(url);
+      if (model) setOllamaModel(model);
+    };
+    loadAiSettings().catch(() => {});
+  }, []);
+
   const handleInputChange = (field: keyof FormData, value: string | boolean | string[]) => {
     setFormData(prev => ({
       ...prev,
@@ -127,6 +163,23 @@ const AccountPage: React.FC = () => {
       await refreshRoles();
     } catch {
       // ignore silently
+    }
+
+    // Mirror relevant fields to IndexedDB Account
+    try {
+      const patch: Partial<{ name: string; email: string; telephone: string; role: Role[] }> = {};
+      if ('accountName'  in fields) patch.name      = fields.accountName  ?? '';
+      if ('accountEmail' in fields) patch.email     = fields.accountEmail ?? '';
+      if ('accountPhone' in fields) patch.telephone = fields.accountPhone ?? '';
+      if ('roles'        in fields) patch.role      = (fields.roles as string[] ?? [])
+        .map(r => BACKEND_ROLE_TO_IDB[r])
+        .filter((r): r is Role => !!r);
+
+      if (Object.keys(patch).length > 0) {
+        await LocalDbService.updateAccount(patch);
+      }
+    } catch {
+      // IndexedDB errors must not affect UI
     }
   };
 
@@ -234,9 +287,7 @@ const AccountPage: React.FC = () => {
             <InfoRow
               label={tSync('account_email')}
               value={formData.accountEmail}
-              readOnly={accountSettings.isTerminated}
-              onChange={v => handleInputChange('accountEmail', v)}
-              onBlur={() => saveField({ accountEmail: formData.accountEmail })}
+              readOnly
               type="email"
               helpText={tSync('account_email_help')}
             />
@@ -298,6 +349,115 @@ const AccountPage: React.FC = () => {
               </Button>
             </div>
           </form>
+        </PageCard>
+
+        {/* AI Settings */}
+        <PageCard title={tSync('ai_settings_title')}>
+          <p className="text-xs text-slate-500 mb-4">{tSync('ai_settings_help')}</p>
+          <div className="flex flex-col gap-5">
+            {/* Provider selector */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-slate-700">{tSync('ai_settings_provider_label')}</label>
+              <select
+                value={aiProvider}
+                onChange={async e => {
+                  const val = e.target.value as AiProvider;
+                  setAiProvider(val);
+                  await SettingsService.set('ai_provider', val);
+                }}
+                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                {(Object.entries(AI_PROVIDERS) as [AiProvider, string][]).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Key fields for cloud providers */}
+            {(['openai', 'anthropic', 'gemini'] as AiProvider[]).map(p => {
+              const keyName = `${p}_key` as const;
+              const labelKey = `ai_settings_${p === 'openai' ? 'openai' : p === 'anthropic' ? 'anthropic' : 'gemini'}_key` as const;
+              if (aiProvider !== p) return null;
+              return (
+                <div key={p} className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-slate-700">{tSync(labelKey)}</label>
+                  {editingKey === keyName ? (
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="password"
+                        value={keyInputValue}
+                        onChange={e => setKeyInputValue(e.target.value)}
+                        placeholder={tSync('ai_settings_key_placeholder')}
+                        autoFocus
+                        className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={async () => {
+                          if (keyInputValue.trim()) {
+                            await SettingsService.set(keyName, keyInputValue.trim());
+                            setAiKeysSet(prev => ({ ...prev, [keyName]: true }));
+                          }
+                          setEditingKey(null);
+                          setKeyInputValue('');
+                        }}
+                      >
+                        {tSync('ai_settings_save')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => { setEditingKey(null); setKeyInputValue(''); }}
+                      >
+                        {tSync('ai_settings_cancel')}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3 px-3 py-2 bg-slate-50 border border-slate-200 rounded-md">
+                      <span className={`text-sm flex-1 ${aiKeysSet[keyName] ? 'text-green-700' : 'text-slate-400'}`}>
+                        {aiKeysSet[keyName] ? `● ● ● ● ● ● ● ●  ${tSync('ai_settings_key_set')}` : tSync('ai_settings_key_not_set')}
+                      </span>
+                      <button
+                        onClick={() => { setEditingKey(keyName); setKeyInputValue(''); }}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        {tSync('ai_settings_change')}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Ollama fields */}
+            {aiProvider === 'ollama' && (
+              <>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-slate-700">{tSync('ai_settings_ollama_url')}</label>
+                  <input
+                    type="url"
+                    value={ollamaUrl}
+                    onChange={e => setOllamaUrl(e.target.value)}
+                    onBlur={async () => { await SettingsService.set('ollama_url', ollamaUrl); }}
+                    placeholder={tSync('ai_settings_ollama_url_placeholder')}
+                    className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-slate-700">{tSync('ai_settings_ollama_model')}</label>
+                  <input
+                    type="text"
+                    value={ollamaModel}
+                    onChange={e => setOllamaModel(e.target.value)}
+                    onBlur={async () => { await SettingsService.set('ollama_model', ollamaModel); }}
+                    placeholder={tSync('ai_settings_ollama_model_placeholder')}
+                    className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              </>
+            )}
+          </div>
         </PageCard>
 
         {/* Account Status */}
