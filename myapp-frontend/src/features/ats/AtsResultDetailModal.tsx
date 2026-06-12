@@ -311,6 +311,17 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
         }
       }
 
+      // Merge extracted personal qualities into candidate.personal_treats
+      if (idbCv?.candidate_id && structuredCv.personal_qualities?.length) {
+        const candidate = await LocalDbService.getCandidate(idbCv.candidate_id);
+        if (candidate) {
+          const merged = [...new Set([...(candidate.personal_treats ?? []), ...structuredCv.personal_qualities])];
+          if (merged.length !== (candidate.personal_treats ?? []).length) {
+            await LocalDbService.updateCandidate(idbCv.candidate_id, { personal_treats: merged, portrait: '' });
+          }
+        }
+      }
+
       setLlmStep('analyzing-job');
       const jobTitle = parseJobName(result.job_name ?? '').title || result.job_name || '';
       const allJobs = await LocalDbService.getAllJobs();

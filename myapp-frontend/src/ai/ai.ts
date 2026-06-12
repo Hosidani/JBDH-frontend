@@ -38,6 +38,7 @@ export interface StructuredCV {
     end_date?: string;
   }>;
   skills: string[];
+  personal_qualities: string[];
   certifications: Array<{
     name?: string;
     issuing_organization?: string;
@@ -245,9 +246,11 @@ Svara ENDAST med JSON:
   }],
   "education": [{ "institution": null, "degree": null, "field_of_study": null, "start_date": null, "end_date": null }],
   "skills": [],
+  "personal_qualities": [],
   "certifications": [{ "name": null, "issuing_organization": null, "issue_date": null }]
 }
-Behåll all text på originalspråket. Extrahera ALL information.`;
+Behåll all text på originalspråket. Extrahera ALL information.
+personal_qualities: personliga egenskaper som nämns explicit eller tydligt framgår av CV:t (t.ex. "Analytisk", "Självgående", "Lyhörd"). Max 10 egenskaper, inga duplicat.`;
 
 function ANALYZE_JOB_SYSTEM(): string {
   return `Du är en expert på arbetsmarknad och rekrytering.

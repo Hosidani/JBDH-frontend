@@ -71,6 +71,9 @@ const CandidatePage: React.FC = () => {
   const [portrait, setPortrait] = useState('');
   const [portraitGenerating, setPortraitGenerating] = useState(false);
   const [portraitError, setPortraitError] = useState('');
+  // Personal traits
+  const [personalTreats, setPersonalTreats] = useState<string[]>([]);
+  const [newTreat, setNewTreat] = useState('');
 
   useEffect(() => {
     if (!isEdit) return;
@@ -84,6 +87,7 @@ const CandidatePage: React.FC = () => {
         travel: c.travel, searchable: c.searchable,
       });
       if (c.portrait) setPortrait(c.portrait);
+      if (c.personal_treats?.length) setPersonalTreats(c.personal_treats);
     }).catch(() => setLoadError('Kunde inte läsa kandidaten.'));
   }, [id, isEdit]);
 
@@ -221,6 +225,24 @@ const CandidatePage: React.FC = () => {
     if (!savedCandidateId) return;
     setPortrait(value);
     await LocalDbService.updateCandidate(savedCandidateId, { portrait: value }).catch(() => {});
+  };
+
+  const addTreat = async () => {
+    const trimmed = newTreat.trim();
+    if (!trimmed || !savedCandidateId) return;
+    const updated = [...new Set([...personalTreats, trimmed])];
+    setPersonalTreats(updated);
+    setNewTreat('');
+    setPortrait('');
+    await LocalDbService.updateCandidate(savedCandidateId, { personal_treats: updated, portrait: '' }).catch(() => {});
+  };
+
+  const removeTreat = async (trait: string) => {
+    if (!savedCandidateId) return;
+    const updated = personalTreats.filter(t => t !== trait);
+    setPersonalTreats(updated);
+    setPortrait('');
+    await LocalDbService.updateCandidate(savedCandidateId, { personal_treats: updated, portrait: '' }).catch(() => {});
   };
 
   const toggleCvCheck = (cvId: string) =>
@@ -452,6 +474,49 @@ const CandidatePage: React.FC = () => {
                   ))}
                 </ul>
               )}
+            </PageCard>
+          )}
+
+          {/* Personliga egenskaper */}
+          {savedCandidateId && (
+            <PageCard title="Personliga egenskaper">
+              <div className="flex flex-col gap-4">
+                <p className="text-sm text-slate-500">
+                  Personliga egenskaper extraheras automatiskt ur kandidatens CV vid analys och kan även läggas till manuellt. De används som underlag vid porträttgenerering.
+                </p>
+                {personalTreats.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {personalTreats.map(trait => (
+                      <span
+                        key={trait}
+                        className="group relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-violet-100 text-violet-800 border border-violet-200"
+                      >
+                        {trait}
+                        <button
+                          onClick={() => removeTreat(trait)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-violet-500 hover:text-violet-900 leading-none"
+                          aria-label={`Ta bort ${trait}`}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTreat}
+                    onChange={e => setNewTreat(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTreat(); } }}
+                    placeholder="Ny egenskap…"
+                    className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                  />
+                  <Button variant="secondary" size="md" onClick={addTreat} disabled={!newTreat.trim()}>
+                    Lägg till
+                  </Button>
+                </div>
+              </div>
             </PageCard>
           )}
 
