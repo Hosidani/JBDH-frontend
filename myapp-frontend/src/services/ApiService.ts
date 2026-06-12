@@ -606,7 +606,8 @@ export class ApiService {
       method: 'POST',
       body: JSON.stringify({ text, name: name || undefined }),
     });
-    return await response.json();
+    const json = await response.json();
+    return json?.data?.cv ?? json;
   }
 
   static async deleteExternalCV(id: number): Promise<void> {
@@ -617,6 +618,14 @@ export class ApiService {
     const response = await this.fetchWithAuth(`/external-cvs/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify({ name }),
+    });
+    return await response.json();
+  }
+
+  static async updateExternalCVText(id: number, text: string, name?: string): Promise<{ id: number; name: string; text: string; created_at: string }> {
+    const response = await this.fetchWithAuth(`/external-cvs/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ text, ...(name !== undefined ? { name } : {}) }),
     });
     return await response.json();
   }
