@@ -1,12 +1,14 @@
 # JBDH – Om tjänsten
 
+JBDH är under intensiv utveckling och den här sidan är garanterat inte up-to-date med hur saker fungerar. Så läs med en stor nypa salt.
+
 ---
 
 ## Hur JBDH fungerar
 
 ### CV-hantering
 
-När du laddar upp ett CV (PDF eller DOCX) extraheras texten automatiskt och skickas till en AI-modell (DeepSeek) för analys. Analysen producerar ett strukturerat resultat på svenska och engelska:
+När du laddar upp ett CV (PDF, DOCX, MD, RTF, TXT) extraheras texten automatiskt lokalt i webbläsaren. Du blir sedan ombedd att anonymisera texten. (Våra script klarar av att maskera de flesta telefonnummer, personnummer och mejladresser, men har svårt med namn och adresser.) Sedan kan den anonymiserade texten skickas till en AI-modell (För tillfället används olika modeller på olika platser i tjänsten) för analys. Analysen producerar ett strukturerat resultat:
 
 - Upp till 10 lämpliga jobbtitlar för dig
 - Tekniska kompetenser (hard skills)

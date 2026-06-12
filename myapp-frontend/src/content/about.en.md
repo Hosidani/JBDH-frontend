@@ -1,16 +1,18 @@
 # JBDH – About the Service
 
+JBDH is under active development and this page is almost certainly not up to date with how things work. Read with a large pinch of salt.
+
 ---
 
 ## How JBDH works
 
 ### CV handling
 
-When you upload a CV (PDF or DOCX), the text is automatically extracted and sent to an AI model (DeepSeek) for analysis. The analysis produces a structured result in both Swedish and English:
+When you upload a CV (PDF, DOCX, MD, RTF, TXT), the text is automatically extracted locally in the browser. You are then asked to anonymise the text. (Our scripts handle most phone numbers, personal ID numbers and email addresses, but struggle with names and addresses.) The anonymised text can then be sent to an AI model (various models are currently used in different parts of the service) for analysis. The analysis produces a structured result:
 
 - Up to 10 suitable job titles for you
 - Technical skills (hard skills)
-- Personal skills (soft skills)
+- Soft skills
 - Experiences with titles and estimated duration
 - Education and certifications
 
@@ -42,6 +44,7 @@ The final score weights professional direction at 70% and competencies at 30%. T
 - **Job brokers / recruiters** — Can own and manage candidate profiles, match against specific listings and view detailed fit reports per candidate/job combination.
 - **Consulting firms** — Can match consultants against assignments and identify skill gaps ahead of upcoming projects.
 
+
 ---
 
 ## For you who are looking for a job
@@ -52,7 +55,7 @@ JBDH does the work for you. You upload your CV — it takes thirty seconds — a
 
 It's like having a career coach who worked through the night and laid out the ten best jobs on the breakfast table. No more scrolling through hundreds of irrelevant listings.
 
-You can also paste any job listing and get a real-time analysis — spot a job on LinkedIn or anywhere else, paste the text and find out within a minute how well you match and what to highlight in your cover letter.
+You can also paste any job listing and get a real-time analysis — spot a job on LinkedIn or Blocket, paste the text and find out within a minute how well you match and what to highlight in your cover letter.
 
 Free to try. No BS.
 
