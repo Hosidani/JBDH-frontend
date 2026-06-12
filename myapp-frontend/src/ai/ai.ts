@@ -350,6 +350,14 @@ export async function matchJobStructured(
   );
 }
 
+export async function matchPortrait(portraitText: string, jobText: string): Promise<MatchResult> {
+  return _chatJSON<MatchResult>(
+    _matchSystem(false),
+    `Matcha kandidatporträttet mot jobbannonsen.\n\nKANDIDATSPORTRÄTT:\n${portraitText}\n\nJOBBANNONS:\n${jobText}`,
+    { temperature: 0.2 },
+  );
+}
+
 export async function suggestJobTitles(cvText: string): Promise<string[]> {
   const result = await _chatJSON<{ titles: string[] }>(
     'Du är en expert på yrkesroller och karriär. Returnera alltid giltig JSON utan förklaring.',
@@ -477,6 +485,7 @@ if (typeof window !== 'undefined') {
     analyzeJob,
     matchJob,
     matchJobStructured,
+    matchPortrait,
     suggestJobTitles,
     generatePortrait,
     chat: (system: string, user: string, opts?: ChatOpts) => _chat(system, user, opts),
