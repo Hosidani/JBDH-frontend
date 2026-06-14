@@ -454,13 +454,6 @@ const CandidatePage: React.FC = () => {
                       >
                         <Icon name="visibility" size={18} />
                       </button>
-                      <button
-                        onClick={e => { e.stopPropagation(); setEditCv(cv); setAddCvOpen(true); }}
-                        title={tSync('candidate_cv_edit_title')}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all flex-shrink-0"
-                      >
-                        <Icon name="edit" size={18} />
-                      </button>
                       {cv.cv_file && (
                         <button
                           onClick={e => { e.stopPropagation(); downloadCv(cv); }}
