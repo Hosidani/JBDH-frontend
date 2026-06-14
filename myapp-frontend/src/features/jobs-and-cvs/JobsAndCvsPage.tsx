@@ -9,6 +9,7 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 import { parseJobName } from '../../utils/parseJobName';
 import type { StructuredJob } from '../../ai/ai';
 import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
+import { useAuth } from '../../context/AuthContext';
 import { LocalDbService } from '../../db/LocalDbService';
 import { Icon } from '../../components/ui/Icon';
 import AtsResultDetailModal, { type AtsResultDetail } from '../ats/AtsResultDetailModal';
@@ -290,7 +291,8 @@ const JobsAndCvsPage: React.FC = () => {
   const [detailOpen, setDetailOpen] = useState(false);
 
   // kandidatnamn per backend-CV-id
-  const { data: account } = useLocalAccount();
+  const { user } = useAuth();
+  const { data: account } = useLocalAccount(user?.email);
   const { data: candidates } = useLocalCandidates(account?.account_id);
   const [backendIdToName, setBackendIdToName] = useState<Map<number, string>>(new Map());
 

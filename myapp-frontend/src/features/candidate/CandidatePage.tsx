@@ -10,11 +10,12 @@ import { CheckboxGroup } from '../../components/ui/CheckboxGroup';
 import { Toggle } from '../../components/ui/Toggle';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useLocalAccount, useLocalCandidates, useLocalCVs } from '../../db/useLocalDb';
+import { useAuth } from '../../context/AuthContext';
 import { LocalDbService } from '../../db/LocalDbService';
 import { ApiService } from '../../services/ApiService';
 import { WORKPLACE_TYPES, EMPLOYMENT_TYPES } from '../../db/types';
 import type { CV, WorkplaceType, EmploymentType } from '../../db/types';
-import { generatePortrait } from '../../ai/ai';
+import { generatePortrait, isLlmConfigured } from '../../ai/ai';
 import type { PortraitCandidate, StructuredCV } from '../../ai/ai';
 import AddCvForCandidateModal from './AddCvForCandidateModal';
 import oneOnOneImg from '../../assets/img/one-on-one.png';
@@ -44,7 +45,8 @@ const CandidatePage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const isEdit = !!id;
 
-  const { data: account, loading: accountLoading } = useLocalAccount();
+  const { user } = useAuth();
+  const { data: account, loading: accountLoading } = useLocalAccount(user?.email);
   const { data: allCandidates, refresh: refreshCandidates } = useLocalCandidates(account?.account_id);
 
   // savedCandidateId: tracks when the candidate has been persisted (needed for CV section)
@@ -71,9 +73,12 @@ const CandidatePage: React.FC = () => {
   const [portrait, setPortrait] = useState('');
   const [portraitGenerating, setPortraitGenerating] = useState(false);
   const [portraitError, setPortraitError] = useState('');
+  const [llmReady, setLlmReady] = useState(false);
   // Personal traits
   const [personalTreats, setPersonalTreats] = useState<string[]>([]);
   const [newTreat, setNewTreat] = useState('');
+
+  useEffect(() => { isLlmConfigured().then(setLlmReady); }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -527,7 +532,9 @@ const CandidatePage: React.FC = () => {
             <PageCard title="Kandidatporträtt">
               <div className="flex flex-col gap-4">
                 <p className="text-sm text-slate-500">
-                  En sammansatt beskrivning av kandidaten baserad på kandidatens olika CV och uppgifter.
+                  En ai-genererad beskrivning av kandidaten baserad på kandidatens olika CV och uppgifter. För att kunna generera ett kandidatporträtt behöver du lägga till en API-nyckel till en LLM-leverantör. Du lägger till API-nyckeln under "Kontoinställningar" (se menyn).
+                  <br /><br />
+                  Du behöver också ha lagt till minst ett CV till kandidaten.
                 </p>
                 <textarea
                   value={portrait}
@@ -545,6 +552,7 @@ const CandidatePage: React.FC = () => {
                     variant="primary"
                     size="lg"
                     loading={portraitGenerating}
+                    disabled={!llmReady || cvs.length === 0}
                     onClick={handleGeneratePortrait}
                   >
                     Generera ett porträtt
@@ -566,6 +574,12 @@ const CandidatePage: React.FC = () => {
           candidates={allCandidates}
           editCv={editCv}
           onSaved={() => { refreshCvs(); setAddCvOpen(false); setEditCv(undefined); }}
+          onTraitsUpdated={() => {
+            LocalDbService.getCandidate(savedCandidateId).then(c => {
+              if (c?.personal_qualities) setPersonalTreats(c.personal_qualities);
+              setPortrait(c?.portrait ?? '');
+            }).catch(() => {});
+          }}
         />
       )}
 

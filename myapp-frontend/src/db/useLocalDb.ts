@@ -9,7 +9,7 @@ interface HookResult<T> {
   refresh: () => Promise<void>;
 }
 
-export function useLocalAccount(): HookResult<Account | undefined> {
+export function useLocalAccount(email?: string): HookResult<Account | undefined> {
   const [data, setData] = useState<Account | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -17,14 +17,17 @@ export function useLocalAccount(): HookResult<Account | undefined> {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      setData(await LocalDbService.getAccount());
+      const account = email
+        ? await LocalDbService.getAccountByEmail(email)
+        : await LocalDbService.getAccount();
+      setData(account);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [email]);
 
   useEffect(() => { refresh(); }, [refresh]);
 

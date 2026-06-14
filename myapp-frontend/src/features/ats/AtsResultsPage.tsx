@@ -8,6 +8,7 @@ import AtsResultDetailModal, { type AtsResultDetail } from './AtsResultDetailMod
 import { Icon } from '../../components/ui/Icon';
 import { parseJobName } from '../../utils/parseJobName';
 import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
+import { useAuth } from '../../context/AuthContext';
 import { LocalDbService } from '../../db/LocalDbService';
 import { AIDisclaimer } from '../../components/common/AIDisclaimer';
 
@@ -39,7 +40,8 @@ const AtsResultsPage: React.FC = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const { data: account } = useLocalAccount();
+  const { user } = useAuth();
+  const { data: account } = useLocalAccount(user?.email);
   const { data: candidates } = useLocalCandidates(account?.account_id);
   const [cvTitleToCandidate, setCvTitleToCandidate] = useState<Map<string, string>>(new Map());
 

@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
+import { useAuth } from '../../context/AuthContext';
 import { LocalDbService } from '../../db/LocalDbService';
 import { ApiService } from '../../services/ApiService';
 import type { CV } from '../../db/types';
@@ -14,7 +15,8 @@ import coffeBreakImg from '../../assets/img/Coffe-break.png';
 
 const CvMgmtPage: React.FC = () => {
   const { tSync } = useTranslation();
-  const { data: account } = useLocalAccount();
+  const { user } = useAuth();
+  const { data: account } = useLocalAccount(user?.email);
   const { data: candidates } = useLocalCandidates(account?.account_id);
 
   const [allCvs, setAllCvs] = useState<CV[]>([]);
