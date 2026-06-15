@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageBackground, PageWrapper } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
@@ -17,7 +17,7 @@ const CandidateMgmtPage: React.FC = () => {
   const { user } = useAuth();
   const { data: account } = useLocalAccount(user?.email);
   const { data: allCandidates, refresh } = useLocalCandidates(account?.account_id);
-  const candidates = allCandidates.filter(c => !c.is_own_candidate);
+  const candidates = useMemo(() => allCandidates.filter(c => !c.is_own_candidate), [allCandidates]);
 
   const [cvCounts, setCvCounts] = useState<Record<string, number>>({});
   const [checked, setChecked] = useState<Set<string>>(new Set());

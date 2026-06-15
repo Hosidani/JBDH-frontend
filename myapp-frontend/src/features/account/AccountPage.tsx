@@ -108,6 +108,30 @@ const AccountPage: React.FC = () => {
           acceptedTermsAndConditions: data.acceptedTermsAndConditions || false,
         };
         setFormData(initialFormData);
+
+        // Ensure own candidate exists if user has the Candidate role
+        if (user?.email && (data.roles ?? []).includes('User')) {
+          const account = await LocalDbService.getAccountByEmail(user.email);
+          if (account) {
+            const existing = await LocalDbService.getOwnCandidate(account.account_id);
+            if (!existing) {
+              await LocalDbService.addCandidate({
+                account_id: account.account_id,
+                name: account.name ?? '',
+                email: account.email ?? '',
+                telephone: account.telephone ?? '',
+                title: '',
+                location: '',
+                workplace: [],
+                employment_type: [],
+                available_from: '',
+                travel: false,
+                searchable: false,
+                is_own_candidate: true,
+              });
+            }
+          }
+        }
       } catch (err) {
         if (err instanceof Error) {
           if (err.message.includes('Account has been terminated')) {
