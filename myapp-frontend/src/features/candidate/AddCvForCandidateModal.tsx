@@ -36,6 +36,8 @@ const AddCvForCandidateModal: React.FC<Props> = ({
   const [cvTitle, setCvTitle] = useState('');
   const [candidateId, setCandidateId] = useState(defaultCandidateId);
   const [published, setPublished] = useState(false);
+  const [cvAnonymizedText, setCvAnonymizedText] = useState('');
+  const [origCvAnonymizedText, setOrigCvAnonymizedText] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,10 +52,14 @@ const AddCvForCandidateModal: React.FC<Props> = ({
         setCvTitle(editCv.cv_title ?? '');
         setCandidateId(editCv.candidate_id);
         setPublished(editCv.cv_published);
+        setCvAnonymizedText(editCv.cv_anonymized ?? '');
+        setOrigCvAnonymizedText(editCv.cv_anonymized ?? '');
       } else {
         setCvTitle('');
         setCandidateId(defaultCandidateId);
         setPublished(false);
+        setCvAnonymizedText('');
+        setOrigCvAnonymizedText('');
       }
     }
   }, [open, editCv, defaultCandidateId]);
@@ -99,17 +105,26 @@ const AddCvForCandidateModal: React.FC<Props> = ({
       .catch(() => {});
   };
 
-  // Edit mode: save metadata changes without uploading a new file
+  // Edit mode: save metadata (and optionally CV text) without uploading a new file
   const handleMetaSave = async () => {
     if (!isEdit || !editCv) return;
     setSaving(true);
     setError(null);
     try {
-      const updated = await LocalDbService.updateCV(editCv.cv_id, {
+      const textChanged = cvAnonymizedText !== origCvAnonymizedText;
+      const updates: Partial<CV> = {
         cv_title: cvTitle,
         candidate_id: candidateId,
         cv_published: published,
-      });
+        ...(textChanged && { cv_anonymized: cvAnonymizedText, cv_json: '' }),
+      };
+      const updated = await LocalDbService.updateCV(editCv.cv_id, updates);
+      if (textChanged) {
+        await LocalDbService.updateCandidate(candidateId, { portrait: '' });
+        if (cvAnonymizedText.trim()) {
+          triggerCvAnalysis(editCv.cv_id, candidateId, cvAnonymizedText.trim());
+        }
+      }
       onSaved(updated!);
       handleClose();
     } catch {
@@ -166,7 +181,8 @@ const AddCvForCandidateModal: React.FC<Props> = ({
   const metaChanged = isEdit && editCv && (
     cvTitle !== (editCv.cv_title ?? '') ||
     candidateId !== editCv.candidate_id ||
-    published !== editCv.cv_published
+    published !== editCv.cv_published ||
+    cvAnonymizedText !== origCvAnonymizedText
   );
 
   const modalTitle = isEdit ? tSync('candidate_cv_edit_title') : tSync('candidate_cv_add_title');
@@ -211,7 +227,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
   );
 
   return (
-    <Modal open={open} onClose={handleClose} title={modalTitle} maxWidth={isReview ? 'max-w-3xl' : 'max-w-md'}>
+    <Modal open={open} onClose={handleClose} title={modalTitle} maxWidth={isReview || isEdit ? 'max-w-3xl' : 'max-w-md'}>
       {!isReview ? (
         // ── Steg 1: drop-zon ─────────────────────────────────────────────────
         <div className="flex flex-col gap-4">
@@ -239,6 +255,19 @@ const AddCvForCandidateModal: React.FC<Props> = ({
               </div>
             </FileDropZone>
           </div>
+
+          {isEdit && (
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-slate-700">{tSync('candidate_cv_field_text')}</label>
+              <textarea
+                value={cvAnonymizedText}
+                onChange={e => setCvAnonymizedText(e.target.value)}
+                rows={14}
+                disabled={saving}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-slate-50 resize-y focus:outline-none focus:ring-2 focus:ring-blue-400 font-mono leading-relaxed disabled:opacity-50"
+              />
+            </div>
+          )}
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
 

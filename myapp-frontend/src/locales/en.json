@@ -72,6 +72,7 @@
   "candidate_cv_field_candidate": "Candidate",
   "candidate_cv_field_published": "Published",
   "candidate_cv_field_file": "CV file",
+  "candidate_cv_field_text": "CV text",
   "candidate_cv_delete_confirm_title": "Delete CV",
   "candidate_cv_delete_confirm_message": "Are you sure you want to delete the selected CVs? This action cannot be undone.",
   "candidate_cv_save": "Save CV",

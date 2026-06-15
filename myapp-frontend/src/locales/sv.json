@@ -72,6 +72,7 @@
   "candidate_cv_field_candidate": "Kandidat",
   "candidate_cv_field_published": "Publicerad",
   "candidate_cv_field_file": "CV-fil",
+  "candidate_cv_field_text": "CV-text",
   "candidate_cv_delete_confirm_title": "Ta bort CV",
   "candidate_cv_delete_confirm_message": "Är du säker på att du vill ta bort de markerade CV:na? Åtgärden kan inte ångras.",
   "candidate_cv_save": "Spara CV",
