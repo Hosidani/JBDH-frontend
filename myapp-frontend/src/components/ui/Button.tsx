@@ -12,6 +12,7 @@ interface ButtonProps {
   type?: 'button' | 'submit' | 'reset';
   children: React.ReactNode;
   className?: string;
+  title?: string;
 }
 
 const variantClasses: Record<Variant, string> = {
@@ -36,11 +37,13 @@ export const Button: React.FC<ButtonProps> = ({
   type = 'button',
   children,
   className = '',
+  title,
 }) => (
   <button
     type={type}
     onClick={onClick}
     disabled={disabled || loading}
+    title={title}
     className={`
       inline-flex items-center justify-center font-medium rounded-md
       focus:outline-none focus:ring-2 focus:ring-offset-1

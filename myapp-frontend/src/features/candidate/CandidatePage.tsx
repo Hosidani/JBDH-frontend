@@ -15,7 +15,8 @@ import { LocalDbService } from '../../db/LocalDbService';
 import { ApiService } from '../../services/ApiService';
 import { WORKPLACE_TYPES, EMPLOYMENT_TYPES } from '../../db/types';
 import type { CV, WorkplaceType, EmploymentType } from '../../db/types';
-import { generatePortrait, isLlmConfigured } from '../../ai/ai';
+import { generatePortrait } from '../../ai/ai';
+import { useLlmReady } from '../../hooks/useLlmReady';
 import type { PortraitCandidate, StructuredCV } from '../../ai/ai';
 import AddCvForCandidateModal from './AddCvForCandidateModal';
 import oneOnOneImg from '../../assets/img/one-on-one.png';
@@ -73,12 +74,10 @@ const CandidatePage: React.FC = () => {
   const [portrait, setPortrait] = useState('');
   const [portraitGenerating, setPortraitGenerating] = useState(false);
   const [portraitError, setPortraitError] = useState('');
-  const [llmReady, setLlmReady] = useState(false);
+  const llmReady = useLlmReady();
   // Personal traits
   const [personalTreats, setPersonalTreats] = useState<string[]>([]);
   const [newTreat, setNewTreat] = useState('');
-
-  useEffect(() => { isLlmConfigured().then(setLlmReady); }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -546,6 +545,7 @@ const CandidatePage: React.FC = () => {
                     size="lg"
                     loading={portraitGenerating}
                     disabled={!llmReady || cvs.length === 0}
+                    title={!llmReady ? tSync('llm_requires_provider') : undefined}
                     onClick={handleGeneratePortrait}
                   >
                     Generera ett porträtt

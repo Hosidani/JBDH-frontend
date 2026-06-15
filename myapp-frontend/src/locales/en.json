@@ -537,6 +537,7 @@
   "ai_settings_saved": "Saved",
   "ai_settings_help": "API keys are stored locally in your browser (IndexedDB) and are never sent to our server.",
 
+  "llm_requires_provider": "Requires AI provider",
   "llm_match_button": "AI Match",
   "llm_match_loading_cv": "Structuring CV…",
   "llm_match_loading_job": "Analysing job…",

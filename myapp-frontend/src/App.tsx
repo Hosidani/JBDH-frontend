@@ -150,9 +150,9 @@ function App() {
           {/* Requires Recruiter role */}
           <Route path="/add-job-ad"   element={<RequireAuth roles={['Recruiter']}><AddJobAdPage /></RequireAuth>} />
           <Route path="/match-ad-cvs" element={<RequireAuth roles={['Recruiter']}><MatchAdToCvsPage /></RequireAuth>} />
-          <Route path="/jobs-and-cvs"     element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsPage /></RequireAuth>} />
+          <Route path="/jobs-and-cvs"     element={<RequireAuth><JobsAndCvsPage /></RequireAuth>} />
           <Route path="/cv_mgmt"          element={<RequireAuth roles={['Recruiter', 'Manager']}><CvMgmtPage /></RequireAuth>} />
-          <Route path="/candidate_mgmt"   element={<RequireAuth><CandidateMgmtPage /></RequireAuth>} />
+          <Route path="/candidate_mgmt"   element={<RequireAuth roles={['User', 'Manager']}><CandidateMgmtPage /></RequireAuth>} />
           <Route path="/candidate"        element={<RequireAuth><CandidatePage /></RequireAuth>} />
           <Route path="/candidate/:id"    element={<RequireAuth><CandidatePage /></RequireAuth>} />
           <Route path="/job_mgmt"         element={<RequireAuth roles={['Recruiter', 'Manager']}><JobMgmtPage /></RequireAuth>} />

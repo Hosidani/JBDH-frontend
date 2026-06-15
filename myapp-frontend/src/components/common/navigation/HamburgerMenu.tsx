@@ -19,22 +19,23 @@ interface MenuItem {
    * [...] = visible only if user has at least one of these roles
    */
   roles: string[] | null;
+  old?: boolean;
 }
 
 const MENU_ITEMS: MenuItem[] = [
   { to: '/account',          labelKey: 'menu_account_settings',    roles: [] },
-  { to: '/candidate_mgmt',   labelKey: 'menu_manage_candidates',   roles: [] },
-  { to: '/profile',          labelKey: 'menu_profile',             roles: ['User'] },
+  { to: '/candidate_mgmt',   labelKey: 'menu_manage_candidates',   roles: ['User', 'Manager'] },
   { to: '/search',           labelKey: 'menu_match_cv_ads',        roles: ['User'] },
   { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',          roles: ['User'] },
-  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',      roles: ['User'] },
   { to: '/add-job-ad',       labelKey: 'menu_post_ad',             roles: ['Recruiter'] },
-  { to: '/jobs-and-cvs',     labelKey: 'menu_multi_match',         roles: ['Recruiter', 'Manager'] },
+  { to: '/jobs-and-cvs',     labelKey: 'menu_multi_match',         roles: [] },
   { to: '/ats-results',      labelKey: 'menu_ats_results',         roles: ['Recruiter', 'Manager'] },
   { to: '/cv_mgmt',          labelKey: 'menu_manage_candidate_cvs', roles: ['Manager'] },
   { to: '/jobs_mgmt',        labelKey: 'menu_manage_ads',           roles: ['Manager'] },
   { to: '/messages',         labelKey: 'menu_messages',         roles: [] },
   { to: '/about',            labelKey: 'menu_how_it_works',     roles: null },
+  { to: '/profile',          labelKey: 'menu_profile',             roles: ['User'], old: true },
+  { to: '/compare-cv-jobad', labelKey: 'menu_match_cv_jobad',      roles: ['User'], old: true },
 ];
 
 const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLogin }) => {
@@ -70,7 +71,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
             </>
           )}
 
-          {MENU_ITEMS.filter(isVisible).map(item => (
+          {MENU_ITEMS.filter(item => !item.old).filter(isVisible).map(item => (
             <Link key={item.to} to={item.to} className="text-left hover:underline" onClick={onClose}>
               {tSync(item.labelKey)}
             </Link>
@@ -84,6 +85,12 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
               {tSync('menu_logout')} <span style={{ fontSize: 18 }}>&#8594;</span>
             </button>
           )}
+
+          {MENU_ITEMS.filter(item => item.old).filter(isVisible).map(item => (
+            <Link key={item.to} to={item.to} className="text-left hover:underline text-slate-400" onClick={onClose}>
+              {tSync(item.labelKey)}
+            </Link>
+          ))}
         </nav>
       </div>
     </div>
