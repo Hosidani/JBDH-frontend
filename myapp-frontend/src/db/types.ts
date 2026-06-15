@@ -37,6 +37,7 @@ export interface Candidate {
   searchable: boolean;
   portrait?: string;
   personal_qualities?: string[];
+  is_own_candidate?: boolean;
 }
 
 export interface Job {

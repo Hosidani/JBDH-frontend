@@ -305,29 +305,38 @@ const AccountPage: React.FC = () => {
               ]}
               selected={formData.roles}
               onChange={async vals => {
+                const wasUser = formData.roles.includes('User');
+                const isUser = vals.includes('User');
                 handleInputChange('roles', vals);
                 await saveField({ roles: vals });
+                if (!wasUser && isUser && user?.email) {
+                  const account = await LocalDbService.getAccountByEmail(user.email);
+                  if (account) {
+                    const existing = await LocalDbService.getOwnCandidate(account.account_id);
+                    if (!existing) {
+                      await LocalDbService.addCandidate({
+                        account_id: account.account_id,
+                        name: account.name ?? '',
+                        email: account.email ?? '',
+                        telephone: account.telephone ?? '',
+                        title: '',
+                        location: '',
+                        workplace: [],
+                        employment_type: [],
+                        available_from: '',
+                        travel: false,
+                        searchable: false,
+                        is_own_candidate: true,
+                      });
+                    }
+                  }
+                }
               }}
               layout="row"
               helpText={tSync('account_roles_help')}
             />
           </div>
 
-          {/* Terms */}
-          {!accountSettings.isTerminated && (
-            <label className="flex items-center gap-2 mt-6 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.acceptedTermsAndConditions}
-                onChange={async e => {
-                  handleInputChange('acceptedTermsAndConditions', e.target.checked);
-                  await saveField({ acceptedTermsAndConditions: e.target.checked });
-                }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-slate-700">{tSync('terms_accept')}</span>
-            </label>
-          )}
         </PageCard>
 
         {/* Change Password */}

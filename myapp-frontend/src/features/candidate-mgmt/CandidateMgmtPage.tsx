@@ -16,7 +16,8 @@ const CandidateMgmtPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: account } = useLocalAccount(user?.email);
-  const { data: candidates, refresh } = useLocalCandidates(account?.account_id);
+  const { data: allCandidates, refresh } = useLocalCandidates(account?.account_id);
+  const candidates = allCandidates.filter(c => !c.is_own_candidate);
 
   const [cvCounts, setCvCounts] = useState<Record<string, number>>({});
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -99,8 +100,7 @@ const CandidateMgmtPage: React.FC = () => {
           }
         >
           <p className="text-sm text-slate-500 mb-4">
-            Om du är en vanlig jobbsökare behöver du skapa en kandidat som du sedan kan koppla dina CV till.<br />
-            Om du är säljare behöver du skapa en kandidat för varje person du försöker hitta uppdrag för. Sedan kan du koppla valfritt antal CV till varje kandidat.
+            Skapa en kandidat för varje person du försöker hitta uppdrag för. Sedan kan du koppla valfritt antal CV till varje kandidat.
           </p>
           {candidates.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-6">{tSync('candidate_mgmt_empty')}</p>

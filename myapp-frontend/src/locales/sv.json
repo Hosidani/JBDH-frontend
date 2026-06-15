@@ -1,6 +1,7 @@
 {
   "menu_title": "Meny",
   "menu_login": "Logga in",
+  "menu_my_profile": "Min profil",
   "menu_profile": "Min kandidatprofil (OLD)",
   "menu_settings": "Inställningar",
   "menu_account_settings": "Kontoinställningar",
@@ -535,7 +536,7 @@
   "ai_settings_ollama_url_placeholder": "http://localhost:11434",
   "ai_settings_ollama_model_placeholder": "llama3",
   "ai_settings_saved": "Sparat",
-  "ai_settings_help": "API-nycklar lagras lokalt i din webbläsare (IndexedDB) och skickas aldrig till vår server.",
+  "ai_settings_help": "API-nycklar lagras endast lokalt, dvs just i din webbläsare (IndexedDB) på just den här enheten och skickas aldrig till vår server.",
 
   "llm_requires_provider": "Kräver AI-leverantör",
   "llm_match_button": "AI-matcha",

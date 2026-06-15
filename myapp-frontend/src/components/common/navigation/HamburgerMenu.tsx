@@ -24,7 +24,8 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   { to: '/account',          labelKey: 'menu_account_settings',    roles: [] },
-  { to: '/candidate_mgmt',   labelKey: 'menu_manage_candidates',   roles: ['User', 'Manager'] },
+  { to: '/my-profile',       labelKey: 'menu_my_profile',          roles: ['User'] },
+  { to: '/candidate_mgmt',   labelKey: 'menu_manage_candidates',   roles: ['Manager'] },
   { to: '/search',           labelKey: 'menu_match_cv_ads',        roles: ['User'] },
   { to: '/saved-jobs',       labelKey: 'menu_saved_jobs',          roles: ['User'] },
   { to: '/add-job-ad',       labelKey: 'menu_post_ad',             roles: ['Recruiter'] },
