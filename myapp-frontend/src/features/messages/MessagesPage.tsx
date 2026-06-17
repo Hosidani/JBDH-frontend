@@ -44,7 +44,7 @@ const MessagesPage: React.FC = () => {
               <button onClick={handleClose} className="text-slate-400 hover:text-slate-600 transition-colors mr-1" aria-label="Tillbaka">
                 &#8592;
               </button>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${categoryColors[selectedMessage.category]}`}>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-sm ${categoryColors[selectedMessage.category]}`}>
                 {tSync(`serviceMessages_category_${selectedMessage.category}`)}
               </span>
               <span className="text-xs text-slate-400">{selectedMessage.date}</span>
@@ -82,7 +82,7 @@ const MessagesPage: React.FC = () => {
                   className={`w-full flex items-center gap-3 px-5 py-4 text-left rounded-lg border transition hover:bg-slate-50 ${read ? 'border-slate-200 bg-white' : 'border-blue-200 bg-blue-50'}`}
                   onClick={() => { setSelectedMessage(msg); setDontShowAgain(false); }}
                 >
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${categoryColors[msg.category]}`}>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-sm shrink-0 ${categoryColors[msg.category]}`}>
                     {tSync(`serviceMessages_category_${msg.category}`)}
                   </span>
                   <span className="flex-1 font-semibold text-slate-800 text-sm">{title}</span>

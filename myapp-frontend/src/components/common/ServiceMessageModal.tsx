@@ -47,7 +47,7 @@ const ServiceMessageModal: React.FC<ServiceMessageModalProps> = ({ message, onAc
           className="flex items-center gap-3 px-8 pt-8 pb-4 border-b border-slate-100 cursor-grab select-none active:cursor-grabbing"
           onMouseDown={onHeaderMouseDown}
         >
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${categoryColors[message.category]}`}>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-sm ${categoryColors[message.category]}`}>
             {tSync(`serviceMessages_category_${message.category}`)}
           </span>
           <span className="text-xs text-slate-400">{message.date}</span>

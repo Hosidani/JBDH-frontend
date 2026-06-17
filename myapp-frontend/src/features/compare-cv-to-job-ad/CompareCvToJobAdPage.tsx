@@ -490,7 +490,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                     <div className="text-xs font-semibold text-green-700 mb-1">Matchade kompetenser</div>
                     <div className="flex flex-wrap gap-1">
                       {partialResult.atsResult.matchedSkills.map((s: string, i: number) => (
-                        <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">{s}</span>
+                        <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-sm">{s}</span>
                       ))}
                     </div>
                   </div>
@@ -500,7 +500,7 @@ const CompareCvToJobAdPage: React.FC = () => {
                     <div className="text-xs font-semibold text-red-700 mb-1">Saknade kompetenser</div>
                     <div className="flex flex-wrap gap-1">
                       {partialResult.atsResult.missingSkills.map((s: string, i: number) => (
-                        <span key={i} className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full">{s}</span>
+                        <span key={i} className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-sm">{s}</span>
                       ))}
                     </div>
                   </div>

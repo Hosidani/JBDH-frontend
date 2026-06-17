@@ -51,7 +51,7 @@ const MatchingAssignmentCard: React.FC<MatchingAssignmentCardProps> = ({
           </p>
         </div>
         {assignment.isActionItem && (
-          <span className="ml-4 px-3 py-1 bg-purple-600 text-white text-sm font-semibold rounded-full whitespace-nowrap">
+          <span className="ml-4 px-3 py-1 bg-purple-600 text-white text-sm font-semibold rounded-sm whitespace-nowrap">
             {tSync('matchingAssignmentCard_action_item')}
           </span>
         )}

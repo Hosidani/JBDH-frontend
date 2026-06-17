@@ -140,11 +140,11 @@ const CvMgmtPage: React.FC = () => {
                         {cv.cv_title || 'CV'}
                       </span>
                       {cv.cv_published ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-green-100 text-green-700 border border-green-200 whitespace-nowrap">
                           {tSync('cv_status_published')}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white text-slate-500 border border-slate-300 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-white text-slate-500 border border-slate-300 whitespace-nowrap">
                           {tSync('cv_status_unpublished')}
                         </span>
                       )}

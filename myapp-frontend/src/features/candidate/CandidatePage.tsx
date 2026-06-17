@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageBackground, PageWrapper } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
@@ -15,8 +15,10 @@ import { LocalDbService } from '../../db/LocalDbService';
 import { ApiService } from '../../services/ApiService';
 import { WORKPLACE_TYPES, EMPLOYMENT_TYPES } from '../../db/types';
 import type { CV, WorkplaceType, EmploymentType } from '../../db/types';
-import { generatePortrait, isLlmConfigured } from '../../ai/ai';
+import { generatePortrait, analyzeCvs } from '../../ai/ai';
 import type { PortraitCandidate, StructuredCV } from '../../ai/ai';
+import { useLlmReady } from '../../hooks/useLlmReady';
+import { ItemList } from '../../components/ui/ItemList';
 import AddCvForCandidateModal from './AddCvForCandidateModal';
 import oneOnOneImg from '../../assets/img/one-on-one.png';
 
@@ -73,12 +75,19 @@ const CandidatePage: React.FC = () => {
   const [portrait, setPortrait] = useState('');
   const [portraitGenerating, setPortraitGenerating] = useState(false);
   const [portraitError, setPortraitError] = useState('');
-  const [llmReady, setLlmReady] = useState(false);
+  const llmReady = useLlmReady();
+  // CV analysis
+  const [cvAnalysis, setCvAnalysis] = useState<string | null>(null);
+  const [cvAnalysisLoading, setCvAnalysisLoading] = useState(false);
+  const [cvAnalysisError, setCvAnalysisError] = useState('');
+  const [storedHash, setStoredHash] = useState<string | undefined>(undefined);
+  const [jobTitles, setJobTitles] = useState<string[]>([]);
+  const [jobTitlesReasoning, setJobTitlesReasoning] = useState('');
+  const [skills, setSkills] = useState<string[]>([]);
+  const [newSkill, setNewSkill] = useState('');
   // Personal traits
   const [personalTreats, setPersonalTreats] = useState<string[]>([]);
   const [newTreat, setNewTreat] = useState('');
-
-  useEffect(() => { isLlmConfigured().then(setLlmReady); }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -93,6 +102,11 @@ const CandidatePage: React.FC = () => {
       });
       if (c.portrait) setPortrait(c.portrait);
       if (c.personal_qualities?.length) setPersonalTreats(c.personal_qualities);
+      if (c.skills?.length) setSkills(c.skills);
+      if (c.job_titles?.length) setJobTitles(c.job_titles);
+      if (c.job_titles_reasoning) setJobTitlesReasoning(c.job_titles_reasoning);
+      if (c.cv_analysis) setCvAnalysis(c.cv_analysis);
+      setStoredHash(c.cv_analysis_hash);
     }).catch(() => setLoadError('Kunde inte läsa kandidaten.'));
   }, [id, isEdit]);
 
@@ -250,6 +264,69 @@ const CandidatePage: React.FC = () => {
     setPersonalTreats(updated);
     setPortrait('');
     await LocalDbService.updateCandidate(savedCandidateId, { personal_qualities: updated, portrait: '' }).catch(() => {});
+  };
+
+  const addSkill = async () => {
+    const trimmed = newSkill.trim();
+    if (!trimmed || !savedCandidateId) return;
+    const updated = [...new Set([...skills, trimmed])];
+    setSkills(updated);
+    setNewSkill('');
+    await LocalDbService.updateCandidate(savedCandidateId, { skills: updated }).catch(() => {});
+  };
+
+  const removeSkill = async (skill: string) => {
+    if (!savedCandidateId) return;
+    const updated = skills.filter(s => s !== skill);
+    setSkills(updated);
+    await LocalDbService.updateCandidate(savedCandidateId, { skills: updated }).catch(() => {});
+  };
+
+  const currentHash = useMemo(() => {
+    const content = [form.title, ...personalTreats, ...cvs.map(cv => cv.cv_anonymized)].join('|||');
+    let h = 5381;
+    for (let i = 0; i < content.length; i++) h = (h * 33 ^ content.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }, [form.title, personalTreats, cvs]);
+
+  const cvAnalysisDirty = !cvAnalysis || currentHash !== storedHash;
+
+  const handleAnalyzeCvs = async () => {
+    if (!savedCandidateId) return;
+    setCvAnalysisLoading(true);
+    setCvAnalysisError('');
+    try {
+      const cvTexts = cvs.map(cv => cv.cv_anonymized).filter(Boolean);
+      const result = await analyzeCvs(cvTexts);
+      const sv = result.Swedish;
+      const jsonStr = JSON.stringify(result);
+
+      const newJobTitles = sv.BestJobTitlesForUser ?? [];
+      const newReasoning = sv.ReasoningBehindJobTitles ?? '';
+      const newSkills = sv.HardSkills ?? [];
+      const mergedQualities = [...new Set([...personalTreats, ...(sv.SoftSkills ?? [])])];
+
+      setJobTitles(newJobTitles);
+      setJobTitlesReasoning(newReasoning);
+      setSkills(newSkills);
+      setPersonalTreats(mergedQualities);
+      setCvAnalysis(jsonStr);
+      setStoredHash(currentHash);
+
+      await LocalDbService.updateCandidate(savedCandidateId, {
+        cv_analysis: jsonStr,
+        cv_analysis_hash: currentHash,
+        job_titles: newJobTitles,
+        job_titles_reasoning: newReasoning,
+        skills: newSkills,
+        personal_qualities: mergedQualities,
+        portrait: '',
+      });
+    } catch (e) {
+      setCvAnalysisError(e instanceof Error ? e.message : 'Kunde inte analysera CV.');
+    } finally {
+      setCvAnalysisLoading(false);
+    }
   };
 
   const toggleCvCheck = (cvId: string) =>
@@ -434,11 +511,11 @@ const CandidatePage: React.FC = () => {
                             {cv.cv_title || 'CV'}
                           </span>
                           {cv.cv_published ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200 whitespace-nowrap">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-green-100 text-green-700 border border-green-200 whitespace-nowrap">
                               {tSync('cv_status_published')}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white text-slate-500 border border-slate-300 whitespace-nowrap">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-white text-slate-500 border border-slate-300 whitespace-nowrap">
                               {tSync('cv_status_unpublished')}
                             </span>
                           )}
@@ -481,49 +558,91 @@ const CandidatePage: React.FC = () => {
                   ))}
                 </ul>
               )}
-            </PageCard>
-          )}
-
-          {/* Personliga egenskaper */}
-          {savedCandidateId && (
-            <PageCard title="Personliga egenskaper">
-              <div className="flex flex-col gap-4">
-                <p className="text-sm text-slate-500">
-                  Personliga egenskaper extraheras automatiskt ur kandidatens CV vid analys och kan även läggas till manuellt. De används som underlag vid porträttgenerering.
-                </p>
-                {personalTreats.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {personalTreats.map(trait => (
-                      <span
-                        key={trait}
-                        className="group relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-violet-100 text-violet-800 border border-violet-200"
-                      >
-                        {trait}
-                        <button
-                          onClick={() => removeTreat(trait)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-violet-500 hover:text-violet-900 leading-none"
-                          aria-label={`Ta bort ${trait}`}
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newTreat}
-                    onChange={e => setNewTreat(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTreat(); } }}
-                    placeholder="Ny egenskap…"
-                    className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-                  />
-                  <Button variant="secondary" size="md" onClick={addTreat} disabled={!newTreat.trim()}>
-                    Lägg till
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-2">
+                {cvAnalysisError && <p className="text-xs text-red-500">{cvAnalysisError}</p>}
+                <div className="ml-auto">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    loading={cvAnalysisLoading}
+                    disabled={!llmReady || cvAnalysisLoading || (!!cvAnalysis && !cvAnalysisDirty)}
+                    title={!llmReady ? tSync('llm_requires_provider') : undefined}
+                    onClick={handleAnalyzeCvs}
+                  >
+                    Analysera CV
                   </Button>
                 </div>
               </div>
+            </PageCard>
+          )}
+
+          {/* AI-analys av alla CV */}
+          {savedCandidateId && (
+            <PageCard title="AI-analys av alla CV">
+              {cvAnalysisLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-6">
+                  {jobTitles.length > 0 && (
+                    <div>
+                      <div className="font-semibold mb-1 text-slate-700">{tSync('profilePage_analysis_bestJobTitles_titel')}</div>
+                      <ItemList items={jobTitles} variant="pills" color="green" />
+                    </div>
+                  )}
+                  {jobTitlesReasoning && (
+                    <div>
+                      <div className="font-semibold mb-1 text-slate-700">{tSync('profilePage_analysis_reasoning_title')}</div>
+                      <div className="text-slate-700 text-sm bg-slate-50 rounded p-3 border border-slate-100">{jobTitlesReasoning}</div>
+                    </div>
+                  )}
+                  {/* Tekniska kompetenser */}
+                  <div>
+                    <div className="font-semibold mb-2 text-slate-700">{tSync('profilePage_analysis_hardSkills_title')}</div>
+                    {skills.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {skills.map(s => (
+                          <span key={s} className="group relative inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-sm bg-blue-100 text-blue-800 border border-blue-200">
+                            {s}
+                            <button onClick={() => removeSkill(s)} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 hover:text-blue-900 leading-none" aria-label={`Ta bort ${s}`}>✕</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <input type="text" value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }} placeholder="Ny kompetens…" className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                      <Button variant="secondary" size="md" onClick={addSkill} disabled={!newSkill.trim()}>Lägg till</Button>
+                    </div>
+                  </div>
+                  {/* Personliga egenskaper */}
+                  <div>
+                    <div className="font-semibold mb-2 text-slate-700">Personliga egenskaper</div>
+                    {personalTreats.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {personalTreats.map(trait => (
+                          <span key={trait} className="group relative inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-sm bg-violet-100 text-violet-800 border border-violet-200">
+                            {trait}
+                            <button onClick={() => removeTreat(trait)} className="opacity-0 group-hover:opacity-100 transition-opacity text-violet-500 hover:text-violet-900 leading-none" aria-label={`Ta bort ${trait}`}>✕</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <input type="text" value={newTreat} onChange={e => setNewTreat(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTreat(); } }} placeholder="Ny egenskap…" className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400" />
+                      <Button variant="secondary" size="md" onClick={addTreat} disabled={!newTreat.trim()}>Lägg till</Button>
+                    </div>
+                  </div>
+                  {(!jobTitles.length && !skills.length && !personalTreats.length) && (
+                    <p className="text-sm text-slate-400 text-center py-2">{tSync('profilePage_no_ai_analysis_found')}</p>
+                  )}
+                </div>
+              )}
+              {cvAnalysisError && <p className="text-xs text-red-500 mt-2">{cvAnalysisError}</p>}
             </PageCard>
           )}
 

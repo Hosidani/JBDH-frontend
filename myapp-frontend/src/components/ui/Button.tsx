@@ -10,6 +10,7 @@ interface ButtonProps {
   loading?: boolean;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
+  title?: string;
   children: React.ReactNode;
   className?: string;
 }
@@ -34,6 +35,7 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   onClick,
   type = 'button',
+  title,
   children,
   className = '',
 }) => (
@@ -41,6 +43,7 @@ export const Button: React.FC<ButtonProps> = ({
     type={type}
     onClick={onClick}
     disabled={disabled || loading}
+    title={title}
     className={`
       inline-flex items-center justify-center font-medium rounded-md
       focus:outline-none focus:ring-2 focus:ring-offset-1

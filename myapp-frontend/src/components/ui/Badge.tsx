@@ -19,7 +19,7 @@ const colorClasses: Record<BadgeColor, string> = {
 
 export const Badge: React.FC<BadgeProps> = ({ label, color = 'gray', className = '' }) => (
   <span
-    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClasses[color]} ${className}`}
+    className={`inline-flex items-center px-2.5 py-0.5 rounded-sm text-xs font-medium border ${colorClasses[color]} ${className}`}
   >
     {label}
   </span>

@@ -9,6 +9,7 @@ import type { Role } from '../../db/types';
 import { SettingsService } from '../../db/SettingsService';
 import { AI_PROVIDERS } from '../../ai/ai';
 import type { AiProvider } from '../../ai/ai';
+import { LLM_SETTINGS_EVENT } from '../../hooks/useLlmReady';
 import { TextInput } from '../../components/ui/TextInput';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -364,6 +365,7 @@ const AccountPage: React.FC = () => {
                   const val = e.target.value as AiProvider;
                   setAiProvider(val);
                   await SettingsService.set('ai_provider', val);
+                  window.dispatchEvent(new Event(LLM_SETTINGS_EVENT));
                 }}
                 className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
@@ -398,6 +400,7 @@ const AccountPage: React.FC = () => {
                           if (keyInputValue.trim()) {
                             await SettingsService.set(keyName, keyInputValue.trim());
                             setAiKeysSet(prev => ({ ...prev, [keyName]: true }));
+                            window.dispatchEvent(new Event(LLM_SETTINGS_EVENT));
                           }
                           setEditingKey(null);
                           setKeyInputValue('');
