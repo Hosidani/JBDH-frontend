@@ -9,6 +9,7 @@ import { useSSE } from '../../hooks/useSSE';
 import { structureCV, analyzeJob, matchJobStructured, matchPortrait, generatePitch } from '../../ai/ai';
 import type { MatchResult, StructuredCV, SeekerProfile } from '../../ai/ai';
 import { LocalDbService } from '../../db/LocalDbService';
+import { AiIcon } from '../../components/ui/AiIcon';
 
 interface AtsJson {
   total_score?: number;
@@ -557,8 +558,9 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
                 onClick={handleLlmMatch}
                 disabled={!llmReady || (llmStep !== 'idle' && llmStep !== 'done' && llmStep !== 'error')}
                 title={!llmReady ? tSync('llm_requires_provider') : undefined}
-                className="px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
               >
+                <AiIcon className="w-4 h-4 text-white" />
                 {llmStep === 'structuring-cv' ? tSync('llm_match_loading_cv') :
                  llmStep === 'analyzing-job'  ? tSync('llm_match_loading_job') :
                  llmStep === 'matching'        ? tSync('llm_match_loading_match') :
@@ -568,16 +570,18 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
                 onClick={handlePortraitMatch}
                 disabled={!llmReady || portraitLoading}
                 title={!llmReady ? tSync('llm_requires_provider') : undefined}
-                className="px-4 py-2 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50"
               >
+                <AiIcon className="w-4 h-4 text-white" />
                 {portraitLoading ? '…' : 'Matcha porträtt'}
               </button>
               <button
                 onClick={handlePitch}
                 disabled={!llmReady || pitchLoading}
                 title={!llmReady ? tSync('llm_requires_provider') : undefined}
-                className="px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
               >
+                <AiIcon className="w-4 h-4 text-white" />
                 {pitchLoading ? '…' : 'Pitch'}
               </button>
               {recs.length > 0 && (

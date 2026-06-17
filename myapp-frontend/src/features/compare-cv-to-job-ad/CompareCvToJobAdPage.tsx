@@ -576,9 +576,9 @@ const CompareCvToJobAdPage: React.FC = () => {
                 </div>
               );
             })()}
+          <AIDisclaimer />
           </SectionCard>
         )}
-      <AIDisclaimer />
       </PageWrapper>
     </>
   );

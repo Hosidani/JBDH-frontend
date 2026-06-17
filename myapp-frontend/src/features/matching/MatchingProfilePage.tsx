@@ -110,8 +110,8 @@ const MatchingProfilePage: React.FC = () => {
               coachTips="Molkt instruit quis ultanso duis de tempos non exumot nonisul nuns. Nula ex ventum nili culba. Dus alscusing bro diance mim amet danz co ord mitui unse. Dus molkt molkt molkt molkt molkt molkt molkt molkt molkt."
             />
           )}
+        <AIDisclaimer />
         </SectionCard>
-      <AIDisclaimer />
       </PageWrapper>
     </>
   );

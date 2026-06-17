@@ -19,6 +19,7 @@ import { generatePortrait, analyzeCvs } from '../../ai/ai';
 import type { PortraitCandidate, StructuredCV } from '../../ai/ai';
 import { useLlmReady } from '../../hooks/useLlmReady';
 import { ItemList } from '../../components/ui/ItemList';
+import { AiIcon } from '../../components/ui/AiIcon';
 import AddCvForCandidateModal from './AddCvForCandidateModal';
 import oneOnOneImg from '../../assets/img/one-on-one.png';
 
@@ -569,6 +570,7 @@ const CandidatePage: React.FC = () => {
                     title={!llmReady ? tSync('llm_requires_provider') : undefined}
                     onClick={handleAnalyzeCvs}
                   >
+                    {!cvAnalysisLoading && <AiIcon className="w-4 h-4 text-white mr-2" />}
                     Analysera CV
                   </Button>
                 </div>
@@ -674,6 +676,7 @@ const CandidatePage: React.FC = () => {
                     disabled={!llmReady || cvs.length === 0}
                     onClick={handleGeneratePortrait}
                   >
+                    {!portraitGenerating && <AiIcon className="w-4 h-4 text-white mr-2" />}
                     Generera ett porträtt
                   </Button>
                 </div>
