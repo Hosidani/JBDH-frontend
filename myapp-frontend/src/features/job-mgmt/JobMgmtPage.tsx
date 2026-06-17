@@ -147,12 +147,14 @@ const JobMgmtPage: React.FC = () => {
               {jobs.map(job => (
                 <li
                   key={job.id}
-                  className="group flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md"
+                  onClick={() => handleEdit(job)}
+                  className="flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={checked.has(job.id)}
                     onChange={() => toggleCheck(job.id)}
+                    onClick={e => e.stopPropagation()}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
@@ -169,13 +171,6 @@ const JobMgmtPage: React.FC = () => {
                       </p>
                     )}
                   </div>
-                  <button
-                    onClick={() => handleEdit(job)}
-                    title={tSync('jac_edit_job_title')}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                  >
-                    <Icon name="edit" size={18} />
-                  </button>
                 </li>
               ))}
             </ul>

@@ -127,11 +127,12 @@ const CvMgmtPage: React.FC = () => {
                 <span className="text-xs text-slate-400 select-none">{tSync('jac_select_all')}</span>
               </li>
               {allCvs.map(cv => (
-                <li key={cv.cv_id} className="group flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md">
+                <li key={cv.cv_id} onClick={() => openEdit(cv)} className="flex items-center gap-3 py-2.5 px-1 hover:bg-slate-50 rounded-md cursor-pointer">
                   <input
                     type="checkbox"
                     checked={checked.has(cv.cv_id)}
                     onChange={() => toggleCheck(cv.cv_id)}
+                    onClick={e => e.stopPropagation()}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
@@ -158,13 +159,6 @@ const CvMgmtPage: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  <button
-                    onClick={() => openEdit(cv)}
-                    title={tSync('candidate_cv_edit_title')}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all flex-shrink-0"
-                  >
-                    <Icon name="edit" size={18} />
-                  </button>
                 </li>
               ))}
             </ul>
