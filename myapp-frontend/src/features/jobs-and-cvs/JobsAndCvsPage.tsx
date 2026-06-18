@@ -290,23 +290,29 @@ const JobsAndCvsPage: React.FC = () => {
   const [detail,     setDetail]     = useState<AtsResultDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  // kandidatnamn per backend-CV-id
+  // kandidatnamn och cv_title per backend-CV-id
   const { user } = useAuth();
   const { data: account } = useLocalAccount(user?.email);
   const { data: candidates } = useLocalCandidates(account?.account_id);
   const [backendIdToName, setBackendIdToName] = useState<Map<number, string>>(new Map());
+  const [backendIdToCvTitle, setBackendIdToCvTitle] = useState<Map<number, string>>(new Map());
 
   useEffect(() => {
     if (!candidates.length) return;
     Promise.all(candidates.map(c => LocalDbService.getCVsForCandidate(c.candidate_id)))
       .then(arrays => {
-        const map = new Map<number, string>();
+        const nameMap = new Map<number, string>();
+        const titleMap = new Map<number, string>();
         arrays.forEach((cvList, i) => {
           cvList.forEach(cv => {
-            if (cv.backend_id != null) map.set(cv.backend_id, candidates[i].name);
+            if (cv.backend_id != null) {
+              nameMap.set(cv.backend_id, candidates[i].name);
+              if (cv.cv_title) titleMap.set(cv.backend_id, cv.cv_title);
+            }
           });
         });
-        setBackendIdToName(map);
+        setBackendIdToName(nameMap);
+        setBackendIdToCvTitle(titleMap);
       })
       .catch(() => {});
   }, [candidates]);
@@ -380,7 +386,8 @@ const JobsAndCvsPage: React.FC = () => {
 
   const cvLabel = (cv: CvItem): string => {
     const candidate = backendIdToName.get(cv.id);
-    return candidate ? `${candidate}, ${cv.name}` : cv.name;
+    const cvTitle = backendIdToCvTitle.get(cv.id) ?? cv.name;
+    return candidate ? `${candidate}, ${cvTitle}` : cvTitle;
   };
 
   const jobLabel = (job: JobItem): string => {

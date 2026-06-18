@@ -123,7 +123,7 @@ const SearchJobsCard: React.FC = () => {
         <span>
           {tSync('searchJobs_tab_results')}
           {results !== null && (
-            <span className="ml-2 bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+            <span className="ml-2 bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-sm">
               {pagination?.total ?? results.length}
             </span>
           )}

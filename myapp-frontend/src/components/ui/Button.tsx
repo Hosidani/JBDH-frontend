@@ -10,9 +10,9 @@ interface ButtonProps {
   loading?: boolean;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
+  title?: string;
   children: React.ReactNode;
   className?: string;
-  title?: string;
 }
 
 const variantClasses: Record<Variant, string> = {
@@ -35,9 +35,9 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   onClick,
   type = 'button',
+  title,
   children,
   className = '',
-  title,
 }) => (
   <button
     type={type}

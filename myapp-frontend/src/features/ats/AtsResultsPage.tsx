@@ -170,8 +170,8 @@ const AtsResultsPage: React.FC = () => {
             <div className="bg-white rounded-xl shadow px-6 py-4 text-sm text-slate-500">{tSync('ats_loading')}</div>
           </div>
         )}
+        <AIDisclaimer />
       </PageCard>
-      <AIDisclaimer />
     </PageWrapper>
 
       <AtsResultDetailModal

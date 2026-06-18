@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useAuth } from '../../context/AuthContext';
-import { PageWrapper } from '../../components/common';
+import { PageWrapper, PageBackground } from '../../components/common';
+import laptopWorkImg from '../../assets/img/Laptop-work.png';
 import { SectionCard } from '../../components/common/SectionCard';
 import { TextInput } from '../../components/ui/TextInput';
 import { Button } from '../../components/ui/Button';
@@ -78,7 +79,8 @@ const RegisterPage: React.FC = () => {
 
   return (
     <>
-    <PageWrapper>
+      <PageBackground imageUrl={laptopWorkImg} opacity={1} blur={0} className="!z-[2]" />
+    <PageWrapper className="relative z-10">
       <SectionCard>
         <Heading level={2} className="text-center text-blue-600 mb-4">{tSync('registerPage_title')}</Heading>
         <p className="text-slate-600 text-sm mb-6">{tSync('registerPage_intro')}</p>

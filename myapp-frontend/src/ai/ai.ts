@@ -486,6 +486,86 @@ ${eduText}${certsText ? '\n\nCERTIFIERINGAR:\n' + certsText : ''}`;
   );
 }
 
+// ── CV analysis ───────────────────────────────────────────────────────────────
+
+export interface CvAnalysisEntry {
+  BestJobTitlesForUser: string[];
+  ReasoningBehindJobTitles: string;
+  HardSkills: string[];
+  SoftSkills: string[];
+  Experiences: Array<{ title: string; duration: string }>;
+  EducationAndCertifications: string[];
+}
+
+export interface CvAnalysisResult {
+  English: CvAnalysisEntry;
+  Swedish: CvAnalysisEntry;
+}
+
+const ANALYZE_CVS_PROMPT = `Analyse this CV and tell me which job is the best fit for this candidate.
+Return ONLY a valid JSON object with two language versions (English and Swedish).
+Each version should have the following fields:
+"BestJobTitlesForUser" (a short list, maximum 10 job titles),
+"ReasoningBehindJobTitles" (brief),
+"HardSkills" (a short list, maximum 10 skills),
+"SoftSkills" (a short list, maximum 10 skills),
+"Experiences" (a list of objects, each with "title" (string) and "duration" (string, e.g. "3.5 years")), and
+"EducationAndCertifications" (a short list, maximum 10 items, brief).
+The JSON should have exactly two top-level keys: "English" and "Swedish".
+Respond ONLY with valid, complete JSON. Do NOT truncate or cut off the response.
+If the response is too long, summarize or shorten lists, but always return valid JSON.`;
+
+export async function analyzeCvs(cvTexts: string[]): Promise<CvAnalysisResult> {
+  const combined = cvTexts.join('\n\n---\n\n');
+  return _chatJSON<CvAnalysisResult>(
+    ANALYZE_CVS_PROMPT,
+    `CV:\n${combined}`,
+    { temperature: 0.4 },
+  );
+}
+
+// ── Candidate pitch ───────────────────────────────────────────────────────────
+
+export interface PitchInput {
+  candidateTitle?: string;
+  personalQualities?: string[];
+  portrait?: string;
+  cvTexts: string[];
+  jobTitle: string;
+  jobDescription: string;
+}
+
+export async function generatePitch(input: PitchInput): Promise<string> {
+  const cvSection = input.cvTexts.length
+    ? input.cvTexts.map((t, i) => `--- CV ${input.cvTexts.length > 1 ? i + 1 : ''} ---\n${t}`).join('\n\n')
+    : '(inget CV)';
+
+  const system = `Du är en erfaren rekryteringskonsult med djup förståelse för den svenska arbetsmarknaden.
+Din uppgift är att skriva en kort, rakt-på-sak-säljande pitch för en kandidat till ett specifikt jobb.
+Regler:
+- Längd: 1–2 meningar. Max 3 meningar om kandidatens profil verkligen motiverar det.
+- Skriv i tredje person. Avslöja aldrig kön, ålder eller personliga identifieringsuppgifter.
+- Var konkret och specifik — lyft det som gör kandidaten unik för JUST DENNA roll.
+- Ton: professionell men engagerande. Rekryteraren ska bli nyfiken och vilja boka in en intervju.
+- Fokusera på vad kandidaten KAN BIDRA MED och hur det möter jobbets behov.
+- Inga klichéer ("driven", "engagerad", "passionerad") utan belägg i kandidatdatan.
+- Skriv på svenska.`;
+
+  const user = `Skriv en säljande pitch för nedanstående kandidat till det angivna jobbet.
+
+KANDIDATENS YRKESTITEL: ${input.candidateTitle ?? '(ej angivet)'}
+PERSONLIGA EGENSKAPER: ${(input.personalQualities ?? []).join(', ') || '(ej angivna)'}
+${input.portrait ? `\nKANDIDATBESKRIVNING:\n${input.portrait}\n` : ''}
+KANDIDATENS CV:
+${cvSection}
+
+JOBBTITEL: ${input.jobTitle}
+JOBBANNONS:
+${input.jobDescription}`;
+
+  return _chat(system, user, { temperature: 0.75 });
+}
+
 export async function isLlmConfigured(): Promise<boolean> {
   const provider = ((await SettingsService.get('ai_provider')) ?? 'openai') as AiProvider;
   if (provider === 'ollama') return true;

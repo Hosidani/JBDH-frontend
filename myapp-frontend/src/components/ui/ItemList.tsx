@@ -35,7 +35,7 @@ export const ItemList: React.FC<ItemListProps> = ({ items, variant, color = 'sla
         {items.map((item, idx) => {
           const label = typeof item === 'string' ? item : item.label;
           return (
-            <span key={idx} className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${pillColors[color]}`}>
+            <span key={idx} className={`px-3 py-1 rounded-sm text-xs font-semibold shadow-sm ${pillColors[color]}`}>
               {label}
             </span>
           );

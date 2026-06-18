@@ -110,8 +110,8 @@ const AiAnalysisResultPage: React.FC = () => {
           </Section>
         )}
 
-      </SectionCard>
       <AIDisclaimer />
+      </SectionCard>
       </PageWrapper>
     </>
   );

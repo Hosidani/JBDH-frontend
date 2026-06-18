@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Section, BulletList, FieldAnalysisCard } from '../../components/common';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { useLlmReady } from '../../hooks/useLlmReady';
+import { ScoreMeter } from '../../components/ui/ScoreMeter';
 import type { SseAnalysisResult, Bilingual } from '../../types/analysis';
 import { parseJobName } from '../../utils/parseJobName';
 import { useSSE } from '../../hooks/useSSE';
-import { structureCV, analyzeJob, matchJobStructured, matchPortrait } from '../../ai/ai';
-import { useLlmReady } from '../../hooks/useLlmReady';
+import { structureCV, analyzeJob, matchJobStructured, matchPortrait, generatePitch } from '../../ai/ai';
 import type { MatchResult, StructuredCV, SeekerProfile } from '../../ai/ai';
 import { LocalDbService } from '../../db/LocalDbService';
-import noWayImg     from '../../assets/graphics/NoWay.png';
-import poorImg      from '../../assets/graphics/Poor.png';
-import notLikelyImg from '../../assets/graphics/NotLikely.png';
-import fairImg      from '../../assets/graphics/Fair.png';
-import excelentImg  from '../../assets/graphics/Excelent.png';
+import { AiIcon } from '../../components/ui/AiIcon';
 
 interface AtsJson {
   total_score?: number;
@@ -41,28 +38,12 @@ interface Props {
   onClose: () => void;
 }
 
-function scoreImage(score: number): string {
-  if (score <= 25) return noWayImg;
-  if (score <= 55) return poorImg;
-  if (score <= 74) return notLikelyImg;
-  if (score <= 86) return fairImg;
-  return excelentImg;
-}
-
-function scoreLabelKey(score: number): string {
-  if (score <= 25) return 'ats_score_no_way';
-  if (score <= 55) return 'ats_score_poor';
-  if (score <= 74) return 'ats_score_not_likely';
-  if (score <= 86) return 'ats_score_fair';
-  return 'ats_score_excellent';
-}
-
 function SkillPill({ label, variant }: { label: string; variant: 'green' | 'red' | 'blue' }) {
   const cls =
     variant === 'green' ? 'bg-green-100 text-green-800' :
     variant === 'red'   ? 'bg-red-100 text-red-800' :
     'bg-blue-100 text-blue-800';
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{label}</span>;
+  return <span className={`px-2 py-0.5 rounded-sm text-xs font-medium ${cls}`}>{label}</span>;
 }
 
 type LlmStep = 'idle' | 'structuring-cv' | 'analyzing-job' | 'matching' | 'done' | 'error';
@@ -117,11 +98,8 @@ function MatchResultSection({ result: r, title }: { result: MatchResult; title: 
   return (
     <section className="border-t border-slate-200 pt-5">
       <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4">{title}</h3>
-      <div className="flex items-center gap-6 mb-5">
-        <div className="flex flex-col items-center flex-shrink-0">
-          <img src={scoreImage(r.overall_score)} alt={tSync(scoreLabelKey(r.overall_score))} className="w-32 h-auto object-contain" />
-          <span className="text-lg font-bold text-slate-700 -mt-1">{r.overall_score}</span>
-        </div>
+      <div className="flex flex-col gap-3 mb-5">
+        <ScoreMeter score={r.overall_score} />
         <p className="text-sm text-slate-700 leading-relaxed">{r.summary}</p>
       </div>
       {r.skills.length > 0 && (
@@ -147,7 +125,7 @@ function MatchResultSection({ result: r, title }: { result: MatchResult; title: 
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{tSync('llm_match_missing_required')}</p>
               <div className="flex flex-wrap gap-1">
-                {r.missing_required_skills.map(s => <span key={s} className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{s}</span>)}
+                {r.missing_required_skills.map(s => <span key={s} className="px-2 py-0.5 rounded-sm text-xs font-medium bg-red-100 text-red-700">{s}</span>)}
               </div>
             </div>
           )}
@@ -155,7 +133,7 @@ function MatchResultSection({ result: r, title }: { result: MatchResult; title: 
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{tSync('llm_match_missing_nice')}</p>
               <div className="flex flex-wrap gap-1">
-                {r.missing_nice_to_have_skills.map(s => <span key={s} className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">{s}</span>)}
+                {r.missing_nice_to_have_skills.map(s => <span key={s} className="px-2 py-0.5 rounded-sm text-xs font-medium bg-orange-100 text-orange-700">{s}</span>)}
               </div>
             </div>
           )}
@@ -183,7 +161,7 @@ function MatchResultSection({ result: r, title }: { result: MatchResult; title: 
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{tSync('llm_match_personal_qualities_match')}</p>
               <div className="flex flex-wrap gap-1">
-                {r.matching_personal_qualities.map(q => <span key={q} className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{q}</span>)}
+                {r.matching_personal_qualities.map(q => <span key={q} className="px-2 py-0.5 rounded-sm text-xs font-medium bg-green-100 text-green-700">{q}</span>)}
               </div>
             </div>
           )}
@@ -191,7 +169,7 @@ function MatchResultSection({ result: r, title }: { result: MatchResult; title: 
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{tSync('llm_match_personal_qualities_missing')}</p>
               <div className="flex flex-wrap gap-1">
-                {r.missing_personal_qualities.map(q => <span key={q} className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{q}</span>)}
+                {r.missing_personal_qualities.map(q => <span key={q} className="px-2 py-0.5 rounded-sm text-xs font-medium bg-slate-100 text-slate-600">{q}</span>)}
               </div>
             </div>
           )}
@@ -203,6 +181,7 @@ function MatchResultSection({ result: r, title }: { result: MatchResult; title: 
 
 const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
   const { tSync, language } = useTranslation();
+  const llmReady = useLlmReady();
   const [recsPopupOpen, setRecsPopupOpen] = useState(false);
   const [sseFormData, setSseFormData] = useState<FormData | null>(null);
   const [sseProgress, setSseProgress] = useState<{ progress: number } | null>(null);
@@ -222,11 +201,15 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
   const [portraitResult, setPortraitResult] = useState<MatchResult | null>(null);
   const [portraitError, setPortraitError] = useState<string | null>(null);
 
+  // Pitch state
+  const [pitchLoading, setPitchLoading] = useState(false);
+  const [pitchResult, setPitchResult] = useState<string | null>(null);
+  const [pitchError, setPitchError] = useState<string | null>(null);
+  const [pitchCopied, setPitchCopied] = useState(false);
+
   // Header display state
   const [headerCandidateName, setHeaderCandidateName] = useState<string | null>(null);
   const [headerJobCompany, setHeaderJobCompany] = useState<string | null>(null);
-
-  const llmReady = useLlmReady();
 
   useEffect(() => {
     if (!open) {
@@ -240,6 +223,9 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
       setPortraitLoading(false);
       setPortraitResult(null);
       setPortraitError(null);
+      setPitchLoading(false);
+      setPitchResult(null);
+      setPitchError(null);
       setSseResult(null);
       setHeaderCandidateName(null);
       setHeaderJobCompany(null);
@@ -392,6 +378,40 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
     }
   };
 
+  const handlePitch = async () => {
+    if (!result) return;
+    setPitchLoading(true);
+    setPitchError(null);
+    setPitchResult(null);
+    try {
+      const allCvs = await LocalDbService.getAllCVs();
+      const candidateCvs = allCvs.filter(cv => cv.cv_title === result.cv_name || (
+        allCvs.find(c => c.cv_title === result.cv_name)?.candidate_id === cv.candidate_id
+      ));
+      const idbCv = allCvs.find(cv => cv.cv_title === result.cv_name);
+      let candidate = null;
+      let allCandidateCvs = candidateCvs;
+      if (idbCv?.candidate_id) {
+        candidate = await LocalDbService.getCandidate(idbCv.candidate_id);
+        allCandidateCvs = allCvs.filter(cv => cv.candidate_id === idbCv.candidate_id);
+      }
+      const jobTitle = parseJobName(result.job_name ?? '').title || result.job_name || '';
+      const pitch = await generatePitch({
+        candidateTitle: candidate?.title || undefined,
+        personalQualities: candidate?.personal_qualities ?? [],
+        portrait: candidate?.portrait || undefined,
+        cvTexts: allCandidateCvs.map(cv => cv.cv_anonymized).filter(Boolean),
+        jobTitle,
+        jobDescription: result.job_text,
+      });
+      setPitchResult(pitch.trim());
+    } catch (e) {
+      setPitchError(e instanceof Error ? e.message : 'Kunde inte generera pitch.');
+    } finally {
+      setPitchLoading(false);
+    }
+  };
+
   const handleAnalyze = () => {
     if (!result) return;
     setSseError(null);
@@ -442,15 +462,8 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
       }>
         <div className="flex flex-col gap-6">
 
-          {/* Score image */}
-          <div className="flex flex-col items-center gap-2">
-            <img
-              src={scoreImage(score)}
-              alt={tSync(scoreLabelKey(score))}
-              className="w-40 h-auto object-contain"
-            />
-            <span className="text-2xl font-bold text-slate-700">{tSync(scoreLabelKey(score))}</span>
-          </div>
+          {/* Score */}
+          <ScoreMeter score={score} />
 
           {/* Breakdown */}
           {Object.keys(breakdown).length > 0 && (
@@ -545,8 +558,9 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
                 onClick={handleLlmMatch}
                 disabled={!llmReady || (llmStep !== 'idle' && llmStep !== 'done' && llmStep !== 'error')}
                 title={!llmReady ? tSync('llm_requires_provider') : undefined}
-                className="px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
               >
+                <AiIcon className="w-4 h-4 text-white" />
                 {llmStep === 'structuring-cv' ? tSync('llm_match_loading_cv') :
                  llmStep === 'analyzing-job'  ? tSync('llm_match_loading_job') :
                  llmStep === 'matching'        ? tSync('llm_match_loading_match') :
@@ -556,9 +570,19 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
                 onClick={handlePortraitMatch}
                 disabled={!llmReady || portraitLoading}
                 title={!llmReady ? tSync('llm_requires_provider') : undefined}
-                className="px-4 py-2 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50"
               >
+                <AiIcon className="w-4 h-4 text-white" />
                 {portraitLoading ? '…' : 'Matcha porträtt'}
+              </button>
+              <button
+                onClick={handlePitch}
+                disabled={!llmReady || pitchLoading}
+                title={!llmReady ? tSync('llm_requires_provider') : undefined}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                <AiIcon className="w-4 h-4 text-white" />
+                {pitchLoading ? '…' : 'Pitch'}
               </button>
               {recs.length > 0 && (
                 <button
@@ -609,6 +633,31 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
           {/* Portrait match result */}
           {portraitResult && <MatchResultSection result={portraitResult} title="Porträttmatchning" />}
 
+          {/* Pitch error */}
+          {pitchError && (
+            <p className="text-sm text-red-600">{pitchError}</p>
+          )}
+
+          {/* Pitch result */}
+          {pitchResult && (
+            <section className="border-t border-slate-200 pt-5">
+              <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">Pitch</h3>
+              <div className="relative rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 pr-24">
+                <p className="text-sm text-slate-800 leading-relaxed">{pitchResult}</p>
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(pitchResult);
+                    setPitchCopied(true);
+                    setTimeout(() => setPitchCopied(false), 2000);
+                  }}
+                  className="absolute top-3 right-3 text-xs font-semibold px-3 py-1.5 rounded-lg border border-amber-300 bg-white text-amber-700 hover:bg-amber-100 transition-colors"
+                >
+                  {pitchCopied ? 'Kopierad!' : 'Kopiera'}
+                </button>
+              </div>
+            </section>
+          )}
+
           {/* SSE analysis result (inline) */}
           {sseResult && (
             <section className="border-t border-slate-200 pt-5 flex flex-col gap-4">
@@ -621,14 +670,7 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
               )}
 
               {typeof sseResult.skills_vector_similarity === 'number' && (
-                <div className="p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border-l-4 border-emerald-400">
-                  <span className="text-3xl font-black text-emerald-700">
-                    {Number(sseResult.skills_vector_similarity).toFixed(1)}%
-                  </span>
-                  <span className="ml-3 text-slate-700 font-semibold text-sm">
-                    {language === 'en' ? 'Competency similarity' : 'Kompetenslikhet (CV vs Jobbannons)'}
-                  </span>
-                </div>
+                <ScoreMeter score={sseResult.skills_vector_similarity} />
               )}
 
               {sseResult.summary && (

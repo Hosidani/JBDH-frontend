@@ -38,6 +38,11 @@ export interface Candidate {
   portrait?: string;
   personal_qualities?: string[];
   is_own_candidate?: boolean;
+  job_titles?: string[];
+  job_titles_reasoning?: string;
+  skills?: string[];
+  cv_analysis?: string;       // bilingual JSON: { English: {...}, Swedish: {...} }
+  cv_analysis_hash?: string;  // hash of CV texts + title + qualities at time of last analysis
 }
 
 export interface Job {

@@ -153,7 +153,7 @@ const JobMgmtPage: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={checked.has(job.id)}
-                    onChange={e => { e.stopPropagation(); toggleCheck(job.id); }}
+                    onChange={() => toggleCheck(job.id)}
                     onClick={e => e.stopPropagation()}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                   />
