@@ -62,6 +62,11 @@ export class LocalDbService {
     return db.getAllFromIndex('candidates', 'by-account', accountId);
   }
 
+  static async getOwnCandidate(accountId: string): Promise<Candidate | undefined> {
+    const all = await this.getCandidatesForAccount(accountId);
+    return all.find(c => c.is_own_candidate === true);
+  }
+
   static async updateCandidate(
     candidateId: string,
     patch: Partial<Omit<Candidate, 'candidate_id' | 'account_id'>>,

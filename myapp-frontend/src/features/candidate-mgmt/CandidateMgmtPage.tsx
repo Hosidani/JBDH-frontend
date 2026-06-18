@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageBackground, PageWrapper } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
@@ -16,7 +16,8 @@ const CandidateMgmtPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: account } = useLocalAccount(user?.email);
-  const { data: candidates, refresh } = useLocalCandidates(account?.account_id);
+  const { data: allCandidates, refresh } = useLocalCandidates(account?.account_id);
+  const candidates = useMemo(() => allCandidates.filter(c => !c.is_own_candidate), [allCandidates]);
 
   const [cvCounts, setCvCounts] = useState<Record<string, number>>({});
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -98,6 +99,9 @@ const CandidateMgmtPage: React.FC = () => {
             </div>
           }
         >
+          <p className="text-sm text-slate-500 mb-4">
+            Skapa en kandidat för varje person du försöker hitta uppdrag för. Sedan kan du koppla valfritt antal CV till varje kandidat.
+          </p>
           {candidates.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-6">{tSync('candidate_mgmt_empty')}</p>
           ) : (

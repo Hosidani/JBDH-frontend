@@ -7,6 +7,7 @@ import { LocalDbService } from '../../db/LocalDbService';
 import { BACKEND_ROLE_TO_IDB } from '../../db/types';
 import type { Role } from '../../db/types';
 import { SettingsService } from '../../db/SettingsService';
+import { LLM_SETTINGS_EVENT } from '../../hooks/useLlmReady';
 import { AI_PROVIDERS } from '../../ai/ai';
 import type { AiProvider } from '../../ai/ai';
 import { TextInput } from '../../components/ui/TextInput';
@@ -107,6 +108,30 @@ const AccountPage: React.FC = () => {
           acceptedTermsAndConditions: data.acceptedTermsAndConditions || false,
         };
         setFormData(initialFormData);
+
+        // Ensure own candidate exists if user has the Candidate role
+        if (user?.email && (data.roles ?? []).includes('User')) {
+          const account = await LocalDbService.getAccountByEmail(user.email);
+          if (account) {
+            const existing = await LocalDbService.getOwnCandidate(account.account_id);
+            if (!existing) {
+              await LocalDbService.addCandidate({
+                account_id: account.account_id,
+                name: account.name ?? '',
+                email: account.email ?? '',
+                telephone: account.telephone ?? '',
+                title: '',
+                location: '',
+                workplace: [],
+                employment_type: [],
+                available_from: '',
+                travel: false,
+                searchable: false,
+                is_own_candidate: true,
+              });
+            }
+          }
+        }
       } catch (err) {
         if (err instanceof Error) {
           if (err.message.includes('Account has been terminated')) {
@@ -304,29 +329,38 @@ const AccountPage: React.FC = () => {
               ]}
               selected={formData.roles}
               onChange={async vals => {
+                const wasUser = formData.roles.includes('User');
+                const isUser = vals.includes('User');
                 handleInputChange('roles', vals);
                 await saveField({ roles: vals });
+                if (!wasUser && isUser && user?.email) {
+                  const account = await LocalDbService.getAccountByEmail(user.email);
+                  if (account) {
+                    const existing = await LocalDbService.getOwnCandidate(account.account_id);
+                    if (!existing) {
+                      await LocalDbService.addCandidate({
+                        account_id: account.account_id,
+                        name: account.name ?? '',
+                        email: account.email ?? '',
+                        telephone: account.telephone ?? '',
+                        title: '',
+                        location: '',
+                        workplace: [],
+                        employment_type: [],
+                        available_from: '',
+                        travel: false,
+                        searchable: false,
+                        is_own_candidate: true,
+                      });
+                    }
+                  }
+                }
               }}
               layout="row"
               helpText={tSync('account_roles_help')}
             />
           </div>
 
-          {/* Terms */}
-          {!accountSettings.isTerminated && (
-            <label className="flex items-center gap-2 mt-6 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.acceptedTermsAndConditions}
-                onChange={async e => {
-                  handleInputChange('acceptedTermsAndConditions', e.target.checked);
-                  await saveField({ acceptedTermsAndConditions: e.target.checked });
-                }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-slate-700">{tSync('terms_accept')}</span>
-            </label>
-          )}
         </PageCard>
 
         {/* Change Password */}
@@ -364,6 +398,7 @@ const AccountPage: React.FC = () => {
                   const val = e.target.value as AiProvider;
                   setAiProvider(val);
                   await SettingsService.set('ai_provider', val);
+                  window.dispatchEvent(new Event(LLM_SETTINGS_EVENT));
                 }}
                 className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
@@ -398,6 +433,7 @@ const AccountPage: React.FC = () => {
                           if (keyInputValue.trim()) {
                             await SettingsService.set(keyName, keyInputValue.trim());
                             setAiKeysSet(prev => ({ ...prev, [keyName]: true }));
+                            window.dispatchEvent(new Event(LLM_SETTINGS_EVENT));
                           }
                           setEditingKey(null);
                           setKeyInputValue('');

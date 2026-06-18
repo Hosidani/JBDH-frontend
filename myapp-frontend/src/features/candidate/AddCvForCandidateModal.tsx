@@ -36,6 +36,9 @@ const AddCvForCandidateModal: React.FC<Props> = ({
   const [cvTitle, setCvTitle] = useState('');
   const [candidateId, setCandidateId] = useState(defaultCandidateId);
   const [published, setPublished] = useState(false);
+  const [cvAnonymizedText, setCvAnonymizedText] = useState('');
+  const [origCvAnonymizedText, setOrigCvAnonymizedText] = useState('');
+  const [manualText, setManualText] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,10 +53,15 @@ const AddCvForCandidateModal: React.FC<Props> = ({
         setCvTitle(editCv.cv_title ?? '');
         setCandidateId(editCv.candidate_id);
         setPublished(editCv.cv_published);
+        setCvAnonymizedText(editCv.cv_anonymized ?? '');
+        setOrigCvAnonymizedText(editCv.cv_anonymized ?? '');
       } else {
         setCvTitle('');
         setCandidateId(defaultCandidateId);
         setPublished(false);
+        setCvAnonymizedText('');
+        setOrigCvAnonymizedText('');
+        setManualText('');
       }
     }
   }, [open, editCv, defaultCandidateId]);
@@ -63,6 +71,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
     setFile(null);
     setCvText('');
     setConsented(false);
+    setManualText('');
     setError(null);
     onClose();
   };
@@ -99,17 +108,26 @@ const AddCvForCandidateModal: React.FC<Props> = ({
       .catch(() => {});
   };
 
-  // Edit mode: save metadata changes without uploading a new file
+  // Edit mode: save metadata (and optionally CV text) without uploading a new file
   const handleMetaSave = async () => {
     if (!isEdit || !editCv) return;
     setSaving(true);
     setError(null);
     try {
-      const updated = await LocalDbService.updateCV(editCv.cv_id, {
+      const textChanged = cvAnonymizedText !== origCvAnonymizedText;
+      const updates: Partial<CV> = {
         cv_title: cvTitle,
         candidate_id: candidateId,
         cv_published: published,
-      });
+        ...(textChanged && { cv_anonymized: cvAnonymizedText, cv_json: '' }),
+      };
+      const updated = await LocalDbService.updateCV(editCv.cv_id, updates);
+      if (textChanged) {
+        await LocalDbService.updateCandidate(candidateId, { portrait: '' });
+        if (cvAnonymizedText.trim()) {
+          triggerCvAnalysis(editCv.cv_id, candidateId, cvAnonymizedText.trim());
+        }
+      }
       onSaved(updated!);
       handleClose();
     } catch {
@@ -145,11 +163,11 @@ const AddCvForCandidateModal: React.FC<Props> = ({
         const saved = await LocalDbService.addCV({
           backend_id: backendCv.id,
           candidate_id: candidateId,
-          cv_title: cvTitle.trim() || file!.name,
+          cv_title: cvTitle.trim() || file?.name || tSync('jac_manual_cv_title'),
           cv_anonymized: cvText.trim(),
           cv_json: '',
           cv_file: file,
-          cv_file_type: file!.type,
+          cv_file_type: file?.type ?? 'text/plain',
           cv_published: published,
         });
         triggerCvAnalysis(saved.cv_id, candidateId, cvText.trim());
@@ -166,7 +184,8 @@ const AddCvForCandidateModal: React.FC<Props> = ({
   const metaChanged = isEdit && editCv && (
     cvTitle !== (editCv.cv_title ?? '') ||
     candidateId !== editCv.candidate_id ||
-    published !== editCv.cv_published
+    published !== editCv.cv_published ||
+    cvAnonymizedText !== origCvAnonymizedText
   );
 
   const modalTitle = isEdit ? tSync('candidate_cv_edit_title') : tSync('candidate_cv_add_title');
@@ -211,7 +230,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
   );
 
   return (
-    <Modal open={open} onClose={handleClose} title={modalTitle} maxWidth={isReview ? 'max-w-3xl' : 'max-w-md'}>
+    <Modal open={open} onClose={handleClose} title={modalTitle} maxWidth={isReview || isEdit ? 'max-w-3xl' : 'max-w-2xl'}>
       {!isReview ? (
         // ── Steg 1: drop-zon ─────────────────────────────────────────────────
         <div className="flex flex-col gap-4">
@@ -240,12 +259,54 @@ const AddCvForCandidateModal: React.FC<Props> = ({
             </FileDropZone>
           </div>
 
+          {isEdit && (
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-slate-700">{tSync('candidate_cv_field_text')}</label>
+              <textarea
+                value={cvAnonymizedText}
+                onChange={e => setCvAnonymizedText(e.target.value)}
+                rows={14}
+                disabled={saving}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-slate-50 resize-y focus:outline-none focus:ring-2 focus:ring-blue-400 font-mono leading-relaxed disabled:opacity-50"
+              />
+            </div>
+          )}
+
+          {!isEdit && (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 border-t border-slate-200" />
+                <span className="text-xs text-slate-400 uppercase tracking-wide">{tSync('jac_or')}</span>
+                <div className="flex-1 border-t border-slate-200" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-slate-700">{tSync('jac_manual_text_label')}</label>
+                <textarea
+                  value={manualText}
+                  onChange={e => setManualText(e.target.value)}
+                  rows={10}
+                  disabled={saving || step === 'parsing'}
+                  placeholder={tSync('jac_manual_text_placeholder')}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-slate-50 resize-y focus:outline-none focus:ring-2 focus:ring-blue-400 font-mono leading-relaxed disabled:opacity-50"
+                />
+              </div>
+            </>
+          )}
+
           {error && <p className="text-red-600 text-sm">{error}</p>}
 
           <div className="flex gap-2 justify-end">
             <Button variant="ghost" size="lg" disabled={step === 'parsing'} onClick={handleClose}>
               {tSync('jac_modal_cancel')}
             </Button>
+            {!isEdit && !file && manualText.trim() && step !== 'parsing' && (
+              <Button
+                variant="primary" size="lg"
+                onClick={() => { setCvText(manualText.trim()); setStep('review'); }}
+              >
+                {tSync('jac_manual_text_next')}
+              </Button>
+            )}
             {isEdit && metaChanged && step !== 'parsing' && (
               <Button variant="primary" size="lg" loading={saving} onClick={handleMetaSave}>
                 {tSync('candidate_cv_save')}

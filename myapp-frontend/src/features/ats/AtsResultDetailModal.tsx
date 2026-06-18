@@ -5,6 +5,7 @@ import type { SseAnalysisResult, Bilingual } from '../../types/analysis';
 import { parseJobName } from '../../utils/parseJobName';
 import { useSSE } from '../../hooks/useSSE';
 import { structureCV, analyzeJob, matchJobStructured, matchPortrait } from '../../ai/ai';
+import { useLlmReady } from '../../hooks/useLlmReady';
 import type { MatchResult, StructuredCV, SeekerProfile } from '../../ai/ai';
 import { LocalDbService } from '../../db/LocalDbService';
 import noWayImg     from '../../assets/graphics/NoWay.png';
@@ -224,6 +225,8 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
   // Header display state
   const [headerCandidateName, setHeaderCandidateName] = useState<string | null>(null);
   const [headerJobCompany, setHeaderJobCompany] = useState<string | null>(null);
+
+  const llmReady = useLlmReady();
 
   useEffect(() => {
     if (!open) {
@@ -540,7 +543,8 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
               </button>
               <button
                 onClick={handleLlmMatch}
-                disabled={llmStep !== 'idle' && llmStep !== 'done' && llmStep !== 'error'}
+                disabled={!llmReady || (llmStep !== 'idle' && llmStep !== 'done' && llmStep !== 'error')}
+                title={!llmReady ? tSync('llm_requires_provider') : undefined}
                 className="px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
               >
                 {llmStep === 'structuring-cv' ? tSync('llm_match_loading_cv') :
@@ -550,7 +554,8 @@ const AtsResultDetailModal: React.FC<Props> = ({ open, result, onClose }) => {
               </button>
               <button
                 onClick={handlePortraitMatch}
-                disabled={portraitLoading}
+                disabled={!llmReady || portraitLoading}
+                title={!llmReady ? tSync('llm_requires_provider') : undefined}
                 className="px-4 py-2 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50"
               >
                 {portraitLoading ? '…' : 'Matcha porträtt'}

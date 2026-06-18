@@ -20,6 +20,7 @@ import { AtsResultsPage } from './features/ats';
 import CvMgmtPage from './features/cv-mgmt/CvMgmtPage';
 import CandidateMgmtPage from './features/candidate-mgmt/CandidateMgmtPage';
 import CandidatePage from './features/candidate/CandidatePage';
+import MyProfilePage from './features/my-profile/MyProfilePage';
 import JobMgmtPage from './features/job-mgmt/JobMgmtPage';
 import { AiAnalysisResultPage } from './features/ai-analysis-result';
 import { JobDetailPage } from './features/jobs';
@@ -150,9 +151,10 @@ function App() {
           {/* Requires Recruiter role */}
           <Route path="/add-job-ad"   element={<RequireAuth roles={['Recruiter']}><AddJobAdPage /></RequireAuth>} />
           <Route path="/match-ad-cvs" element={<RequireAuth roles={['Recruiter']}><MatchAdToCvsPage /></RequireAuth>} />
-          <Route path="/jobs-and-cvs"     element={<RequireAuth roles={['Recruiter', 'Manager']}><JobsAndCvsPage /></RequireAuth>} />
+          <Route path="/jobs-and-cvs"     element={<RequireAuth><JobsAndCvsPage /></RequireAuth>} />
           <Route path="/cv_mgmt"          element={<RequireAuth roles={['Recruiter', 'Manager']}><CvMgmtPage /></RequireAuth>} />
-          <Route path="/candidate_mgmt"   element={<RequireAuth><CandidateMgmtPage /></RequireAuth>} />
+          <Route path="/my-profile"        element={<RequireAuth roles={['User']}><MyProfilePage /></RequireAuth>} />
+          <Route path="/candidate_mgmt"   element={<RequireAuth roles={['Manager']}><CandidateMgmtPage /></RequireAuth>} />
           <Route path="/candidate"        element={<RequireAuth><CandidatePage /></RequireAuth>} />
           <Route path="/candidate/:id"    element={<RequireAuth><CandidatePage /></RequireAuth>} />
           <Route path="/job_mgmt"         element={<RequireAuth roles={['Recruiter', 'Manager']}><JobMgmtPage /></RequireAuth>} />
