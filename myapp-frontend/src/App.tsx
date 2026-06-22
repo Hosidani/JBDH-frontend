@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import jbdhLogoImg from './assets/img/JBDH_64X64.png';
 import { useTranslation } from './hooks/TranslationProvider';
-import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth, Footer, FeedbackButton } from './components/common';
+import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth, RequireAccount, Footer, FeedbackButton } from './components/common';
+import AccountRequiredModal from './components/common/modals/AccountRequiredModal';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage } from './features/home';
@@ -13,6 +14,7 @@ import { RegisterPage } from './features/auth';
 import { SearchJobsPage, MatchAdToCvsPage } from './features/search';
 import { ProfilePage } from './features/profile';
 import { AccountPage } from './features/account';
+import SettingsPage from './features/settings/SettingsPage';
 import { AddJobAdPage } from './features/boards';
 import { MatchingProfilePage } from './features/matching';
 import { JobsAndCvsPage } from './features/jobs-and-cvs';
@@ -40,6 +42,7 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginRedirectTo, setLoginRedirectTo] = useState<string | null>(null);
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
   const { currentMessage, acknowledge } = useServiceMessages(user?.email);
   const [sessionDismissed, setSessionDismissed] = useState<string[]>([]);
 
@@ -51,6 +54,12 @@ function App() {
     };
     window.addEventListener('requireLogin', handler);
     return () => window.removeEventListener('requireLogin', handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setAccountModalOpen(true);
+    window.addEventListener('requireAccount', handler);
+    return () => window.removeEventListener('requireAccount', handler);
   }, []);
 
   useEffect(() => {
@@ -107,6 +116,10 @@ function App() {
           }}
         />
       )}
+      {/* Account required modal */}
+      {accountModalOpen && (
+        <AccountRequiredModal onClose={() => setAccountModalOpen(false)} />
+      )}
       {/* Service message modal — requires acknowledgement before using the app */}
       {user && currentMessage && !sessionDismissed.includes(currentMessage.id) && (
         <ServiceMessageModal
@@ -136,31 +149,32 @@ function App() {
           {/* Public */}
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/search" element={<RequireAuth><SearchJobsPage /></RequireAuth>} />
-          <Route path="/compare-cv-jobad" element={<RequireAuth roles={['User']}><CompareCvToJobAdPage /></RequireAuth>} />
           <Route path="/about" element={<Suspense fallback={null}><AboutPage /></Suspense>} />
           <Route path="/messages" element={<MessagesPage />} />
 
-          {/* Requires login */}
-          <Route path="/profile"    element={<RequireAuth roles={['User']}><ProfilePage /></RequireAuth>} />
-          <Route path="/account"    element={<RequireAuth><AccountPage /></RequireAuth>} />
-          <Route path="/saved-jobs" element={<RequireAuth roles={['User']}><SavedJobsPage /></RequireAuth>} />
-          <Route path="/job/:id"    element={<RequireAuth roles={['User']}><JobDetailPage /></RequireAuth>} />
-          <Route path="/matching"   element={<RequireAuth><MatchingProfilePage /></RequireAuth>} />
+          {/* Local-first — no account needed */}
+          <Route path="/settings"         element={<SettingsPage />} />
+          <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
+          <Route path="/candidate"        element={<CandidatePage />} />
+          <Route path="/candidate/:id"    element={<CandidatePage />} />
+          <Route path="/cv_mgmt"          element={<CvMgmtPage />} />
+          <Route path="/job_mgmt"         element={<JobMgmtPage />} />
+          <Route path="/jobs_mgmt"        element={<JobMgmtPage />} />
 
-          {/* Requires Recruiter role */}
-          <Route path="/add-job-ad"   element={<RequireAuth roles={['Recruiter']}><AddJobAdPage /></RequireAuth>} />
-          <Route path="/match-ad-cvs" element={<RequireAuth roles={['Recruiter']}><MatchAdToCvsPage /></RequireAuth>} />
-          <Route path="/jobs-and-cvs"     element={<RequireAuth><JobsAndCvsPage /></RequireAuth>} />
-          <Route path="/cv_mgmt"          element={<RequireAuth roles={['Recruiter', 'Manager']}><CvMgmtPage /></RequireAuth>} />
-          <Route path="/my-profile"        element={<RequireAuth roles={['User']}><MyProfilePage /></RequireAuth>} />
-          <Route path="/candidate_mgmt"   element={<RequireAuth roles={['Manager']}><CandidateMgmtPage /></RequireAuth>} />
-          <Route path="/candidate"        element={<RequireAuth><CandidatePage /></RequireAuth>} />
-          <Route path="/candidate/:id"    element={<RequireAuth><CandidatePage /></RequireAuth>} />
-          <Route path="/job_mgmt"         element={<RequireAuth roles={['Recruiter', 'Manager']}><JobMgmtPage /></RequireAuth>} />
-          <Route path="/jobs_mgmt"        element={<RequireAuth roles={['Recruiter', 'Manager']}><JobMgmtPage /></RequireAuth>} />
-          <Route path="/ats-results"      element={<RequireAuth roles={['Recruiter', 'Manager']}><AtsResultsPage /></RequireAuth>} />
-          <Route path="/ai-analysis-result" element={<RequireAuth><AiAnalysisResultPage /></RequireAuth>} />
+          {/* Requires account (shows modal if not logged in) */}
+          <Route path="/profile"    element={<RequireAccount><ProfilePage /></RequireAccount>} />
+          <Route path="/account"    element={<RequireAccount><AccountPage /></RequireAccount>} />
+          <Route path="/saved-jobs" element={<RequireAccount><SavedJobsPage /></RequireAccount>} />
+          <Route path="/job/:id"    element={<RequireAccount><JobDetailPage /></RequireAccount>} />
+          <Route path="/matching"   element={<RequireAccount><MatchingProfilePage /></RequireAccount>} />
+          <Route path="/search"           element={<RequireAccount><SearchJobsPage /></RequireAccount>} />
+          <Route path="/add-job-ad"       element={<RequireAccount><AddJobAdPage /></RequireAccount>} />
+          <Route path="/match-ad-cvs"     element={<RequireAccount><MatchAdToCvsPage /></RequireAccount>} />
+          <Route path="/jobs-and-cvs"     element={<RequireAccount><JobsAndCvsPage /></RequireAccount>} />
+          <Route path="/my-profile"       element={<RequireAccount><MyProfilePage /></RequireAccount>} />
+          <Route path="/candidate_mgmt"   element={<RequireAccount><CandidateMgmtPage /></RequireAccount>} />
+          <Route path="/ats-results"      element={<RequireAccount><AtsResultsPage /></RequireAccount>} />
+          <Route path="/ai-analysis-result" element={<RequireAccount><AiAnalysisResultPage /></RequireAccount>} />
 
           {/* Footer pages */}
           <Route path="/contact" element={<ContactPage />} />

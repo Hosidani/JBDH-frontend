@@ -7,7 +7,6 @@ import { AIDisclaimer } from '../../components/common/AIDisclaimer';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { useSSE } from '../../hooks/useSSE';
 import IconCvDocument from '../../components/icon_library/IconCvDocument';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { ApiService } from '../../services/ApiService';
 import type { SseAnalysisResult, AtsResult, Bilingual } from '../../types/analysis';
@@ -128,7 +127,6 @@ function SavedTextPanel({
 const CompareCvToJobAdPage: React.FC = () => {
   const { user } = useAuth();
   const { tSync, language } = useTranslation();
-  const navigate = useNavigate();
 
   const resolve = (value: Bilingual | string | undefined): string => {
     if (!value) return '';
@@ -136,11 +134,6 @@ const CompareCvToJobAdPage: React.FC = () => {
     return language === 'en' ? (value.en || value.sv) : (value.sv || value.en);
   };
 
-  React.useEffect(() => {
-    if (!user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
 
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [jobAdText, setJobAdText] = useState('');
@@ -427,7 +420,8 @@ const CompareCvToJobAdPage: React.FC = () => {
                 type="submit"
                 variant="primary"
                 size="lg"
-                disabled={!!sseProgress && sseProgress.progress > 0 && sseProgress.progress < 100}
+                disabled={!user || (!!sseProgress && sseProgress.progress > 0 && sseProgress.progress < 100)}
+                title={!user ? tSync('account_required_title') : undefined}
               >
                 {sseProgress && sseProgress.progress > 0 && sseProgress.progress < 100
                   ? tSync('compareCvToJobAdPage_button_comparing')

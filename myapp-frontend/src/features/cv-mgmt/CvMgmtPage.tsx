@@ -22,14 +22,17 @@ const CvMgmtPage: React.FC = () => {
   const [allCvs, setAllCvs] = useState<CV[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // Own candidate's CVs belong to /my-profile — exclude them here
+  const managedCandidates = candidates.filter(c => !c.is_own_candidate);
+
   useEffect(() => {
-    if (!candidates.length) { setAllCvs([]); return; }
-    Promise.all(candidates.map(c => LocalDbService.getCVsForCandidate(c.candidate_id)))
+    if (!managedCandidates.length) { setAllCvs([]); return; }
+    Promise.all(managedCandidates.map(c => LocalDbService.getCVsForCandidate(c.candidate_id)))
       .then(results => setAllCvs(results.flat()))
       .catch(() => {});
   }, [candidates, refreshKey]);
 
-  const candidateMap = Object.fromEntries(candidates.map(c => [c.candidate_id, c.name]));
+  const candidateMap = Object.fromEntries(managedCandidates.map(c => [c.candidate_id, c.name]));
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -41,7 +44,7 @@ const CvMgmtPage: React.FC = () => {
     setChecked(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
 
   const toggleAll = () =>
-    setChecked(prev => prev.size === allCvs.length ? new Set() : new Set(allCvs.map(c => c.cv_id)));
+    setChecked(prev => prev.size === allCvs.length ? new Set() : new Set(allCvs.map(cv => cv.cv_id)));
 
   const handleDeleteConfirmed = async () => {
     setDeleting(true);
@@ -96,7 +99,7 @@ const CvMgmtPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={openAdd}
-                disabled={candidates.length === 0}
+                disabled={managedCandidates.length === 0}
                 title={tSync('candidate_cv_add_title')}
                 className="p-1.5 rounded-md text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
@@ -185,8 +188,8 @@ const CvMgmtPage: React.FC = () => {
       <AddCvForCandidateModal
         open={modalOpen}
         onClose={handleModalClose}
-        defaultCandidateId={editCv?.candidate_id ?? candidates[0]?.candidate_id ?? ''}
-        candidates={candidates}
+        defaultCandidateId={editCv?.candidate_id ?? managedCandidates[0]?.candidate_id ?? ''}
+        candidates={managedCandidates}
         editCv={editCv}
         onSaved={() => { setRefreshKey(k => k + 1); handleModalClose(); }}
       />
