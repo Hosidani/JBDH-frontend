@@ -5,6 +5,7 @@ import { ApiService } from '../../services/ApiService';
 import { LocalDbService } from '../../db/LocalDbService';
 import { SettingsService } from '../../db/SettingsService';
 import { BACKEND_ROLE_TO_IDB } from '../../db/types';
+import { useLocalAccountContext } from '../../context/LocalAccountContext';
 import type { Role } from '../../db/types';
 import { LLM_SETTINGS_EVENT } from '../../hooks/useLlmReady';
 import { AI_PROVIDERS } from '../../ai/ai';
@@ -33,6 +34,7 @@ function SavedBadge({ visible }: { visible: boolean }) {
 
 const SettingsPage: React.FC = () => {
   const { user, refreshRoles } = useAuth();
+  const { refreshLocalAccount } = useLocalAccountContext();
   const { tSync, language, changeLanguage } = useTranslation();
 
   // ── AI settings ────────────────────────────────────────────────────────────
@@ -85,7 +87,15 @@ const SettingsPage: React.FC = () => {
   // ── Roles: save on change ──────────────────────────────────────────────────
   const handleRolesChange = async (newRoles: string[]) => {
     setSelectedRoles(newRoles);
-    if (!user) return; // ej inloggad → spara bara lokalt i state
+    if (!user) {
+      const idbRoles = newRoles.map(r => BACKEND_ROLE_TO_IDB[r]).filter(Boolean) as Role[];
+      try {
+        await LocalDbService.updateAccount({ role: idbRoles });
+        await refreshLocalAccount();
+      } catch { /* no local account yet */ }
+      flashRoleSaved();
+      return;
+    }
     const previousRoles = user.roles ?? [];
     try {
       await ApiService.updateAccountSettings({ updateRoles: newRoles });
@@ -174,18 +184,12 @@ const SettingsPage: React.FC = () => {
           <div className="flex items-start gap-3">
             <div className="flex-1">
               <CheckboxGroup
-                options={BACKEND_ROLES.map(r => ({
+                options={BACKEND_ROLES.filter(r => r !== 'Recruiter').map(r => ({
                   value: r,
-                  label: tSync(`role_${r === 'User' ? 'candidate' : r === 'Recruiter' ? 'recruiter' : 'sales'}`),
+                  label: tSync(`role_${r === 'User' ? 'candidate' : 'sales'}`),
                 }))}
                 selected={selectedRoles}
-                onChange={newRoles => {
-                  if (!user) {
-                    window.dispatchEvent(new CustomEvent('requireAccount'));
-                    return;
-                  }
-                  handleRolesChange(newRoles);
-                }}
+                onChange={newRoles => { handleRolesChange(newRoles); }}
                 helpText={tSync('account_roles_help')}
               />
             </div>

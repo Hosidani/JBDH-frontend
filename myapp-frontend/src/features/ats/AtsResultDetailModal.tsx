@@ -107,13 +107,13 @@ function MatchResultSection({ result: r, title }: { result: MatchResult; title: 
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{tSync('llm_match_skills')}</p>
           <div className="flex flex-col gap-1.5">
             {r.skills.map((s, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0">
+              <div key={i} className="flex items-start gap-2">
+                <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0 mt-1.5">
                   <div className={`h-1.5 rounded-full ${s.score >= 75 ? 'bg-green-500' : s.score >= 50 ? 'bg-yellow-400' : 'bg-orange-400'}`} style={{ width: `${s.score}%` }} />
                 </div>
                 <span className="text-xs font-medium text-slate-700 w-28 flex-shrink-0 truncate">{s.skill_name}</span>
                 {s.is_required && <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 flex-shrink-0">{tSync('llm_match_required')}</span>}
-                <span className="text-xs text-slate-500 truncate">{s.reason}</span>
+                <span className="text-xs text-slate-500">{s.reason}</span>
               </div>
             ))}
           </div>
@@ -144,12 +144,12 @@ function MatchResultSection({ result: r, title }: { result: MatchResult; title: 
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{tSync('llm_match_experiences')}</p>
           <div className="flex flex-col gap-1.5">
             {r.experiences.map((e, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0">
+              <div key={i} className="flex items-start gap-2">
+                <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0 mt-1.5">
                   <div className={`h-1.5 rounded-full ${e.score >= 75 ? 'bg-green-500' : e.score >= 50 ? 'bg-yellow-400' : 'bg-orange-400'}`} style={{ width: `${e.score}%` }} />
                 </div>
                 <span className="text-xs text-slate-400 w-12 flex-shrink-0">{e.id}</span>
-                <span className="text-xs text-slate-600 truncate">{e.reason}</span>
+                <span className="text-xs text-slate-600">{e.reason}</span>
               </div>
             ))}
           </div>

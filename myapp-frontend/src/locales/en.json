@@ -507,6 +507,8 @@
   "jac_ai_match_btn": "AI match",
   "jac_ai_matching": "Matching…",
   "jac_rematch_btn": "Re-match",
+  "jac_bulk_match_btn": "AI-match all",
+  "jac_bulk_matching": "Matching {{done}}/{{total}}…",
   "llm_portrait_btn": "Match portrait",
   "llm_portrait_title": "Portrait match",
   "llm_portrait_no_portrait": "The candidate has no portrait yet. Generate one from the candidate card.",

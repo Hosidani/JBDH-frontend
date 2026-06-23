@@ -42,8 +42,8 @@ function MatchBlock({ result, title }: { result: MatchResult; title: string }) {
           </p>
           <div className="flex flex-col gap-1.5">
             {result.skills.map((s, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0">
+              <div key={i} className="flex items-start gap-2">
+                <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0 mt-1.5">
                   <div
                     className={`h-1.5 rounded-full ${s.score >= 75 ? 'bg-green-500' : s.score >= 50 ? 'bg-yellow-400' : 'bg-orange-400'}`}
                     style={{ width: `${s.score}%` }}
@@ -55,7 +55,7 @@ function MatchBlock({ result, title }: { result: MatchResult; title: string }) {
                     {tSync('llm_match_required')}
                   </span>
                 )}
-                <span className="text-xs text-slate-500 truncate">{s.reason}</span>
+                <span className="text-xs text-slate-500">{s.reason}</span>
               </div>
             ))}
           </div>
@@ -98,15 +98,15 @@ function MatchBlock({ result, title }: { result: MatchResult; title: string }) {
           </p>
           <div className="flex flex-col gap-1.5">
             {result.experiences.map((e, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0">
+              <div key={i} className="flex items-start gap-2">
+                <div className="w-24 bg-slate-100 rounded-full h-1.5 flex-shrink-0 mt-1.5">
                   <div
                     className={`h-1.5 rounded-full ${e.score >= 75 ? 'bg-green-500' : e.score >= 50 ? 'bg-yellow-400' : 'bg-orange-400'}`}
                     style={{ width: `${e.score}%` }}
                   />
                 </div>
                 <span className="text-xs text-slate-400 w-12 flex-shrink-0">{e.id}</span>
-                <span className="text-xs text-slate-600 truncate">{e.reason}</span>
+                <span className="text-xs text-slate-600">{e.reason}</span>
               </div>
             ))}
           </div>

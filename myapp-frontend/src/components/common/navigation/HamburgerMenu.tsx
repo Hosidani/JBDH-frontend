@@ -42,8 +42,8 @@ const MENU_ITEMS: MenuItem[] = [
   // Accessible with local account + kandidat role; no lock needed
   { to: '/my-profile',       labelKey: 'menu_my_profile',           roles: ['User'],                 localRoles: ['User'] },
   // Manager/Recruiter — requires BE (locked when not logged in, role-filtered)
-  { to: '/candidate_mgmt',   labelKey: 'menu_manage_candidates',    roles: ['Manager'],              beGated: true },
-  { to: '/cv_mgmt',          labelKey: 'menu_manage_candidate_cvs', roles: ['Manager', 'Recruiter'] },
+  { to: '/candidate_mgmt',   labelKey: 'menu_manage_candidates',    roles: ['Manager'],              localRoles: ['Manager'] },
+  { to: '/cv_mgmt',          labelKey: 'menu_manage_candidate_cvs', roles: ['Manager', 'Recruiter'], localRoles: ['Manager', 'Recruiter'] },
   // Visible to all local account holders
   { to: '/jobs_mgmt',        labelKey: 'menu_manage_ads',           roles: null },
   // Recruiter-only, requires BE

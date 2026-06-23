@@ -3,6 +3,7 @@ import jbdhLogoImg from './assets/img/JBDH_64X64.png';
 import { useTranslation } from './hooks/TranslationProvider';
 import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAccount, Footer, FeedbackButton } from './components/common';
 import { RequireLocalAccount } from './components/common/RequireLocalAccount';
+import { RequireLocalRole } from './components/common/RequireLocalRole';
 import { LocalAccountProvider } from './context/LocalAccountContext';
 import OnboardingPage from './features/onboarding/OnboardingPage';
 import AccountRequiredModal from './components/common/modals/AccountRequiredModal';
@@ -163,9 +164,9 @@ function App() {
           <Route path="/messages"   element={<RequireLocalAccount><MessagesPage /></RequireLocalAccount>} />
           <Route path="/settings"   element={<RequireLocalAccount><SettingsPage /></RequireLocalAccount>} />
           <Route path="/compare-cv-jobad" element={<RequireLocalAccount><CompareCvToJobAdPage /></RequireLocalAccount>} />
-          <Route path="/candidate"        element={<RequireLocalAccount><CandidatePage /></RequireLocalAccount>} />
-          <Route path="/candidate/:id"    element={<RequireLocalAccount><CandidatePage /></RequireLocalAccount>} />
-          <Route path="/cv_mgmt"          element={<RequireLocalAccount><CvMgmtPage /></RequireLocalAccount>} />
+          <Route path="/candidate"        element={<RequireLocalRole roles={['User', 'Manager', 'Recruiter']}><CandidatePage /></RequireLocalRole>} />
+          <Route path="/candidate/:id"    element={<RequireLocalRole roles={['User', 'Manager', 'Recruiter']}><CandidatePage /></RequireLocalRole>} />
+          <Route path="/cv_mgmt"          element={<RequireLocalRole roles={['Manager', 'Recruiter']}><CvMgmtPage /></RequireLocalRole>} />
           <Route path="/job_mgmt"         element={<RequireLocalAccount><JobMgmtPage /></RequireLocalAccount>} />
           <Route path="/jobs_mgmt"        element={<RequireLocalAccount><JobMgmtPage /></RequireLocalAccount>} />
 
@@ -179,8 +180,8 @@ function App() {
           <Route path="/add-job-ad"       element={<RequireLocalAccount><RequireAccount><AddJobAdPage /></RequireAccount></RequireLocalAccount>} />
           <Route path="/match-ad-cvs"     element={<RequireLocalAccount><RequireAccount><MatchAdToCvsPage /></RequireAccount></RequireLocalAccount>} />
           <Route path="/jobs-and-cvs"     element={<RequireLocalAccount><JobsAndCvsPage /></RequireLocalAccount>} />
-          <Route path="/my-profile"       element={<RequireLocalAccount><MyProfilePage /></RequireLocalAccount>} />
-          <Route path="/candidate_mgmt"   element={<RequireLocalAccount><RequireAccount><CandidateMgmtPage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/my-profile"       element={<RequireLocalRole roles={['User']}><MyProfilePage /></RequireLocalRole>} />
+          <Route path="/candidate_mgmt"   element={<RequireLocalRole roles={['Manager']}><CandidateMgmtPage /></RequireLocalRole>} />
           <Route path="/ats-results"      element={<RequireLocalAccount><RequireAccount><AtsResultsPage /></RequireAccount></RequireLocalAccount>} />
           <Route path="/ai-analysis-result" element={<RequireLocalAccount><RequireAccount><AiAnalysisResultPage /></RequireAccount></RequireLocalAccount>} />
 

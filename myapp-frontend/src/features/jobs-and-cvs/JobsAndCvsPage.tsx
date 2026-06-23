@@ -12,6 +12,7 @@ import { parseJobName } from '../../utils/parseJobName';
 import type { StructuredJob, MatchResult, StructuredCV, SeekerProfile } from '../../ai/ai';
 import { structureCV, analyzeJob, matchJobStructured } from '../../ai/ai';
 import { useAuth } from '../../context/AuthContext';
+import { useLocalAccountContext } from '../../context/LocalAccountContext';
 import { LocalDbService } from '../../db/LocalDbService';
 import type { Match } from '../../db/types';
 import { Icon } from '../../components/ui/Icon';
@@ -253,10 +254,11 @@ const GraphicalTab: React.FC<{
   localMatchMap: Map<string, Match>;
   atsMap: Map<string, AtsResult>;
   onPillClick: (atsResultId: number) => void;
+  onLocalMatchClick: (cvId: string, jobId: string) => void;
   emptyLabel: string;
   colLowMatch: string;
   colHighMatch: string;
-}> = ({ activeCvs, activeJobs, localMatchMap, atsMap, onPillClick, emptyLabel, colLowMatch, colHighMatch }) => {
+}> = ({ activeCvs, activeJobs, localMatchMap, atsMap, onPillClick, onLocalMatchClick, emptyLabel, colLowMatch, colHighMatch }) => {
   if (activeCvs.length === 0 || activeJobs.length === 0) {
     return <p className="text-sm text-slate-400 text-center py-6">{emptyLabel}</p>;
   }
@@ -299,7 +301,13 @@ const GraphicalTab: React.FC<{
                           title={cv.name}
                           initialsFrom={cv.candidateName}
                           size="sm"
-                          onClick={beMatch?.id && hasScore ? () => onPillClick(beMatch.id) : undefined}
+                          onClick={
+                            localMatch
+                              ? () => onLocalMatchClick(cv.id, job.id)
+                              : beMatch?.id
+                              ? () => onPillClick(beMatch.id)
+                              : undefined
+                          }
                         />
                       </div>
                     );
@@ -320,6 +328,7 @@ const JobsAndCvsPage: React.FC = () => {
   const { tSync } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { localRoles } = useLocalAccountContext();
   const llmReady = useLlmReady();
 
   const [cvs,  setCvs]  = useState<CvItem[]>([]);
@@ -338,35 +347,50 @@ const JobsAndCvsPage: React.FC = () => {
 
   // AI match state
   const [matchingPairs, setMatchingPairs] = useState<Set<string>>(new Set());
+  const [bulkProgress,  setBulkProgress]  = useState<{ done: number; total: number } | null>(null);
 
   // Local match detail modal
   const [localDetail, setLocalDetail] = useState<{ cvId: string; jobId: string } | null>(null);
 
-  // Load CVs from IDB (client-first)
+  // Load CVs from IDB — filter by role:
+  // Kandidat only  → own candidate's CVs only
+  // Säljare only   → managed candidates' CVs only (not own)
+  // Both (or BE)   → all CVs
   useEffect(() => {
     (async () => {
       try {
+        const isCandidate = user ? user.roles?.includes('User') : localRoles.includes('User');
+        const isSeller    = user ? user.roles?.includes('Manager') : localRoles.includes('Manager');
         const allCvs = await LocalDbService.getAllCVs();
-        const items: CvItem[] = await Promise.all(
+        const enriched = await Promise.all(
           allCvs.map(async cv => {
             let candidateName: string | undefined;
+            let isOwn = false;
             try {
               const candidate = await LocalDbService.getCandidate(cv.candidate_id);
               candidateName = candidate?.name;
+              isOwn = !!candidate?.is_own_candidate;
             } catch { /* skip */ }
-            return {
-              id: cv.cv_id,
-              name: cv.cv_title || cv.cv_anonymized.slice(0, 50),
-              text: cv.cv_anonymized,
-              candidateName,
-            };
+            return { cv, candidateName, isOwn };
           })
         );
+        const filtered = enriched.filter(({ isOwn }) => {
+          if (isCandidate && isSeller) return true;   // both roles → all CVs
+          if (isCandidate)             return isOwn;  // kandidat only → own CVs
+          if (isSeller)                return !isOwn; // säljare only → managed CVs
+          return true;                                // fallback (BE user without local roles) → all
+        });
+        const items: CvItem[] = filtered.map(({ cv, candidateName }) => ({
+          id: cv.cv_id,
+          name: cv.cv_title || cv.cv_anonymized.slice(0, 50),
+          text: cv.cv_anonymized,
+          candidateName,
+        }));
         setCvs(items);
         setSelectedCvIds(new Set(items.map(c => c.id)));
       } catch { /* silently ignore */ }
     })();
-  }, []);
+  }, [user, localRoles]);
 
   // Load Jobs from IDB (client-first)
   useEffect(() => {
@@ -585,6 +609,21 @@ const JobsAndCvsPage: React.FC = () => {
     // localMatchMap is updated inside handleAiMatch — modal re-renders automatically
   };
 
+  const handleBulkAiMatch = async () => {
+    const pairs = activeCvs.flatMap(cv =>
+      activeJobs
+        .filter(job => !localMatchMap.has(`${cv.id}|${job.id}`))
+        .map(job => ({ cvId: cv.id, jobId: job.id }))
+    );
+    if (!pairs.length) return;
+    setBulkProgress({ done: 0, total: pairs.length });
+    for (let i = 0; i < pairs.length; i++) {
+      await handleAiMatch(pairs[i].cvId, pairs[i].jobId);
+      setBulkProgress({ done: i + 1, total: pairs.length });
+    }
+    setBulkProgress(null);
+  };
+
   const handleDeleteCv = (id: string) => {
     const cv = cvs.find(c => c.id === id);
     if (cv) {
@@ -609,6 +648,9 @@ const JobsAndCvsPage: React.FC = () => {
           title={tSync('jac_result')}
           action={
             <div className="flex gap-2">
+              {(user ? user.roles?.includes('Manager') : localRoles.includes('Manager')) && (
+                <Button variant="secondary" size="sm" onClick={() => navigate('/candidate_mgmt')}>{tSync('menu_manage_candidates')}</Button>
+              )}
               <Button variant="secondary" size="sm" onClick={() => navigate('/cv_mgmt')}>{tSync('jac_manage_cv')}</Button>
               <Button variant="secondary" size="sm" onClick={() => navigate('/job_mgmt')}>{tSync('jac_manage_job')}</Button>
             </div>
@@ -659,6 +701,7 @@ const JobsAndCvsPage: React.FC = () => {
               localMatchMap={localMatchMap}
               atsMap={atsMap}
               onPillClick={handleRowClick}
+              onLocalMatchClick={handleLocalMatchClick}
               emptyLabel={tSync('jac_result_empty')}
               colLowMatch={tSync('jac_col_low_match')}
               colHighMatch={tSync('jac_col_high_match')}
@@ -676,6 +719,32 @@ const JobsAndCvsPage: React.FC = () => {
               aiMatchLabel={tSync('jac_ai_match_btn')}
               aiMatchingLabel={tSync('jac_ai_matching')}
             />
+          )}
+
+          {/* Bulk AI match */}
+          {llmReady && activeCvs.length > 0 && activeJobs.length > 0 && (
+            <div className="flex items-center gap-3 mt-4 pt-4 border-t border-slate-100">
+              <button
+                onClick={handleBulkAiMatch}
+                disabled={!!bulkProgress}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <AiIcon className="w-4 h-4 text-white" />
+                {bulkProgress
+                  ? tSync('jac_bulk_matching')
+                      .replace('{{done}}',  String(bulkProgress.done))
+                      .replace('{{total}}', String(bulkProgress.total))
+                  : tSync('jac_bulk_match_btn')}
+              </button>
+              {!bulkProgress && (() => {
+                const unmatched = activeCvs.flatMap(cv =>
+                  activeJobs.filter(job => !localMatchMap.has(`${cv.id}|${job.id}`))
+                ).length;
+                return unmatched > 0
+                  ? <span className="text-xs text-slate-400">{unmatched} kombinationer utan AI-matchning</span>
+                  : <span className="text-xs text-green-600">Alla kombinationer är matchade ✓</span>;
+              })()}
+            </div>
           )}
         </PageCard>
       </PageWrapper>

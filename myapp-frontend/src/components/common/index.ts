@@ -14,6 +14,7 @@ export { ConfirmModal } from './ConfirmModal';
 export { RoleGate } from './RoleGate';
 export { RequireAuth } from './RequireAuth';
 export { RequireAccount } from './RequireAccount';
+export { RequireLocalRole } from './RequireLocalRole';
 export { FieldAnalysisCard } from './FieldAnalysisCard';
 export type { FieldAnalysis } from './FieldAnalysisCard';
 export { Section } from './Section';
