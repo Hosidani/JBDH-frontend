@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import jbdhLogoImg from './assets/img/JBDH_64X64.png';
 import { useTranslation } from './hooks/TranslationProvider';
-import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAuth, RequireAccount, Footer, FeedbackButton } from './components/common';
+import { LoginModal, UserIndicator, HamburgerMenu, ErrorBoundary, RequireAccount, Footer, FeedbackButton } from './components/common';
+import { RequireLocalAccount } from './components/common/RequireLocalAccount';
+import { LocalAccountProvider } from './context/LocalAccountContext';
+import OnboardingPage from './features/onboarding/OnboardingPage';
 import AccountRequiredModal from './components/common/modals/AccountRequiredModal';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -146,41 +149,40 @@ function App() {
       <FeedbackButton />
       <main className="flex-1 flex flex-col items-center justify-start py-8">
         <Routes>
-          {/* Public */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/about" element={<Suspense fallback={null}><AboutPage /></Suspense>} />
-          <Route path="/messages" element={<MessagesPage />} />
+          {/* Always accessible — no local account required */}
+          <Route path="/"           element={<HomePage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/about"      element={<Suspense fallback={null}><AboutPage /></Suspense>} />
+          <Route path="/contact"    element={<ContactPage />} />
+          <Route path="/terms"      element={<TermsPage />} />
+          <Route path="/privacy"    element={<PrivacyPage />} />
+          <Route path="/eula"       element={<EulaPage />} />
 
-          {/* Local-first — no account needed */}
-          <Route path="/settings"         element={<SettingsPage />} />
-          <Route path="/compare-cv-jobad" element={<CompareCvToJobAdPage />} />
-          <Route path="/candidate"        element={<CandidatePage />} />
-          <Route path="/candidate/:id"    element={<CandidatePage />} />
-          <Route path="/cv_mgmt"          element={<CvMgmtPage />} />
-          <Route path="/job_mgmt"         element={<JobMgmtPage />} />
-          <Route path="/jobs_mgmt"        element={<JobMgmtPage />} />
+          {/* Everything below requires a local account (redirects to / if none) */}
+          <Route path="/register"   element={<RequireLocalAccount><RegisterPage /></RequireLocalAccount>} />
+          <Route path="/messages"   element={<RequireLocalAccount><MessagesPage /></RequireLocalAccount>} />
+          <Route path="/settings"   element={<RequireLocalAccount><SettingsPage /></RequireLocalAccount>} />
+          <Route path="/compare-cv-jobad" element={<RequireLocalAccount><CompareCvToJobAdPage /></RequireLocalAccount>} />
+          <Route path="/candidate"        element={<RequireLocalAccount><CandidatePage /></RequireLocalAccount>} />
+          <Route path="/candidate/:id"    element={<RequireLocalAccount><CandidatePage /></RequireLocalAccount>} />
+          <Route path="/cv_mgmt"          element={<RequireLocalAccount><CvMgmtPage /></RequireLocalAccount>} />
+          <Route path="/job_mgmt"         element={<RequireLocalAccount><JobMgmtPage /></RequireLocalAccount>} />
+          <Route path="/jobs_mgmt"        element={<RequireLocalAccount><JobMgmtPage /></RequireLocalAccount>} />
 
-          {/* Requires account (shows modal if not logged in) */}
-          <Route path="/profile"    element={<RequireAccount><ProfilePage /></RequireAccount>} />
-          <Route path="/account"    element={<RequireAccount><AccountPage /></RequireAccount>} />
-          <Route path="/saved-jobs" element={<RequireAccount><SavedJobsPage /></RequireAccount>} />
-          <Route path="/job/:id"    element={<RequireAccount><JobDetailPage /></RequireAccount>} />
-          <Route path="/matching"   element={<RequireAccount><MatchingProfilePage /></RequireAccount>} />
-          <Route path="/search"           element={<RequireAccount><SearchJobsPage /></RequireAccount>} />
-          <Route path="/add-job-ad"       element={<RequireAccount><AddJobAdPage /></RequireAccount>} />
-          <Route path="/match-ad-cvs"     element={<RequireAccount><MatchAdToCvsPage /></RequireAccount>} />
-          <Route path="/jobs-and-cvs"     element={<RequireAccount><JobsAndCvsPage /></RequireAccount>} />
-          <Route path="/my-profile"       element={<RequireAccount><MyProfilePage /></RequireAccount>} />
-          <Route path="/candidate_mgmt"   element={<RequireAccount><CandidateMgmtPage /></RequireAccount>} />
-          <Route path="/ats-results"      element={<RequireAccount><AtsResultsPage /></RequireAccount>} />
-          <Route path="/ai-analysis-result" element={<RequireAccount><AiAnalysisResultPage /></RequireAccount>} />
-
-          {/* Footer pages */}
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/terms"   element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/eula"    element={<EulaPage />} />
+          {/* Requires local account + BE account (shows modal if not logged in to BE) */}
+          <Route path="/profile"    element={<RequireLocalAccount><RequireAccount><ProfilePage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/account"    element={<RequireLocalAccount><RequireAccount><AccountPage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/saved-jobs" element={<RequireLocalAccount><RequireAccount><SavedJobsPage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/job/:id"    element={<RequireLocalAccount><RequireAccount><JobDetailPage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/matching"   element={<RequireLocalAccount><RequireAccount><MatchingProfilePage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/search"           element={<RequireLocalAccount><RequireAccount><SearchJobsPage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/add-job-ad"       element={<RequireLocalAccount><RequireAccount><AddJobAdPage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/match-ad-cvs"     element={<RequireLocalAccount><RequireAccount><MatchAdToCvsPage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/jobs-and-cvs"     element={<RequireLocalAccount><JobsAndCvsPage /></RequireLocalAccount>} />
+          <Route path="/my-profile"       element={<RequireLocalAccount><MyProfilePage /></RequireLocalAccount>} />
+          <Route path="/candidate_mgmt"   element={<RequireLocalAccount><RequireAccount><CandidateMgmtPage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/ats-results"      element={<RequireLocalAccount><RequireAccount><AtsResultsPage /></RequireAccount></RequireLocalAccount>} />
+          <Route path="/ai-analysis-result" element={<RequireLocalAccount><RequireAccount><AiAnalysisResultPage /></RequireAccount></RequireLocalAccount>} />
 
           {/* 404 / unknown → root */}
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -199,9 +201,11 @@ export default function AppWithProvider() {
   return (
     <AuthProvider>
       <TranslationProvider>
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
+        <LocalAccountProvider>
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </LocalAccountProvider>
       </TranslationProvider>
     </AuthProvider>
   );

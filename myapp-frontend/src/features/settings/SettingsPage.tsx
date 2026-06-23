@@ -65,8 +65,18 @@ const SettingsPage: React.FC = () => {
     })();
   }, []);
 
-  // Sync roles when user logs in/out
-  useEffect(() => { setSelectedRoles(user?.roles ?? []); }, [user]);
+  // Sync roles from BE user when logged in; fall back to local IDB account when not
+  useEffect(() => {
+    if (user) { setSelectedRoles(user.roles ?? []); return; }
+    (async () => {
+      const account = await LocalDbService.getAccount();
+      if (!account) return;
+      const idbToBackend = Object.fromEntries(
+        Object.entries(BACKEND_ROLE_TO_IDB).map(([k, v]) => [v, k])
+      );
+      setSelectedRoles(account.role.map(r => idbToBackend[r]).filter(Boolean));
+    })();
+  }, [user]);
 
   // ── Flash "Sparat" helper ──────────────────────────────────────────────────
   const flashAiSaved  = () => { setAiSaved(true);   setTimeout(() => setAiSaved(false),   2000); };
@@ -78,7 +88,7 @@ const SettingsPage: React.FC = () => {
     if (!user) return; // ej inloggad → spara bara lokalt i state
     const previousRoles = user.roles ?? [];
     try {
-      await ApiService.updateAccountSettings({ roles: newRoles });
+      await ApiService.updateAccountSettings({ updateRoles: newRoles });
       await refreshRoles();
       const idbRoles = newRoles.map(r => BACKEND_ROLE_TO_IDB[r]).filter(Boolean) as Role[];
       await LocalDbService.updateAccount({ role: idbRoles });

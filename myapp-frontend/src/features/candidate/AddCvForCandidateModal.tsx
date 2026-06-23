@@ -7,6 +7,7 @@ import { Toggle } from '../../components/ui/Toggle';
 import { useTranslation } from '../../hooks/TranslationProvider';
 import { ApiService } from '../../services/ApiService';
 import { LocalDbService } from '../../db/LocalDbService';
+import { useAuth } from '../../context/AuthContext';
 import { parseCvFile, ACCEPT_STRING } from '../../utils/parseCvFile';
 import { structureCV } from '../../ai/ai';
 import type { CV, Candidate } from '../../db/types';
@@ -27,6 +28,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
   open, onClose, defaultCandidateId, candidates, editCv, onSaved, onTraitsUpdated,
 }) => {
   const { tSync } = useTranslation();
+  const { user } = useAuth();
   const isEdit = !!editCv;
 
   const [step, setStep] = useState<Step>('drop');
@@ -143,12 +145,16 @@ const AddCvForCandidateModal: React.FC<Props> = ({
     setSaving(true);
     setError(null);
     try {
-      // Send the client-extracted, masked text to backend
-      const backendCv = await ApiService.createExternalCV(cvText.trim(), cvTitle.trim() || undefined);
+      // Only send to backend when logged in — backend_id is optional for local-only users
+      let backendId: number | undefined;
+      if (user) {
+        const backendCv = await ApiService.createExternalCV(cvText.trim(), cvTitle.trim() || undefined);
+        backendId = backendCv.id;
+      }
 
       if (isEdit && editCv) {
         const updated = await LocalDbService.updateCV(editCv.cv_id, {
-          backend_id: backendCv.id,
+          ...(backendId !== undefined && { backend_id: backendId }),
           cv_title: cvTitle,
           candidate_id: candidateId,
           cv_published: published,
@@ -161,7 +167,7 @@ const AddCvForCandidateModal: React.FC<Props> = ({
         onSaved(updated!);
       } else {
         const saved = await LocalDbService.addCV({
-          backend_id: backendCv.id,
+          ...(backendId !== undefined && { backend_id: backendId }),
           candidate_id: candidateId,
           cv_title: cvTitle.trim() || file?.name || tSync('jac_manual_cv_title'),
           cv_anonymized: cvText.trim(),

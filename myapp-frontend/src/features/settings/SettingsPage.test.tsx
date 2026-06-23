@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { TranslationProvider } from '../../hooks/TranslationProvider';
@@ -77,7 +76,7 @@ describe('SettingsPage', () => {
     await act(async () => {
       fireEvent.click(screen.getAllByRole('checkbox', { hidden: true })[0].closest('label')!);
     });
-    expect(mocks.updateAccountSettings).toHaveBeenCalledWith({ roles: ['User'] });
+    expect(mocks.updateAccountSettings).toHaveBeenCalledWith({ updateRoles: ['User'] });
   });
 
   it('visar providerknapparna', () => {

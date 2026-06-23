@@ -1,6 +1,6 @@
 import { getDb } from './db';
 import { ApiService } from '../services/ApiService';
-import type { Account, Candidate, CV, Job } from './types';
+import type { Account, Candidate, CV, Job, Match } from './types';
 
 type AccountInput = Omit<Account, 'account_id'>;
 type CandidateInput = Omit<Candidate, 'candidate_id'>;
@@ -141,6 +141,11 @@ export class LocalDbService {
     return job;
   }
 
+  static async getJob(jobId: string): Promise<Job | undefined> {
+    const db = await getDb();
+    return db.get('jobs', jobId);
+  }
+
   static async getJobByBackendId(backendId: number): Promise<Job | undefined> {
     const db = await getDb();
     return db.getFromIndex('jobs', 'by-backend-id', backendId);
@@ -163,6 +168,32 @@ export class LocalDbService {
   static async deleteJob(jobId: string): Promise<void> {
     const db = await getDb();
     await db.delete('jobs', jobId);
+  }
+
+  // ── Match ──────────────────────────────────────────────────────────────────
+
+  static async setMatch(cvId: string, jobId: string, score: number, matchJson: string): Promise<Match> {
+    const db = await getDb();
+    const match: Match = {
+      match_id: `${cvId}|${jobId}`,
+      cv_id: cvId,
+      job_id: jobId,
+      overall_score: score,
+      match_json: matchJson,
+      matched_at: new Date().toISOString(),
+    };
+    await db.put('matches', match);
+    return match;
+  }
+
+  static async getMatch(cvId: string, jobId: string): Promise<Match | undefined> {
+    const db = await getDb();
+    return db.get('matches', `${cvId}|${jobId}`);
+  }
+
+  static async getAllMatches(): Promise<Match[]> {
+    const db = await getDb();
+    return db.getAll('matches');
   }
 
   // ── Debug / maintenance ────────────────────────────────────────────────────

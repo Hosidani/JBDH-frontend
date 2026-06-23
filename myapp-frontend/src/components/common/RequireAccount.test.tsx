@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { TranslationProvider } from '../../hooks/TranslationProvider';
 import { RequireAccount } from './RequireAccount';
+
+const { mockNavigate } = vi.hoisted(() => ({ mockNavigate: vi.fn() }));
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return { ...actual, useNavigate: () => mockNavigate };
+});
 
 const mockUser = { email: 'test@example.com', name: 'Test' };
 
@@ -16,9 +22,9 @@ const baseContext = {
   refreshRoles: vi.fn(),
 };
 
-function renderWithUser(user: typeof mockUser | null, initialPath = '/protected') {
+function renderWithUser(user: typeof mockUser | null) {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
+    <MemoryRouter initialEntries={['/', '/protected']} initialIndex={1}>
       <AuthContext.Provider value={{ ...baseContext, user }}>
         <TranslationProvider>
           <Routes>
@@ -41,10 +47,24 @@ describe('RequireAccount', () => {
     expect(screen.getByText('Skyddad sida')).toBeInTheDocument();
   });
 
-  it('navigerar till / när user saknas', () => {
-    renderWithUser(null);
-    expect(screen.getByText('Hem')).toBeInTheDocument();
+  it('renderar ingenting (null) när user saknas', () => {
+    const { container } = renderWithUser(null);
     expect(screen.queryByText('Skyddad sida')).not.toBeInTheDocument();
+    // returns null — container should be empty
+    expect(container.querySelector('[data-protected]')).toBeNull();
+  });
+
+  it('navigerar tillbaka (-1) när user saknas och det finns historik', () => {
+    Object.defineProperty(window, 'history', { writable: true, value: { length: 2 } });
+    renderWithUser(null);
+    expect(mockNavigate).toHaveBeenCalledWith(-1);
+    Object.defineProperty(window, 'history', { writable: true, value: { length: 1 } });
+  });
+
+  it('navigerar till / när user saknas och det inte finns historik', () => {
+    Object.defineProperty(window, 'history', { writable: true, value: { length: 1 } });
+    renderWithUser(null);
+    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
   });
 
   it('dispatchar requireAccount-event när user saknas', () => {

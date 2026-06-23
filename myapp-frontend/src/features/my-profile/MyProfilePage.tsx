@@ -1,16 +1,13 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import { LocalDbService } from '../../db/LocalDbService';
 
 const MyProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
-    if (!user?.email) return;
     (async () => {
-      const account = await LocalDbService.getAccountByEmail(user.email);
+      const account = await LocalDbService.getAccount();
       if (!account) return;
       const own = await LocalDbService.getOwnCandidate(account.account_id);
       if (own) {
@@ -19,7 +16,7 @@ const MyProfilePage: React.FC = () => {
         navigate('/candidate', { replace: true });
       }
     })();
-  }, [user, navigate]);
+  }, [navigate]);
 
   return null;
 };

@@ -68,6 +68,8 @@
   "candidate_form_create_title": "Skapa kandidat",
   "candidate_cv_section_title": "CV kopplade till",
   "candidate_cv_empty": "Inga CV tillagda.",
+  "candidate_cv_no_ai_provider": "För att kunna analysera CV behöver du välja en AI-leverantör och ange en API-nyckel.",
+  "candidate_cv_no_ai_settings_link": "Du gör det här.",
   "candidate_cv_add_title": "Lägg till CV",
   "candidate_cv_edit_title": "Redigera CV",
   "candidate_cv_view_text": "Visa/redigera CV-text",
@@ -502,6 +504,18 @@
   "jac_filter_title_jobs": "Filtrera jobb",
   "jac_select_all": "Välj alla",
   "jac_deselect_all": "Avmarkera alla",
+  "jac_ai_match_btn": "AI-matcha",
+  "jac_ai_matching": "Matchas…",
+  "jac_rematch_btn": "Matcha igen",
+  "llm_portrait_btn": "Matcha porträtt",
+  "llm_portrait_title": "Porträttmatchning",
+  "llm_portrait_no_portrait": "Kandidaten har inget porträtt ännu. Generera ett under kandidatkortet.",
+  "pitch_btn": "Pitch",
+  "pitch_loading": "Genererar…",
+  "pitch_title": "Pitch",
+  "pitch_copy": "Kopiera",
+  "pitch_copied": "Kopierad!",
+  "pitch_error": "Kunde inte generera pitch.",
   "ats_page_title": "ATS-resultat",
   "ats_loading": "Laddar…",
   "ats_load_error": "Kunde inte hämta ATS-resultat.",
@@ -564,5 +578,30 @@
   "llm_match_personal_qualities_match": "Personliga egenskaper (matchade)",
   "llm_match_personal_qualities_missing": "Personliga egenskaper (saknas)",
   "llm_match_required": "Obligatorisk",
-  "llm_match_error": "AI-matchning misslyckades. Kontrollera att en API-nyckel är angiven under Inställningar."
+  "llm_match_error": "AI-matchning misslyckades. Kontrollera att en API-nyckel är angiven under Inställningar.",
+
+  "menu_get_started": "Kom igång",
+
+  "onboarding_title": "Välkommen till JBDH",
+  "onboarding_next": "Nästa",
+  "onboarding_back": "Tillbaka",
+  "onboarding_finish": "Kom igång!",
+
+  "onboarding_step1_body": "Berätta vad du heter så kan vi anpassa din upplevelse.",
+  "onboarding_step1_name_label": "Vad heter du?",
+  "onboarding_step1_name_placeholder": "Ditt namn",
+
+  "onboarding_step2_body": "Hur tänker du använda JBDH?",
+  "onboarding_step2_user_title": "Jag söker jobb eller uppdrag",
+  "onboarding_step2_user_desc": "Bygg din kandidatprofil, ladda upp CV och matcha mot jobbannonser.",
+  "onboarding_step2_manager_title": "Jag är säljare eller rekryterare",
+  "onboarding_step2_manager_desc": "Hantera kandidater och CV:n, matcha mot jobbannonser och se ATS-resultat.",
+
+  "onboarding_step3_body": "JBDH kan använda AI för att analysera och matcha CV mot jobbannonser.",
+  "onboarding_step3_tip": "Du anger din egen API-nyckel under Inställningar. Nyckeln sparas bara lokalt i din webbläsare och skickas aldrig till vår server.",
+
+  "onboarding_step4_body": "JBDH fungerar direkt i din webbläsare — inget konto krävs. Med ett gratis JBDH-konto får du:",
+  "onboarding_step4_benefit1": "Tillgång till jobbsökning och automatisk matchning",
+  "onboarding_step4_benefit2": "Synkronisering mellan enheter",
+  "onboarding_step4_benefit3": "Säker lagring av din data i molnet"
 }

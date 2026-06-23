@@ -68,6 +68,8 @@
   "candidate_form_create_title": "Create candidate",
   "candidate_cv_section_title": "CVs linked to",
   "candidate_cv_empty": "No CVs added.",
+  "candidate_cv_no_ai_provider": "To analyse CVs you need to select an AI provider and enter an API key.",
+  "candidate_cv_no_ai_settings_link": "You can do that here.",
   "candidate_cv_add_title": "Add CV",
   "candidate_cv_edit_title": "Edit CV",
   "candidate_cv_view_text": "View/edit CV text",
@@ -502,6 +504,18 @@
   "jac_filter_title_jobs": "Filter jobs",
   "jac_select_all": "Select all",
   "jac_deselect_all": "Deselect all",
+  "jac_ai_match_btn": "AI match",
+  "jac_ai_matching": "Matching…",
+  "jac_rematch_btn": "Re-match",
+  "llm_portrait_btn": "Match portrait",
+  "llm_portrait_title": "Portrait match",
+  "llm_portrait_no_portrait": "The candidate has no portrait yet. Generate one from the candidate card.",
+  "pitch_btn": "Pitch",
+  "pitch_loading": "Generating…",
+  "pitch_title": "Pitch",
+  "pitch_copy": "Copy",
+  "pitch_copied": "Copied!",
+  "pitch_error": "Could not generate pitch.",
   "ats_page_title": "ATS Results",
   "ats_loading": "Loading…",
   "ats_load_error": "Could not load ATS results.",
@@ -564,5 +578,30 @@
   "llm_match_personal_qualities_match": "Personal qualities (matched)",
   "llm_match_personal_qualities_missing": "Personal qualities (missing)",
   "llm_match_required": "Required",
-  "llm_match_error": "AI matching failed. Check that an API key is set under Settings."
+  "llm_match_error": "AI matching failed. Check that an API key is set under Settings.",
+
+  "menu_get_started": "Get Started",
+
+  "onboarding_title": "Welcome to JBDH",
+  "onboarding_next": "Next",
+  "onboarding_back": "Back",
+  "onboarding_finish": "Get Started!",
+
+  "onboarding_step1_body": "Tell us your name so we can personalise your experience.",
+  "onboarding_step1_name_label": "What is your name?",
+  "onboarding_step1_name_placeholder": "Your name",
+
+  "onboarding_step2_body": "How do you plan to use JBDH?",
+  "onboarding_step2_user_title": "I am looking for a job or assignment",
+  "onboarding_step2_user_desc": "Build your candidate profile, upload your CV and match against job ads.",
+  "onboarding_step2_manager_title": "I am a sales rep or recruiter",
+  "onboarding_step2_manager_desc": "Manage candidates and CVs, match against job ads and view ATS results.",
+
+  "onboarding_step3_body": "JBDH can use AI to analyse and match CVs against job ads.",
+  "onboarding_step3_tip": "You enter your own API key under Settings. The key is stored only locally in your browser and is never sent to our server.",
+
+  "onboarding_step4_body": "JBDH works directly in your browser — no account required. With a free JBDH account you get:",
+  "onboarding_step4_benefit1": "Access to job search and automatic matching",
+  "onboarding_step4_benefit2": "Sync across devices",
+  "onboarding_step4_benefit3": "Secure cloud storage of your data"
 }
