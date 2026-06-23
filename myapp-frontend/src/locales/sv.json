@@ -53,6 +53,7 @@
   "menu_saved_jobs": "Mina sparade jobb",
   "menu_manage_candidate_cvs": "Hantera kandidat-CV",
   "menu_manage_candidates": "Hantera kandidater",
+  "menu_manage_local_accounts": "Hantera lokala konton",
   "menu_manage_ads": "Hantera annonser",
   "candidate_list_candidates": "Lista kandidater",
   "candidate_cv_download": "Ladda ner originalfil",
@@ -605,5 +606,14 @@
   "onboarding_step4_body": "JBDH fungerar direkt i din webbläsare — inget konto krävs. Med ett gratis JBDH-konto får du:",
   "onboarding_step4_benefit1": "Tillgång till jobbsökning och automatisk matchning",
   "onboarding_step4_benefit2": "Synkronisering mellan enheter",
-  "onboarding_step4_benefit3": "Säker lagring av din data i molnet"
+  "onboarding_step4_benefit3": "Säker lagring av din data i molnet",
+
+  "local_accounts_title": "Lokala konton",
+  "local_accounts_switch_btn": "Byt konto",
+  "local_accounts_delete_title": "Ta bort konto",
+  "local_accounts_delete_confirm": "Är du säker? Alla kandidater, CV:n och matchningar kopplade till detta konto tas bort permanent.",
+  "local_accounts_active_badge": "Aktivt",
+  "local_accounts_empty": "Inga lokala konton hittades.",
+  "local_accounts_role_candidate": "Kandidat",
+  "local_accounts_role_seller": "Säljare"
 }

@@ -19,7 +19,49 @@ export class LocalDbService {
   static async getAccount(): Promise<Account | undefined> {
     const db = await getDb();
     const all = await db.getAll('accounts');
+    if (all.length === 0) return undefined;
+    if (all.length === 1) return all[0];
+    const activeId = localStorage.getItem('active_account_id');
+    if (activeId) {
+      const active = all.find(a => a.account_id === activeId);
+      if (active) return active;
+    }
     return all[0];
+  }
+
+  static async getAllAccounts(): Promise<Account[]> {
+    const db = await getDb();
+    return db.getAll('accounts');
+  }
+
+  static async getAccountById(id: string): Promise<Account | undefined> {
+    const db = await getDb();
+    return db.get('accounts', id);
+  }
+
+  static setActiveAccount(id: string): void {
+    localStorage.setItem('active_account_id', id);
+  }
+
+  static async deleteAccountById(id: string): Promise<void> {
+    const db = await getDb();
+    // Cascade: candidates → CVs → matches → candidate → account
+    const candidates = await db.getAllFromIndex('candidates', 'by-account', id);
+    const allMatches = await db.getAll('matches');
+    for (const candidate of candidates) {
+      const cvs = await db.getAllFromIndex('cvs', 'by-candidate', candidate.candidate_id);
+      const cvIds = new Set(cvs.map(cv => cv.cv_id));
+      const matchKeys = allMatches.filter(m => cvIds.has(m.cv_id)).map(m => m.match_id);
+      await Promise.all([
+        ...matchKeys.map(k => db.delete('matches', k)),
+        ...cvs.map(cv => db.delete('cvs', cv.cv_id)),
+      ]);
+      await db.delete('candidates', candidate.candidate_id);
+    }
+    await db.delete('accounts', id);
+    if (localStorage.getItem('active_account_id') === id) {
+      localStorage.removeItem('active_account_id');
+    }
   }
 
   static async getAccountByEmail(email: string): Promise<Account | undefined> {

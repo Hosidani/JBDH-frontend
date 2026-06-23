@@ -28,6 +28,7 @@ import CandidateMgmtPage from './features/candidate-mgmt/CandidateMgmtPage';
 import CandidatePage from './features/candidate/CandidatePage';
 import MyProfilePage from './features/my-profile/MyProfilePage';
 import JobMgmtPage from './features/job-mgmt/JobMgmtPage';
+import LocalAccountsPage from './features/local-accounts/LocalAccountsPage';
 import { AiAnalysisResultPage } from './features/ai-analysis-result';
 import { JobDetailPage } from './features/jobs';
 import { MessagesPage } from './features/messages';
@@ -147,7 +148,7 @@ function App() {
           </div>
         </div>
       )}
-      <FeedbackButton />
+      {user && <FeedbackButton />}
       <main className="flex-1 flex flex-col items-center justify-start py-8">
         <Routes>
           {/* Always accessible — no local account required */}
@@ -182,6 +183,7 @@ function App() {
           <Route path="/jobs-and-cvs"     element={<RequireLocalAccount><JobsAndCvsPage /></RequireLocalAccount>} />
           <Route path="/my-profile"       element={<RequireLocalRole roles={['User']}><MyProfilePage /></RequireLocalRole>} />
           <Route path="/candidate_mgmt"   element={<RequireLocalRole roles={['Manager']}><CandidateMgmtPage /></RequireLocalRole>} />
+          <Route path="/local_accounts"   element={<RequireLocalAccount><LocalAccountsPage /></RequireLocalAccount>} />
           <Route path="/ats-results"      element={<RequireLocalAccount><RequireAccount><AtsResultsPage /></RequireAccount></RequireLocalAccount>} />
           <Route path="/ai-analysis-result" element={<RequireLocalAccount><RequireAccount><AiAnalysisResultPage /></RequireAccount></RequireLocalAccount>} />
 

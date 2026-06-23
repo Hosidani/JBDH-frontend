@@ -67,7 +67,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
   const { tSync } = useTranslation();
   const { hasAnyRole, isLoggedIn } = useRoles();
   const navigate = useNavigate();
-  const { hasLocalAccount, localRoles } = useLocalAccountContext();
+  const { hasLocalAccount, hasBeAccount, localRoles, allAccounts } = useLocalAccountContext();
 
   if (!isOpen) return null;
 
@@ -151,10 +151,18 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
               <button className="text-left hover:underline" onClick={() => { onClose(); onOpenLogin(); }}>
                 {tSync('menu_login')}
               </button>
-              <Link to="/register" className="text-left hover:underline" onClick={onClose}>
-                {tSync('menu_register')}
-              </Link>
+              {!hasBeAccount && (
+                <Link to="/register" className="text-left hover:underline" onClick={onClose}>
+                  {tSync('menu_register')}
+                </Link>
+              )}
             </>
+          )}
+
+          {!user && allAccounts.length >= 2 && (
+            <Link to="/local_accounts" className="text-left hover:underline" onClick={onClose}>
+              {tSync('menu_manage_local_accounts')}
+            </Link>
           )}
 
           {MENU_ITEMS.filter(item => !item.old).filter(isVisible).map(renderItem)}

@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { TranslationProvider } from '../../hooks/TranslationProvider';
+import { LocalAccountProvider } from '../../context/LocalAccountContext';
 import SettingsPage from './SettingsPage';
 
 const mocks = vi.hoisted(() => ({
@@ -40,9 +41,11 @@ function renderPage(user: any = null) {
   return render(
     <MemoryRouter>
       <AuthContext.Provider value={{ ...baseContext, user }}>
-        <TranslationProvider>
-          <SettingsPage />
-        </TranslationProvider>
+        <LocalAccountProvider>
+          <TranslationProvider>
+            <SettingsPage />
+          </TranslationProvider>
+        </LocalAccountProvider>
       </AuthContext.Provider>
     </MemoryRouter>
   );
@@ -62,13 +65,12 @@ describe('SettingsPage', () => {
     expect(screen.getByText('account_roles')).toBeInTheDocument();
   });
 
-  it('dispatchar requireAccount när ej inloggad och roll klickas', () => {
-    const listener = vi.fn();
-    window.addEventListener('requireAccount', listener);
+  it('sparar roll lokalt i IDB när ej inloggad och roll klickas', async () => {
     renderPage(null);
-    fireEvent.click(screen.getAllByRole('checkbox', { hidden: true })[0].closest('label')!);
-    expect(listener).toHaveBeenCalledTimes(1);
-    window.removeEventListener('requireAccount', listener);
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('checkbox', { hidden: true })[0].closest('label')!);
+    });
+    expect(mocks.updateAccount).toHaveBeenCalledWith({ role: ['sökande'] });
   });
 
   it('sparar roller via ApiService när inloggad och roll klickas', async () => {

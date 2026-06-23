@@ -605,5 +605,15 @@
   "onboarding_step4_body": "JBDH works directly in your browser — no account required. With a free JBDH account you get:",
   "onboarding_step4_benefit1": "Access to job search and automatic matching",
   "onboarding_step4_benefit2": "Sync across devices",
-  "onboarding_step4_benefit3": "Secure cloud storage of your data"
+  "onboarding_step4_benefit3": "Secure cloud storage of your data",
+
+  "menu_manage_local_accounts": "Manage local accounts",
+  "local_accounts_title": "Local accounts",
+  "local_accounts_switch_btn": "Switch account",
+  "local_accounts_delete_title": "Delete account",
+  "local_accounts_delete_confirm": "Are you sure? All candidates, CVs and matches linked to this account will be permanently deleted.",
+  "local_accounts_active_badge": "Active",
+  "local_accounts_empty": "No local accounts found.",
+  "local_accounts_role_candidate": "Candidate",
+  "local_accounts_role_seller": "Seller"
 }
