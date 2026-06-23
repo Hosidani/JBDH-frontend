@@ -37,7 +37,7 @@ function renderOnboarding() {
     <MemoryRouter>
       <AuthContext.Provider value={baseAuthContext}>
         <TranslationProvider>
-          <LocalAccountContext.Provider value={{ hasLocalAccount: false, localRoles: [], refreshLocalAccount: mockRefresh }}>
+          <LocalAccountContext.Provider value={{ hasLocalAccount: false, hasBeAccount: false, localRoles: [], allAccounts: [], currentAccountId: undefined, refreshLocalAccount: mockRefresh }}>
             <OnboardingPage />
           </LocalAccountContext.Provider>
         </TranslationProvider>

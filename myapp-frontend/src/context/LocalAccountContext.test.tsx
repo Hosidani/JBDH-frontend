@@ -2,13 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { LocalAccountProvider, useLocalAccountContext } from './LocalAccountContext';
 
-const { mockGetAccount } = vi.hoisted(() => ({
+const { mockGetAccount, mockGetAllAccounts } = vi.hoisted(() => ({
   mockGetAccount: vi.fn(),
+  mockGetAllAccounts: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('../db/LocalDbService', () => ({
   LocalDbService: {
     getAccount: mockGetAccount,
+    getAllAccounts: mockGetAllAccounts,
     saveAccount: vi.fn(),
     addCandidate: vi.fn(),
   },

@@ -7,7 +7,7 @@ import { RequireLocalAccount } from './RequireLocalAccount';
 function renderWith(hasLocalAccount: boolean | null) {
   return render(
     <MemoryRouter initialEntries={['/protected']}>
-      <LocalAccountContext.Provider value={{ hasLocalAccount, localRoles: [], refreshLocalAccount: vi.fn() }}>
+      <LocalAccountContext.Provider value={{ hasLocalAccount, hasBeAccount: false, localRoles: [], allAccounts: [], currentAccountId: undefined, refreshLocalAccount: vi.fn() }}>
         <Routes>
           <Route path="/" element={<div>Hem</div>} />
           <Route
