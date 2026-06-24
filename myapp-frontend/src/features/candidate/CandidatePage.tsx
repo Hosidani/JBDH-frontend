@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { PageBackground, PageWrapper } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
 import { Modal } from '../../components/common';
@@ -551,6 +551,14 @@ const CandidatePage: React.FC = () => {
                     </li>
                   ))}
                 </ul>
+              )}
+              {!llmReady && (
+                <p className="text-xs text-slate-500 mt-2 px-1">
+                  {tSync('candidate_cv_no_ai_provider')}{' '}
+                  <Link to="/settings" className="text-blue-600 underline hover:text-blue-800">
+                    {tSync('candidate_cv_no_ai_settings_link')}
+                  </Link>
+                </p>
               )}
               <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-2">
                 {cvAnalysisError && <p className="text-xs text-red-500">{cvAnalysisError}</p>}

@@ -13,6 +13,7 @@ interface ButtonProps {
   title?: string;
   children: React.ReactNode;
   className?: string;
+  'data-testid'?: string;
 }
 
 const variantClasses: Record<Variant, string> = {
@@ -38,8 +39,10 @@ export const Button: React.FC<ButtonProps> = ({
   title,
   children,
   className = '',
+  'data-testid': dataTestId,
 }) => (
   <button
+    data-testid={dataTestId}
     type={type}
     onClick={onClick}
     disabled={disabled || loading}

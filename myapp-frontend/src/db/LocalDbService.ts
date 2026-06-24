@@ -1,6 +1,6 @@
 import { getDb } from './db';
 import { ApiService } from '../services/ApiService';
-import type { Account, Candidate, CV, Job } from './types';
+import type { Account, Candidate, CV, Job, Match } from './types';
 
 type AccountInput = Omit<Account, 'account_id'>;
 type CandidateInput = Omit<Candidate, 'candidate_id'>;
@@ -19,7 +19,49 @@ export class LocalDbService {
   static async getAccount(): Promise<Account | undefined> {
     const db = await getDb();
     const all = await db.getAll('accounts');
+    if (all.length === 0) return undefined;
+    if (all.length === 1) return all[0];
+    const activeId = localStorage.getItem('active_account_id');
+    if (activeId) {
+      const active = all.find(a => a.account_id === activeId);
+      if (active) return active;
+    }
     return all[0];
+  }
+
+  static async getAllAccounts(): Promise<Account[]> {
+    const db = await getDb();
+    return db.getAll('accounts');
+  }
+
+  static async getAccountById(id: string): Promise<Account | undefined> {
+    const db = await getDb();
+    return db.get('accounts', id);
+  }
+
+  static setActiveAccount(id: string): void {
+    localStorage.setItem('active_account_id', id);
+  }
+
+  static async deleteAccountById(id: string): Promise<void> {
+    const db = await getDb();
+    // Cascade: candidates → CVs → matches → candidate → account
+    const candidates = await db.getAllFromIndex('candidates', 'by-account', id);
+    const allMatches = await db.getAll('matches');
+    for (const candidate of candidates) {
+      const cvs = await db.getAllFromIndex('cvs', 'by-candidate', candidate.candidate_id);
+      const cvIds = new Set(cvs.map(cv => cv.cv_id));
+      const matchKeys = allMatches.filter(m => cvIds.has(m.cv_id)).map(m => m.match_id);
+      await Promise.all([
+        ...matchKeys.map(k => db.delete('matches', k)),
+        ...cvs.map(cv => db.delete('cvs', cv.cv_id)),
+      ]);
+      await db.delete('candidates', candidate.candidate_id);
+    }
+    await db.delete('accounts', id);
+    if (localStorage.getItem('active_account_id') === id) {
+      localStorage.removeItem('active_account_id');
+    }
   }
 
   static async getAccountByEmail(email: string): Promise<Account | undefined> {
@@ -141,6 +183,11 @@ export class LocalDbService {
     return job;
   }
 
+  static async getJob(jobId: string): Promise<Job | undefined> {
+    const db = await getDb();
+    return db.get('jobs', jobId);
+  }
+
   static async getJobByBackendId(backendId: number): Promise<Job | undefined> {
     const db = await getDb();
     return db.getFromIndex('jobs', 'by-backend-id', backendId);
@@ -163,6 +210,32 @@ export class LocalDbService {
   static async deleteJob(jobId: string): Promise<void> {
     const db = await getDb();
     await db.delete('jobs', jobId);
+  }
+
+  // ── Match ──────────────────────────────────────────────────────────────────
+
+  static async setMatch(cvId: string, jobId: string, score: number, matchJson: string): Promise<Match> {
+    const db = await getDb();
+    const match: Match = {
+      match_id: `${cvId}|${jobId}`,
+      cv_id: cvId,
+      job_id: jobId,
+      overall_score: score,
+      match_json: matchJson,
+      matched_at: new Date().toISOString(),
+    };
+    await db.put('matches', match);
+    return match;
+  }
+
+  static async getMatch(cvId: string, jobId: string): Promise<Match | undefined> {
+    const db = await getDb();
+    return db.get('matches', `${cvId}|${jobId}`);
+  }
+
+  static async getAllMatches(): Promise<Match[]> {
+    const db = await getDb();
+    return db.getAll('matches');
   }
 
   // ── Debug / maintenance ────────────────────────────────────────────────────

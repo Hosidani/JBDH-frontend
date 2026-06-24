@@ -4,15 +4,20 @@ import { PageBackground, PageWrapper, Modal } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
 import { Button } from '../../components/ui/Button';
 import { NamePill } from '../../components/common/NamePill';
+import { AiIcon } from '../../components/ui/AiIcon';
 import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
+import { useLlmReady } from '../../hooks/useLlmReady';
 import { parseJobName } from '../../utils/parseJobName';
-import type { StructuredJob } from '../../ai/ai';
-import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
+import type { StructuredJob, MatchResult, StructuredCV, SeekerProfile } from '../../ai/ai';
+import { structureCV, analyzeJob, matchJobStructured } from '../../ai/ai';
 import { useAuth } from '../../context/AuthContext';
+import { useLocalAccountContext } from '../../context/LocalAccountContext';
 import { LocalDbService } from '../../db/LocalDbService';
+import type { Match } from '../../db/types';
 import { Icon } from '../../components/ui/Icon';
 import AtsResultDetailModal, { type AtsResultDetail } from '../ats/AtsResultDetailModal';
+import LocalMatchDetailModal from './LocalMatchDetailModal';
 import coffeBreakImg from '../../assets/img/Coffe-break.png';
 import noWayImg from '../../assets/graphics/NoWay.png';
 import poorImg from '../../assets/graphics/Poor.png';
@@ -22,13 +27,17 @@ import excelentImg from '../../assets/graphics/Excelent.png';
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
-interface CvItem  { id: number; name: string; text: string }
+interface CvItem {
+  id: string;             // IDB cv_id UUID
+  name: string;           // cv_title or truncated cv_anonymized
+  text: string;           // cv_anonymized
+  candidateName?: string;
+}
 interface JobItem {
-  id: number;
-  displayName: string;
-  rawName: string;
+  id: string;             // IDB job_id UUID
+  displayName: string;    // job_title or truncated description
   channel?: string;
-  text: string;
+  text: string;           // job_description
   company?: string;
   applyLatest?: string;
   domain?: string;
@@ -44,7 +53,9 @@ interface CompactRow {
   primaryLine: string;
   secondaryLine: string;
   score: number | null;
-  atsResultId?: number;
+  cvId?: string;
+  jobId?: string;
+  atsResultId?: number;  // set only when a BE ATS result exists
 }
 type TabId = 'cvs-jobs' | 'jobs-cvs' | 'scores' | 'graphical';
 
@@ -70,18 +81,18 @@ interface FilterModalProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  items: { id: number; label: string }[];
-  selected: Set<number>;
-  onChange: (next: Set<number>) => void;
+  items: { id: string; label: string }[];
+  selected: Set<string>;
+  onChange: (next: Set<string>) => void;
   selectAllLabel: string;
   deselectAllLabel: string;
-  onDeleteItem?: (id: number) => void;
+  onDeleteItem?: (id: string) => void;
 }
 
 const FilterModal: React.FC<FilterModalProps> = ({
   open, onClose, title, items, selected, onChange, selectAllLabel, deselectAllLabel, onDeleteItem,
 }) => {
-  const toggle = (id: number) => {
+  const toggle = (id: string) => {
     const next = new Set(selected);
     if (next.has(id)) next.delete(id); else next.add(id);
     onChange(next);
@@ -130,7 +141,13 @@ const CompactTable: React.FC<{
   emptyLabel: string;
   sortByScore?: boolean;
   onRowClick?: (id: number) => void;
-}> = ({ rows, emptyLabel, sortByScore = false, onRowClick }) => {
+  onLocalMatchClick?: (cvId: string, jobId: string) => void;
+  onAiMatch?: (cvId: string, jobId: string) => void;
+  matchingPairs?: Set<string>;
+  llmReady?: boolean;
+  aiMatchLabel: string;
+  aiMatchingLabel: string;
+}> = ({ rows, emptyLabel, sortByScore = false, onRowClick, onLocalMatchClick, onAiMatch, matchingPairs, llmReady, aiMatchLabel, aiMatchingLabel }) => {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>(sortByScore ? 'desc' : 'asc');
 
   useEffect(() => { setSortDir(sortByScore ? 'desc' : 'asc'); }, [sortByScore]);
@@ -159,18 +176,27 @@ const CompactTable: React.FC<{
               {sortDir === 'asc' ? '▲' : '▼'}
             </th>
             {!sortByScore && (
-              <th className="text-right text-slate-500 font-semibold pb-2 w-16">Score</th>
+              <th className="text-right text-slate-500 font-semibold pb-2 w-28" />
             )}
           </tr>
         </thead>
         <tbody>
           {sorted.map((row, i) => {
-            const clickable = !!row.atsResultId && !!onRowClick;
+            const hasBeResult = !!row.atsResultId && !!onRowClick && row.score != null;
+            const hasLocalResult = !row.atsResultId && row.score != null && !!row.cvId && !!row.jobId && !!onLocalMatchClick;
+            const clickable = hasBeResult || hasLocalResult;
+            const pairKey = row.cvId && row.jobId ? `${row.cvId}|${row.jobId}` : undefined;
+            const isMatching = pairKey ? matchingPairs?.has(pairKey) : false;
+            const handleClick = hasBeResult
+              ? () => onRowClick!(row.atsResultId!)
+              : hasLocalResult
+                ? () => onLocalMatchClick!(row.cvId!, row.jobId!)
+                : undefined;
             return (
               <tr
                 key={i}
                 className={`border-t border-slate-100 hover:bg-blue-50 ${clickable ? 'cursor-pointer' : ''}`}
-                onClick={clickable ? () => onRowClick!(row.atsResultId!) : undefined}
+                onClick={handleClick}
               >
                 <td className="py-2 pr-4">
                   <div className="flex items-center gap-2">
@@ -189,10 +215,26 @@ const CompactTable: React.FC<{
                   </div>
                 </td>
                 {!sortByScore && (
-                  <td className="py-2 text-right">
-                    {row.score != null
-                      ? <img src={scoreImage(row.score)} alt={`${Math.round(row.score)}%`} title={`${Math.round(row.score)}%`} className="h-7 w-auto object-contain inline-block" />
-                      : <span className="text-slate-400">—</span>}
+                  <td className="py-1.5 text-right">
+                    {row.score != null ? (
+                      <img
+                        src={scoreImage(row.score)}
+                        alt={`${Math.round(row.score)}%`}
+                        title={`${Math.round(row.score)}%`}
+                        className="h-7 w-auto object-contain inline-block"
+                      />
+                    ) : row.cvId && row.jobId && llmReady && onAiMatch ? (
+                      <button
+                        disabled={isMatching}
+                        onClick={(e) => { e.stopPropagation(); onAiMatch(row.cvId!, row.jobId!); }}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                      >
+                        <AiIcon className="w-3 h-3 text-white flex-shrink-0" />
+                        {isMatching ? aiMatchingLabel : aiMatchLabel}
+                      </button>
+                    ) : (
+                      <span className="text-slate-400 text-xs">—</span>
+                    )}
                   </td>
                 )}
               </tr>
@@ -209,13 +251,14 @@ const CompactTable: React.FC<{
 const GraphicalTab: React.FC<{
   activeCvs: CvItem[];
   activeJobs: JobItem[];
+  localMatchMap: Map<string, Match>;
   atsMap: Map<string, AtsResult>;
-  backendIdToName: Map<number, string>;
   onPillClick: (atsResultId: number) => void;
+  onLocalMatchClick: (cvId: string, jobId: string) => void;
   emptyLabel: string;
   colLowMatch: string;
   colHighMatch: string;
-}> = ({ activeCvs, activeJobs, atsMap, backendIdToName, onPillClick, emptyLabel, colLowMatch, colHighMatch }) => {
+}> = ({ activeCvs, activeJobs, localMatchMap, atsMap, onPillClick, onLocalMatchClick, emptyLabel, colLowMatch, colHighMatch }) => {
   if (activeCvs.length === 0 || activeJobs.length === 0) {
     return <p className="text-sm text-slate-400 text-center py-6">{emptyLabel}</p>;
   }
@@ -242,9 +285,11 @@ const GraphicalTab: React.FC<{
               <td className="py-3 relative" style={{ height: 40 }}>
                 <div className="relative w-full h-full flex items-center">
                   {activeCvs.map(cv => {
-                    const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-                    const hasScore = match != null;
-                    const position = hasScore ? (match.overall_score! / 100) : 0.5;
+                    const localMatch = localMatchMap.get(`${cv.id}|${job.id}`);
+                    const beMatch = atsMap.get(`${cv.name}|||${job.displayName}`);
+                    const score = localMatch?.overall_score ?? beMatch?.overall_score ?? undefined;
+                    const hasScore = score != null;
+                    const position = hasScore ? (score / 100) : 0.5;
                     return (
                       <div
                         key={cv.id}
@@ -254,9 +299,15 @@ const GraphicalTab: React.FC<{
                         <NamePill
                           id={cv.id}
                           title={cv.name}
-                          initialsFrom={backendIdToName.get(cv.id)}
+                          initialsFrom={cv.candidateName}
                           size="sm"
-                          onClick={hasScore ? () => onPillClick(match.id) : undefined}
+                          onClick={
+                            localMatch
+                              ? () => onLocalMatchClick(cv.id, job.id)
+                              : beMatch?.id
+                              ? () => onPillClick(beMatch.id)
+                              : undefined
+                          }
                         />
                       </div>
                     );
@@ -276,13 +327,17 @@ const GraphicalTab: React.FC<{
 const JobsAndCvsPage: React.FC = () => {
   const { tSync } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { localRoles } = useLocalAccountContext();
+  const llmReady = useLlmReady();
 
   const [cvs,  setCvs]  = useState<CvItem[]>([]);
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [atsResults, setAtsResults] = useState<AtsResult[]>([]);
+  const [localMatchMap, setLocalMatchMap] = useState<Map<string, Match>>(new Map());
 
-  const [selectedCvIds,  setSelectedCvIds]  = useState<Set<number>>(new Set());
-  const [selectedJobIds, setSelectedJobIds] = useState<Set<number>>(new Set());
+  const [selectedCvIds,  setSelectedCvIds]  = useState<Set<string>>(new Set());
+  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
 
   const [activeTab,    setActiveTab]    = useState<TabId>('cvs-jobs');
   const [filterCvOpen,  setFilterCvOpen]  = useState(false);
@@ -290,66 +345,66 @@ const JobsAndCvsPage: React.FC = () => {
   const [detail,     setDetail]     = useState<AtsResultDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  // kandidatnamn och cv_title per backend-CV-id
-  const { user } = useAuth();
-  const { data: account } = useLocalAccount(user?.email);
-  const { data: candidates } = useLocalCandidates(account?.account_id);
-  const [backendIdToName, setBackendIdToName] = useState<Map<number, string>>(new Map());
-  const [backendIdToCvTitle, setBackendIdToCvTitle] = useState<Map<number, string>>(new Map());
+  // AI match state
+  const [matchingPairs, setMatchingPairs] = useState<Set<string>>(new Set());
+  const [bulkProgress,  setBulkProgress]  = useState<{ done: number; total: number } | null>(null);
 
+  // Local match detail modal
+  const [localDetail, setLocalDetail] = useState<{ cvId: string; jobId: string } | null>(null);
+
+  // Load CVs from IDB — filter by role:
+  // Kandidat only  → own candidate's CVs only
+  // Säljare only   → managed candidates' CVs only (not own)
+  // Both (or BE)   → all CVs
   useEffect(() => {
-    if (!candidates.length) return;
-    Promise.all(candidates.map(c => LocalDbService.getCVsForCandidate(c.candidate_id)))
-      .then(arrays => {
-        const nameMap = new Map<number, string>();
-        const titleMap = new Map<number, string>();
-        arrays.forEach((cvList, i) => {
-          cvList.forEach(cv => {
-            if (cv.backend_id != null) {
-              nameMap.set(cv.backend_id, candidates[i].name);
-              if (cv.cv_title) titleMap.set(cv.backend_id, cv.cv_title);
-            }
-          });
+    (async () => {
+      try {
+        const isCandidate = user ? user.roles?.includes('User') : localRoles.includes('User');
+        const isSeller    = user ? user.roles?.includes('Manager') : localRoles.includes('Manager');
+        const allCvs = await LocalDbService.getAllCVs();
+        const enriched = await Promise.all(
+          allCvs.map(async cv => {
+            let candidateName: string | undefined;
+            let isOwn = false;
+            try {
+              const candidate = await LocalDbService.getCandidate(cv.candidate_id);
+              candidateName = candidate?.name;
+              isOwn = !!candidate?.is_own_candidate;
+            } catch { /* skip */ }
+            return { cv, candidateName, isOwn };
+          })
+        );
+        const filtered = enriched.filter(({ isOwn }) => {
+          if (isCandidate && isSeller) return true;   // both roles → all CVs
+          if (isCandidate)             return isOwn;  // kandidat only → own CVs
+          if (isSeller)                return !isOwn; // säljare only → managed CVs
+          return true;                                // fallback (BE user without local roles) → all
         });
-        setBackendIdToName(nameMap);
-        setBackendIdToCvTitle(titleMap);
-      })
-      .catch(() => {});
-  }, [candidates]);
+        const items: CvItem[] = filtered.map(({ cv, candidateName }) => ({
+          id: cv.cv_id,
+          name: cv.cv_title || cv.cv_anonymized.slice(0, 50),
+          text: cv.cv_anonymized,
+          candidateName,
+        }));
+        setCvs(items);
+        setSelectedCvIds(new Set(items.map(c => c.id)));
+      } catch { /* silently ignore */ }
+    })();
+  }, [user, localRoles]);
 
-  const refreshAtsResults = () => {
-    ApiService.getAtsResults().then(setAtsResults).catch(() => {});
-  };
-
-  const handleDeleteCv = (id: number) => {
-    ApiService.deleteExternalCV(id).catch(() => {});
-    setCvs(prev => prev.filter(c => c.id !== id));
-    setSelectedCvIds(prev => { const n = new Set(prev); n.delete(id); return n; });
-  };
-
+  // Load Jobs from IDB (client-first)
   useEffect(() => {
-    ApiService.getExternalCVs().then(data => {
-      const items: CvItem[] = data.map(c => ({ id: c.id, name: c.name || c.text.slice(0, 50), text: c.text }));
-      setCvs(items);
-      setSelectedCvIds(new Set(items.map(c => c.id)));
-    }).catch(() => {});
-
-    Promise.all([ApiService.getExternalJobAds(), LocalDbService.getAllJobs()])
-      .then(([data, idbJobs]) => {
-        const idbByBackendId = new Map(idbJobs.map(j => [j.backend_id, j]));
-        const items: JobItem[] = data.map(j => {
-          const parsed = parseJobName(j.name || '');
-          const idb = idbByBackendId.get(j.id);
+    (async () => {
+      try {
+        const allJobs = await LocalDbService.getAllJobs();
+        const items: JobItem[] = allJobs.map(j => {
           let structured: StructuredJob | null = null;
-          if (idb?.job_json) {
-            try { structured = JSON.parse(idb.job_json) as StructuredJob; } catch { /* skip */ }
-          }
+          if (j.job_json) { try { structured = JSON.parse(j.job_json) as StructuredJob; } catch { /* skip */ } }
           return {
-            id: j.id,
-            displayName: parsed.title || j.text.slice(0, 50),
-            rawName: j.name || '',
-            channel: parsed.channel || undefined,
-            text: j.text,
+            id: j.job_id,
+            displayName: j.job_title || j.job_description.slice(0, 50),
+            channel: j.job_channel || undefined,
+            text: j.job_description,
             company: structured?.job_company ?? undefined,
             applyLatest: structured?.job_apply_latest ?? undefined,
             domain: structured?.domain ?? undefined,
@@ -357,10 +412,31 @@ const JobsAndCvsPage: React.FC = () => {
         });
         setJobs(items);
         setSelectedJobIds(new Set(items.map(j => j.id)));
-      }).catch(() => {});
-
-    refreshAtsResults();
+      } catch { /* silently ignore */ }
+    })();
   }, []);
+
+  // Load local match results from IDB
+  useEffect(() => {
+    LocalDbService.getAllMatches()
+      .then(matches => {
+        const m = new Map<string, Match>();
+        matches.forEach(match => m.set(`${match.cv_id}|${match.job_id}`, match));
+        setLocalMatchMap(m);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Load BE ATS results (only when logged in)
+  const refreshAtsResults = () => {
+    if (!user) return;
+    ApiService.getAtsResults().then(setAtsResults).catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshAtsResults();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   useEffect(() => {
     const handleVisibility = () => {
@@ -368,11 +444,13 @@ const JobsAndCvsPage: React.FC = () => {
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const activeCvs  = useMemo(() => cvs.filter(c  => selectedCvIds.has(c.id)),   [cvs, selectedCvIds]);
   const activeJobs = useMemo(() => jobs.filter(j => selectedJobIds.has(j.id)), [jobs, selectedJobIds]);
 
+  // BE ATS results keyed by cv_name|||job_title (for cross-reference when user is logged in)
   const atsMap = useMemo(() => {
     const m = new Map<string, AtsResult>();
     atsResults.forEach(r => {
@@ -384,11 +462,8 @@ const JobsAndCvsPage: React.FC = () => {
     return m;
   }, [atsResults]);
 
-  const cvLabel = (cv: CvItem): string => {
-    const candidate = backendIdToName.get(cv.id);
-    const cvTitle = backendIdToCvTitle.get(cv.id) ?? cv.name;
-    return candidate ? `${candidate}, ${cvTitle}` : cvTitle;
-  };
+  const cvLabel = (cv: CvItem): string =>
+    cv.candidateName ? `${cv.candidateName}, ${cv.name}` : cv.name;
 
   const jobLabel = (job: JobItem): string => {
     const parts: string[] = [job.displayName];
@@ -397,34 +472,42 @@ const JobsAndCvsPage: React.FC = () => {
     return parts.join(', ');
   };
 
+  const getScore = (cv: CvItem, job: JobItem): { score: number | null; atsResultId?: number } => {
+    const local = localMatchMap.get(`${cv.id}|${job.id}`);
+    if (local) return { score: local.overall_score };
+    const be = atsMap.get(`${cv.name}|||${job.displayName}`);
+    if (be) return { score: be.overall_score, atsResultId: be.id };
+    return { score: null };
+  };
+
   const tableRows = useMemo((): CompactRow[] => {
     if (activeTab === 'cvs-jobs') {
       return activeCvs.flatMap(cv =>
         activeJobs.map(job => {
-          const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-          return { primaryLine: cvLabel(cv), secondaryLine: jobLabel(job), score: match?.overall_score ?? null, atsResultId: match?.id };
+          const { score, atsResultId } = getScore(cv, job);
+          return { primaryLine: cvLabel(cv), secondaryLine: jobLabel(job), score, cvId: cv.id, jobId: job.id, atsResultId };
         })
       );
     }
     if (activeTab === 'jobs-cvs') {
       return activeJobs.flatMap(job =>
         activeCvs.map(cv => {
-          const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-          return { primaryLine: jobLabel(job), secondaryLine: cvLabel(cv), score: match?.overall_score ?? null, atsResultId: match?.id };
+          const { score, atsResultId } = getScore(cv, job);
+          return { primaryLine: jobLabel(job), secondaryLine: cvLabel(cv), score, cvId: cv.id, jobId: job.id, atsResultId };
         })
       );
     }
     if (activeTab === 'scores') {
       return activeCvs.flatMap(cv =>
         activeJobs.map(job => {
-          const match = atsMap.get(`${cv.name}|||${job.displayName}`);
-          return { primaryLine: cvLabel(cv), secondaryLine: jobLabel(job), score: match?.overall_score ?? null, atsResultId: match?.id };
+          const { score, atsResultId } = getScore(cv, job);
+          return { primaryLine: cvLabel(cv), secondaryLine: jobLabel(job), score, cvId: cv.id, jobId: job.id, atsResultId };
         })
       ).filter(r => r.score != null);
     }
     return [];
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCvs, activeJobs, atsMap, activeTab, backendIdToName]);
+  }, [activeCvs, activeJobs, localMatchMap, atsMap, activeTab]);
 
   const handleRowClick = async (atsResultId: number) => {
     setDetailOpen(true);
@@ -434,6 +517,120 @@ const JobsAndCvsPage: React.FC = () => {
     } catch {
       setDetailOpen(false);
     }
+  };
+
+  const handleAiMatch = async (cvId: string, jobId: string) => {
+    const cv = cvs.find(c => c.id === cvId);
+    const job = jobs.find(j => j.id === jobId);
+    if (!cv || !job || !cv.text || !job.text) return;
+
+    const pairKey = `${cvId}|${jobId}`;
+    setMatchingPairs(prev => new Set([...prev, pairKey]));
+
+    try {
+      // Structure CV — use cached cv_json if available
+      let structuredCv: StructuredCV;
+      const idbCv = await LocalDbService.getCV(cvId);
+      if (idbCv?.cv_json) {
+        structuredCv = JSON.parse(idbCv.cv_json) as StructuredCV;
+      } else {
+        structuredCv = await structureCV(cv.text);
+        if (idbCv) await LocalDbService.updateCV(cvId, { cv_json: JSON.stringify(structuredCv) });
+      }
+
+      // Merge personal qualities into candidate
+      if (idbCv?.candidate_id && structuredCv.personal_qualities?.length) {
+        const candidate = await LocalDbService.getCandidate(idbCv.candidate_id);
+        if (candidate) {
+          const merged = [...new Set([...(candidate.personal_qualities ?? []), ...structuredCv.personal_qualities])];
+          if (merged.length !== (candidate.personal_qualities ?? []).length) {
+            await LocalDbService.updateCandidate(idbCv.candidate_id, { personal_qualities: merged, portrait: '' });
+          }
+        }
+      }
+
+      // Analyze job — use cached job_json if available
+      const idbJob = await LocalDbService.getJob(jobId);
+      let structuredJob: Awaited<ReturnType<typeof analyzeJob>>;
+      if (idbJob?.job_json) {
+        structuredJob = JSON.parse(idbJob.job_json) as Awaited<ReturnType<typeof analyzeJob>>;
+      } else {
+        structuredJob = await analyzeJob(job.displayName, job.text);
+        if (idbJob) await LocalDbService.updateJob(jobId, { job_json: JSON.stringify(structuredJob) });
+      }
+
+      // Build experience strings from structured CV
+      const experiences = structuredCv.work_experience.map(w => {
+        const period = [w.start_date, w.end_date ?? 'nuvarande'].filter(Boolean).join('–');
+        return `${w.position ?? '?'} hos ${w.company ?? '?'}${period ? ` (${period})` : ''}`;
+      });
+
+      // Build seeker profile from candidate
+      let seekerProfile: SeekerProfile | undefined;
+      if (idbCv?.candidate_id) {
+        const candidate = await LocalDbService.getCandidate(idbCv.candidate_id);
+        if (candidate) {
+          seekerProfile = {
+            job_title: candidate.title || undefined,
+            preferred_city: candidate.location || undefined,
+            preferred_workplace: candidate.workplace.length ? candidate.workplace.join(', ') : undefined,
+            preferred_employment_type: candidate.employment_type.length ? candidate.employment_type.join(', ') : undefined,
+          };
+        }
+      }
+
+      const matchResult: MatchResult = await matchJobStructured(
+        structuredCv.skills,
+        experiences,
+        structuredJob,
+        seekerProfile,
+      );
+
+      // Persist to IDB
+      const saved = await LocalDbService.setMatch(cvId, jobId, matchResult.overall_score, JSON.stringify(matchResult));
+
+      // Update state
+      setLocalMatchMap(prev => new Map(prev).set(pairKey, saved));
+    } catch {
+      // Silently ignore — the button will be available to retry
+    } finally {
+      setMatchingPairs(prev => { const n = new Set(prev); n.delete(pairKey); return n; });
+    }
+  };
+
+  const handleLocalMatchClick = (cvId: string, jobId: string) => {
+    setLocalDetail({ cvId, jobId });
+  };
+
+  const handleRematch = async () => {
+    if (!localDetail) return;
+    const { cvId, jobId } = localDetail;
+    await handleAiMatch(cvId, jobId);
+    // localMatchMap is updated inside handleAiMatch — modal re-renders automatically
+  };
+
+  const handleBulkAiMatch = async () => {
+    const pairs = activeCvs.flatMap(cv =>
+      activeJobs
+        .filter(job => !localMatchMap.has(`${cv.id}|${job.id}`))
+        .map(job => ({ cvId: cv.id, jobId: job.id }))
+    );
+    if (!pairs.length) return;
+    setBulkProgress({ done: 0, total: pairs.length });
+    for (let i = 0; i < pairs.length; i++) {
+      await handleAiMatch(pairs[i].cvId, pairs[i].jobId);
+      setBulkProgress({ done: i + 1, total: pairs.length });
+    }
+    setBulkProgress(null);
+  };
+
+  const handleDeleteCv = (id: string) => {
+    const cv = cvs.find(c => c.id === id);
+    if (cv) {
+      LocalDbService.deleteCV(id).catch(() => {});
+    }
+    setCvs(prev => prev.filter(c => c.id !== id));
+    setSelectedCvIds(prev => { const n = new Set(prev); n.delete(id); return n; });
   };
 
   const tabs: { id: TabId; label: string }[] = [
@@ -451,6 +648,9 @@ const JobsAndCvsPage: React.FC = () => {
           title={tSync('jac_result')}
           action={
             <div className="flex gap-2">
+              {(user ? user.roles?.includes('Manager') : localRoles.includes('Manager')) && (
+                <Button variant="secondary" size="sm" onClick={() => navigate('/candidate_mgmt')}>{tSync('menu_manage_candidates')}</Button>
+              )}
               <Button variant="secondary" size="sm" onClick={() => navigate('/cv_mgmt')}>{tSync('jac_manage_cv')}</Button>
               <Button variant="secondary" size="sm" onClick={() => navigate('/job_mgmt')}>{tSync('jac_manage_job')}</Button>
             </div>
@@ -498,9 +698,10 @@ const JobsAndCvsPage: React.FC = () => {
             <GraphicalTab
               activeCvs={activeCvs}
               activeJobs={activeJobs}
+              localMatchMap={localMatchMap}
               atsMap={atsMap}
-              backendIdToName={backendIdToName}
               onPillClick={handleRowClick}
+              onLocalMatchClick={handleLocalMatchClick}
               emptyLabel={tSync('jac_result_empty')}
               colLowMatch={tSync('jac_col_low_match')}
               colHighMatch={tSync('jac_col_high_match')}
@@ -511,7 +712,39 @@ const JobsAndCvsPage: React.FC = () => {
               emptyLabel={tSync('jac_result_empty')}
               sortByScore={activeTab === 'scores'}
               onRowClick={handleRowClick}
+              onLocalMatchClick={handleLocalMatchClick}
+              onAiMatch={handleAiMatch}
+              matchingPairs={matchingPairs}
+              llmReady={llmReady}
+              aiMatchLabel={tSync('jac_ai_match_btn')}
+              aiMatchingLabel={tSync('jac_ai_matching')}
             />
+          )}
+
+          {/* Bulk AI match */}
+          {llmReady && activeCvs.length > 0 && activeJobs.length > 0 && (
+            <div className="flex items-center gap-3 mt-4 pt-4 border-t border-slate-100">
+              <button
+                onClick={handleBulkAiMatch}
+                disabled={!!bulkProgress}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <AiIcon className="w-4 h-4 text-white" />
+                {bulkProgress
+                  ? tSync('jac_bulk_matching')
+                      .replace('{{done}}',  String(bulkProgress.done))
+                      .replace('{{total}}', String(bulkProgress.total))
+                  : tSync('jac_bulk_match_btn')}
+              </button>
+              {!bulkProgress && (() => {
+                const unmatched = activeCvs.flatMap(cv =>
+                  activeJobs.filter(job => !localMatchMap.has(`${cv.id}|${job.id}`))
+                ).length;
+                return unmatched > 0
+                  ? <span className="text-xs text-slate-400">{unmatched} kombinationer utan AI-matchning</span>
+                  : <span className="text-xs text-green-600">Alla kombinationer är matchade ✓</span>;
+              })()}
+            </div>
           )}
         </PageCard>
       </PageWrapper>
@@ -537,6 +770,28 @@ const JobsAndCvsPage: React.FC = () => {
         selectAllLabel={tSync('jac_select_all')}
         deselectAllLabel={tSync('jac_deselect_all')}
       />
+      {localDetail && (() => {
+        const cv  = cvs.find(c => c.id === localDetail.cvId);
+        const job = jobs.find(j => j.id === localDetail.jobId);
+        const match = localMatchMap.get(`${localDetail.cvId}|${localDetail.jobId}`) ?? null;
+        const pairKey = `${localDetail.cvId}|${localDetail.jobId}`;
+        return (
+          <LocalMatchDetailModal
+            open={!!localDetail}
+            onClose={() => setLocalDetail(null)}
+            cvId={localDetail.cvId}
+            jobId={localDetail.jobId}
+            cvName={cv?.name ?? ''}
+            jobName={job?.displayName ?? ''}
+            candidateName={cv?.candidateName}
+            jobCompany={job?.company}
+            match={match}
+            onRematch={handleRematch}
+            rematching={matchingPairs.has(pairKey)}
+          />
+        );
+      })()}
+
       <AtsResultDetailModal
         open={detailOpen}
         result={detail}

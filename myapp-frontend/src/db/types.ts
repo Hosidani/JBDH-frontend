@@ -66,3 +66,12 @@ export interface CV {
   cv_file_type: string;      // MIME type, e.g. "application/pdf"
   cv_published: boolean;
 }
+
+export interface Match {
+  match_id: string;       // `${cv_id}|${job_id}` — composite primary key
+  cv_id: string;
+  job_id: string;
+  overall_score: number;
+  match_json: string;     // JSON-serialized MatchResult
+  matched_at: string;     // ISO date
+}

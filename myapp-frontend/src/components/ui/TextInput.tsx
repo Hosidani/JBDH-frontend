@@ -13,6 +13,7 @@ interface TextInputProps {
   type?: 'text' | 'email' | 'tel' | 'password' | 'number';
   className?: string;
   showToggle?: boolean;
+  autoFocus?: boolean;
 }
 
 export const TextInput: React.FC<TextInputProps> = ({
@@ -27,6 +28,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   type = 'text',
   className = '',
   showToggle = false,
+  autoFocus,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const resolvedType = type === 'password' && showToggle && showPassword ? 'text' : type;
@@ -46,6 +48,7 @@ export const TextInput: React.FC<TextInputProps> = ({
             onChange={e => onChange?.(e.target.value)}
             onBlur={onBlur}
             placeholder={placeholder}
+            autoFocus={autoFocus}
             className={`w-full px-3 py-2 border border-slate-300 rounded-md text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500${type === 'password' && showToggle ? ' pr-9' : ''}`}
           />
           {type === 'password' && showToggle && (

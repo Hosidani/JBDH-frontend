@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { ApiService } from "../services/ApiService";
 import { LocalDbService } from "../db/LocalDbService";
@@ -29,6 +29,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
+  // Only true after an explicit login() call — NOT set by session restoration.
+  // Used to suppress the "Du har blivit utloggad" dialog for users who never
+  // actively logged in (local-first users with stale tokens from old sessions).
+  const wasActivelyLoggedIn = useRef(false);
 
   // Restore user from localStorage on mount and validate session
   useEffect(() => {
@@ -39,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const profile = await ApiService.getMyProfile();
           const storedUser = JSON.parse(stored);
           setUser({ ...storedUser, name: profile.name || storedUser.name });
+          wasActivelyLoggedIn.current = true; // valid session restored → treat as active
         } catch (error) {
           console.warn("Session validation failed - clearing stored user:", error);
           localStorage.removeItem("authUser");
@@ -102,7 +107,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const handler = () => {
       setUser(null);
       localStorage.removeItem('authUser');
-      setSessionExpired(true);
+      // Only show the "logged out" dialog if the user explicitly logged in
+      // during this session. Stale tokens from a previous session should be
+      // cleared silently — the user never consciously logged in.
+      if (wasActivelyLoggedIn.current) {
+        setSessionExpired(true);
+      }
+      wasActivelyLoggedIn.current = false;
     };
     window.addEventListener('sessionExpired', handler);
     return () => window.removeEventListener('sessionExpired', handler);
@@ -110,11 +121,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (user: AuthUser) => {
     setUser(user);
+    wasActivelyLoggedIn.current = true;
     setSessionExpired(false);
     localStorage.setItem("authUser", JSON.stringify(user));
   };
   const logout = () => {
     setUser(null);
+    wasActivelyLoggedIn.current = false;
     localStorage.removeItem("authUser");
   };
   const clearSessionExpired = () => setSessionExpired(false);

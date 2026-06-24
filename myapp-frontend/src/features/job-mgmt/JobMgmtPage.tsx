@@ -6,19 +6,20 @@ import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { ApiService } from '../../services/ApiService';
 import { LocalDbService } from '../../db/LocalDbService';
+import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../hooks/TranslationProvider';
-import { parseJobName } from '../../utils/parseJobName';
+import { parseJobName, buildJobName } from '../../utils/parseJobName';
 import type { StructuredJob } from '../../ai/ai';
 import AddJobModal from '../jobs-and-cvs/AddJobModal';
 import coffeBreakImg from '../../assets/img/Coffe-break.png';
 
 interface JobItem {
-  id: number;
+  id: number | string;  // BE numeric ID (>0), local-only negative number, or IDB UUID string
+  idbId?: string;       // IDB job_id UUID
   displayName: string;
   rawName: string;
   channel?: string;
   text: string;
-  // from job_json
   idbTitle?: string;
   company?: string;
   applyLatest?: string;
@@ -27,42 +28,73 @@ interface JobItem {
 
 const JobMgmtPage: React.FC = () => {
   const { tSync } = useTranslation();
+  const { user } = useAuth();
   const [jobs, setJobs] = useState<JobItem[]>([]);
-  const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [checked, setChecked] = useState<Set<number | string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [editItem, setEditItem] = useState<{ id: number; name: string; text: string } | undefined>(undefined);
+  const [editItem, setEditItem] = useState<{ id: number; idbId?: string; name: string; text: string } | undefined>(undefined);
 
   useEffect(() => {
-    Promise.all([
-      ApiService.getExternalJobAds(),
-      LocalDbService.getAllJobs(),
-    ]).then(([backendJobs, idbJobs]) => {
-      const idbByBackendId = new Map(idbJobs.map(j => [j.backend_id, j]));
-      setJobs(backendJobs.map(j => {
-        const parsed = parseJobName(j.name || '');
-        const idb = idbByBackendId.get(j.id);
-        let structured: StructuredJob | null = null;
-        if (idb?.job_json) {
-          try { structured = JSON.parse(idb.job_json) as StructuredJob; } catch { /* skip */ }
-        }
-        return {
-          id: j.id,
-          displayName: parsed.title || j.text.slice(0, 50),
-          rawName: j.name || '',
-          channel: parsed.channel || undefined,
-          text: j.text,
-          idbTitle: structured?.title ?? idb?.job_title ?? undefined,
-          company: structured?.job_company ?? undefined,
-          applyLatest: structured?.job_apply_latest ?? undefined,
-          domain: structured?.domain ?? undefined,
-        };
-      }));
-    }).catch(() => {});
-  }, []);
+    const parseIdbJob = (j: { job_id: string; backend_id?: number; job_title: string; job_channel: string; job_description: string; job_json: string; job_url: string }): JobItem => {
+      let structured: StructuredJob | null = null;
+      if (j.job_json) { try { structured = JSON.parse(j.job_json) as StructuredJob; } catch { /* skip */ } }
+      return {
+        id: j.backend_id ?? j.job_id,
+        idbId: j.job_id,
+        displayName: j.job_title || j.job_description.slice(0, 50),
+        rawName: buildJobName(j.job_title, j.job_channel, j.job_url),
+        channel: j.job_channel || undefined,
+        text: j.job_description,
+        idbTitle: structured?.title ?? j.job_title ?? undefined,
+        company: structured?.job_company ?? undefined,
+        applyLatest: structured?.job_apply_latest ?? undefined,
+        domain: structured?.domain ?? undefined,
+      };
+    };
 
-  const toggleCheck = (id: number) => {
+    if (user) {
+      Promise.all([
+        ApiService.getExternalJobAds(),
+        LocalDbService.getAllJobs(),
+      ]).then(([backendJobs, idbJobs]) => {
+        const idbByBackendId = new Map(idbJobs.map(j => [j.backend_id, j]));
+        const beJobIds = new Set(backendJobs.map(j => j.id));
+
+        const beMapped: JobItem[] = backendJobs.map(j => {
+          const parsed = parseJobName(j.name || '');
+          const idb = idbByBackendId.get(j.id);
+          let structured: StructuredJob | null = null;
+          if (idb?.job_json) { try { structured = JSON.parse(idb.job_json) as StructuredJob; } catch { /* skip */ } }
+          return {
+            id: j.id,
+            idbId: idb?.job_id,
+            displayName: parsed.title || j.text.slice(0, 50),
+            rawName: j.name || '',
+            channel: parsed.channel || undefined,
+            text: j.text,
+            idbTitle: structured?.title ?? idb?.job_title ?? undefined,
+            company: structured?.job_company ?? undefined,
+            applyLatest: structured?.job_apply_latest ?? undefined,
+            domain: structured?.domain ?? undefined,
+          };
+        });
+
+        const localOnly = idbJobs
+          .filter(j => !j.backend_id || !beJobIds.has(j.backend_id))
+          .map(parseIdbJob);
+
+        setJobs([...beMapped, ...localOnly]);
+      }).catch(() => {});
+    } else {
+      LocalDbService.getAllJobs()
+        .then(idbJobs => setJobs(idbJobs.map(parseIdbJob)))
+        .catch(() => {});
+    }
+  }, [user]);
+
+  const toggleCheck = (id: number | string) => {
     setChecked(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -77,7 +109,13 @@ const JobMgmtPage: React.FC = () => {
   const handleDeleteConfirmed = async () => {
     setDeleting(true);
     try {
-      await Promise.all([...checked].map(id => ApiService.deleteExternalJobAd(id)));
+      const toDelete = jobs.filter(j => checked.has(j.id));
+      await Promise.all([
+        // Delete from BE only for jobs with a numeric backend ID and when logged in
+        ...(user ? toDelete.filter(j => typeof j.id === 'number' && j.id > 0).map(j => ApiService.deleteExternalJobAd(j.id as number).catch(() => {})) : []),
+        // Delete from IDB for all jobs that have an IDB UUID
+        ...toDelete.filter(j => j.idbId).map(j => LocalDbService.deleteJob(j.idbId!).catch(() => {})),
+      ]);
       setJobs(prev => prev.filter(j => !checked.has(j.id)));
       setChecked(new Set());
     } catch { /* silently ignore */ }
@@ -88,7 +126,12 @@ const JobMgmtPage: React.FC = () => {
   };
 
   const handleEdit = (job: JobItem) => {
-    setEditItem({ id: job.id, name: job.rawName, text: job.text });
+    setEditItem({
+      id: typeof job.id === 'number' ? job.id : 0,
+      idbId: job.idbId,
+      name: job.rawName,
+      text: job.text,
+    });
     setAddOpen(true);
   };
 
@@ -200,12 +243,23 @@ const JobMgmtPage: React.FC = () => {
         editItem={editItem}
         onAdded={item => {
           const parsed = parseJobName(item.name || '');
-          setJobs(prev => [{ id: item.id, displayName: parsed.title || item.text.slice(0, 50), rawName: item.name || '', channel: parsed.channel || undefined, text: item.text }, ...prev]);
+          setJobs(prev => [{
+            id: item.id,
+            idbId: item.idbId,
+            displayName: parsed.title || item.text.slice(0, 50),
+            rawName: item.name || '',
+            channel: parsed.channel || undefined,
+            text: item.text,
+          }, ...prev]);
           handleAddClose();
         }}
         onUpdated={item => {
           const parsed = parseJobName(item.name || '');
-          setJobs(prev => prev.map(j => j.id === item.id ? { ...j, displayName: parsed.title || item.text.slice(0, 50), rawName: item.name || '', text: item.text } : j));
+          setJobs(prev => prev.map(j =>
+            (editItem && j.idbId && j.idbId === editItem.idbId) || j.id === item.id
+              ? { ...j, displayName: parsed.title || item.text.slice(0, 50), rawName: item.name || '', text: item.text }
+              : j
+          ));
           handleAddClose();
         }}
         channelSuggestions={channelSuggestions}

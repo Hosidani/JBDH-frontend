@@ -19,12 +19,19 @@ export function getInitials(title: string): string {
   return (a + b).toUpperCase();
 }
 
-export function getPillColor(id: number) {
-  return PILL_COLORS[id % PILL_COLORS.length];
+function toColorIndex(id: number | string): number {
+  if (typeof id === 'number') return Math.abs(id);
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+export function getPillColor(id: number | string) {
+  return PILL_COLORS[toColorIndex(id) % PILL_COLORS.length];
 }
 
 interface NamePillProps {
-  id: number;
+  id: number | string;
   title: string;
   initialsFrom?: string;
   size?: 'sm' | 'md';
