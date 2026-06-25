@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { PageWrapper, PageBackground } from '../../components/common';
+import { PageWrapper, PageBackground, Modal } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
+import { Button } from '../../components/ui/Button';
 import presentationImg from '../../assets/img/Presentation.png';
 import { ApiService } from '../../services/ApiService';
 import { useTranslation } from '../../hooks/TranslationProvider';
@@ -39,6 +40,8 @@ const AtsResultsPage: React.FC = () => {
   const [detail, setDetail] = useState<AtsResultDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { user } = useAuth();
   const { data: account } = useLocalAccount(user?.email);
@@ -105,6 +108,18 @@ const AtsResultsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    if (confirmDeleteId == null) return;
+    setDeleting(true);
+    try {
+      await ApiService.deleteAtsResult(confirmDeleteId);
+      setResults(prev => prev.filter(r => r.id !== confirmDeleteId));
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteId(null);
+    }
+  };
+
   const thClass = 'text-left text-slate-500 font-semibold pb-3 pr-4 cursor-pointer select-none hover:text-blue-600 transition-colors text-sm';
 
   return (
@@ -145,7 +160,7 @@ const AtsResultsPage: React.FC = () => {
                 {sorted.map(row => (
                   <tr
                     key={row.id}
-                    className="border-t border-slate-100 hover:bg-blue-50 cursor-pointer transition-colors"
+                    className="group border-t border-slate-100 hover:bg-blue-50 cursor-pointer transition-colors"
                     onClick={() => handleRowClick(row.id)}
                   >
                     <td className="py-3 pr-4 text-slate-700 truncate max-w-[200px]">{cvLabel(row.cv_name) || '—'}</td>
@@ -156,8 +171,14 @@ const AtsResultsPage: React.FC = () => {
                     <td className="py-3 pr-4 text-right text-slate-500 whitespace-nowrap">
                       {new Date(row.created_at).toLocaleDateString('sv-SE')}
                     </td>
-                    <td className="py-3 text-slate-300">
-                      <Icon name="chevron_right" size={18} />
+                    <td className="py-3 text-right">
+                      <button
+                        onClick={e => { e.stopPropagation(); setConfirmDeleteId(row.id); }}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                        title={tSync('button_delete')}
+                      >
+                        <Icon name="delete" size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -179,6 +200,22 @@ const AtsResultsPage: React.FC = () => {
         result={detail}
         onClose={() => { setModalOpen(false); setDetail(null); }}
       />
+
+      <Modal
+        open={confirmDeleteId !== null}
+        onClose={() => setConfirmDeleteId(null)}
+        title={tSync('ats_delete_title')}
+      >
+        <p className="text-sm text-slate-600 mb-6">{tSync('ats_delete_confirm')}</p>
+        <div className="flex gap-2 justify-end">
+          <Button variant="ghost" size="lg" onClick={() => setConfirmDeleteId(null)}>
+            {tSync('button_cancel')}
+          </Button>
+          <Button variant="danger" size="lg" loading={deleting} onClick={handleDeleteConfirm}>
+            {tSync('jac_delete_confirm_ok')}
+          </Button>
+        </div>
+      </Modal>
     </>
   );
 };

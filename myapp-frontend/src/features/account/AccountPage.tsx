@@ -137,7 +137,7 @@ const AccountPage: React.FC = () => {
   const handleTerminate = async () => {
     setIsTerminating(true);
     try {
-      await ApiService.terminateAccount();
+      await ApiService.deleteAccount();
       logout();
       navigate('/');
     } catch (err) {

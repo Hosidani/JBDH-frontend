@@ -86,3 +86,10 @@ export function getDb(): Promise<IDBPDatabase<JbdhSchema>> {
 export function resetDbForTesting(): void {
   dbPromise = null;
 }
+
+export function closeDb(): void {
+  if (dbPromise) {
+    dbPromise.then(db => db.close()).catch(() => {});
+    dbPromise = null;
+  }
+}

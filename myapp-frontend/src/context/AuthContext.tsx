@@ -96,6 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           } catch (e) {
             console.error('[IndexedDB] Account seeding failed:', e);
           }
+          window.dispatchEvent(new CustomEvent('localAccountChanged'));
         })
         .catch(() => {
           setUser(prev => prev ? { ...prev, roles: prev.roles ?? [] } : prev);
@@ -124,6 +125,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     wasActivelyLoggedIn.current = true;
     setSessionExpired(false);
     localStorage.setItem("authUser", JSON.stringify(user));
+    LocalDbService.syncLocalJobsToBackend().catch(() => {});
   };
   const logout = () => {
     setUser(null);

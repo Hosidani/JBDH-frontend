@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { PageBackground, PageWrapper } from '../../components/common';
 import { PageCard } from '../../components/common/PageCard';
 import { Modal } from '../../components/common';
@@ -47,6 +47,8 @@ const CandidatePage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const isEdit = !!id;
+  const [searchParams] = useSearchParams();
+  const [isOwnProfile, setIsOwnProfile] = useState(() => searchParams.get('own') === '1');
 
   const { user } = useAuth();
   const { data: account, loading: accountLoading } = useLocalAccount(user?.email);
@@ -94,6 +96,7 @@ const CandidatePage: React.FC = () => {
     if (!isEdit) return;
     LocalDbService.getCandidate(id).then(c => {
       if (!c) { setLoadError('Kandidaten hittades inte.'); return; }
+      if (c.is_own_candidate) setIsOwnProfile(true);
       setForm({
         name: c.name, email: c.email, telephone: c.telephone,
         title: c.title, location: c.location,
@@ -131,13 +134,17 @@ const CandidatePage: React.FC = () => {
           title: current.title, location: current.location,
           workplace: current.workplace, employment_type: current.employment_type,
           available_from: current.available_from, travel: current.travel, searchable: current.searchable,
+          is_own_candidate: isOwnProfile || undefined,
         });
         localIdRef.current = saved.candidate_id;
         setSavedCandidateId(saved.candidate_id);
         refreshCandidates();
+        if (isOwnProfile) {
+          navigate(`/candidate/${saved.candidate_id}?own=1`, { replace: true });
+        }
       }
     } catch { /* silently ignore */ }
-  }, [account, form, refreshCandidates]);
+  }, [account, form, isOwnProfile, navigate, refreshCandidates]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm(prev => ({ ...prev, [key]: value }));
@@ -385,12 +392,14 @@ const CandidatePage: React.FC = () => {
                 : tSync('candidate_form_create_title')
             }
             action={
-              <button
-                onClick={() => navigate('/candidate_mgmt')}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {tSync('candidate_list_candidates')}
-              </button>
+              !isOwnProfile ? (
+                <button
+                  onClick={() => navigate('/candidate_mgmt')}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  {tSync('candidate_list_candidates')}
+                </button>
+              ) : undefined
             }
           >
             <div className="flex flex-col gap-4">

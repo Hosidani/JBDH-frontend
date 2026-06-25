@@ -13,7 +13,7 @@ const MyProfilePage: React.FC = () => {
       if (own) {
         navigate(`/candidate/${own.candidate_id}`, { replace: true });
       } else {
-        navigate('/candidate', { replace: true });
+        navigate('/candidate?own=1', { replace: true });
       }
     })();
   }, [navigate]);

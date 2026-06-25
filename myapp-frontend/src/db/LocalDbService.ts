@@ -238,6 +238,48 @@ export class LocalDbService {
     return db.getAll('matches');
   }
 
+  // ── Backend sync ───────────────────────────────────────────────────────────
+
+  /**
+   * Pushes local jobs that have no backend_id to /external-job-ads (POST).
+   * Updates each job's backend_id with the id returned by BE.
+   * Should be called after login.
+   */
+  static async syncLocalJobsToBackend(): Promise<{ synced: number }> {
+    const allJobs = await this.getAllJobs();
+    const unsynced = allJobs.filter(j => j.backend_id == null);
+    for (const job of unsynced) {
+      const created = await ApiService.createExternalJobAd(job.job_description, job.job_title);
+      await this.updateJob(job.job_id, { backend_id: created.id });
+    }
+    return { synced: unsynced.length };
+  }
+
+  /**
+   * Fetches jobs from /external-job-ads and imports any that are missing locally.
+   * Requires an active BE session (ApiService.getExternalJobAds uses auth).
+   * Returns the number of newly added jobs.
+   */
+  static async syncJobsFromBackend(): Promise<{ added: number }> {
+    const beJobs = await ApiService.getExternalJobAds();
+    let added = 0;
+    for (const beJob of beJobs) {
+      const existing = await this.getJobByBackendId(beJob.id);
+      if (!existing) {
+        await this.addJob({
+          backend_id: beJob.id,
+          job_title: beJob.name,
+          job_description: beJob.text,
+          job_channel: '',
+          job_json: '',
+          job_url: '',
+        });
+        added++;
+      }
+    }
+    return { added };
+  }
+
   // ── Debug / maintenance ────────────────────────────────────────────────────
 
   static async cleanOrphanCVs(): Promise<{ deleted: number; titles: string[] }> {
@@ -248,6 +290,18 @@ export class LocalDbService {
     const orphans = allCvs.filter(cv => !candidateIds.has(cv.candidate_id));
     await Promise.all(orphans.map(cv => db.delete('cvs', cv.cv_id)));
     return { deleted: orphans.length, titles: orphans.map(cv => cv.cv_title) };
+  }
+
+  /** Raderar hela IndexedDB-databasen. Sidan måste laddas om efteråt. */
+  static async nukeLocalData(): Promise<void> {
+    const { closeDb } = await import('./db');
+    closeDb?.();
+    await new Promise<void>((resolve, reject) => {
+      const req = indexedDB.deleteDatabase('jbdh');
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+      req.onblocked = () => resolve();
+    });
   }
 }
 

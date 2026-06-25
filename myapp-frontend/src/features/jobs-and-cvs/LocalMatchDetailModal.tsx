@@ -321,6 +321,7 @@ const LocalMatchDetailModal: React.FC<Props> = ({
             )}
           </div>
 
+
           {/* Main AI match result */}
           <MatchBlock result={mainResult} title={tSync('llm_match_title')} />
 
@@ -362,7 +363,21 @@ const LocalMatchDetailModal: React.FC<Props> = ({
           )}
         </div>
       ) : (
-        <p className="text-sm text-slate-400 text-center py-6">{tSync('ats_loading')}</p>
+        <div className="flex flex-col items-center gap-4 py-6">
+          {llmReady ? (
+            <>
+              <p className="text-sm text-slate-500 text-center">{tSync('llm_no_match_yet')}</p>
+              {onRematch && (
+                <Button variant="primary" size="lg" loading={rematching} onClick={onRematch}>
+                  <AiIcon className="w-4 h-4 text-white mr-2" />
+                  {tSync('jac_ai_match_btn')}
+                </Button>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-slate-400 text-center">{tSync('llm_requires_provider')}</p>
+          )}
+        </div>
       )}
     </Modal>
   );

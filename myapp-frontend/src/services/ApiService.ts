@@ -211,9 +211,11 @@ export class ApiService {
     joinOrganisationIds?: number[];
     leaveOrganisationIds?: number[];
   }): Promise<any> {
+    const { updateRoles, ...rest } = accountData;
+    const body = updateRoles !== undefined ? { ...rest, roles: updateRoles } : rest;
     const response = await this.fetchWithAuth('/settings/updateaccountsettings', {
       method: 'PUT',
-      body: JSON.stringify(accountData),
+      body: JSON.stringify(body),
     });
     return await response.json();
   }
@@ -232,12 +234,8 @@ export class ApiService {
     });
   }
 
-  // Terminate current user's account
-  static async terminateAccount(): Promise<any> {
-    const response = await this.fetchWithAuth('/settings/terminateaccount', {
-      method: 'POST',
-    });
-    return await response.json();
+  static async deleteAccount(): Promise<void> {
+    await this.fetchWithAuth('/settings/deletemyuser', { method: 'DELETE' });
   }
   public static async fetchWithAuth(url: string, options: RequestInit = {}) {
     let accessToken = this.getAccessToken();
@@ -651,10 +649,13 @@ export class ApiService {
 
   // === ATS RESULTS ===
 
-  static async runAtsScore(cvText: string, jobText: string): Promise<unknown> {
+  static async runAtsScore(cvText: string, jobText: string, cvName = 'cv', jobName = ''): Promise<unknown> {
     const formData = new FormData();
-    formData.append('CvPath', new File([new Blob([cvText], { type: 'text/plain' })], 'cv.txt', { type: 'text/plain' }));
+    const safeFilename = `${cvName.replace(/[^a-zA-Z0-9_\- ]/g, '_')}.txt`;
+    formData.append('CvPath', new File([new Blob([cvText], { type: 'text/plain' })], safeFilename, { type: 'text/plain' }));
     formData.append('JobAdText', jobText);
+    formData.append('CvName', cvName);
+    formData.append('JobName', jobName);
     const response = await this.fetchWithAuth('/ats/score', { method: 'POST', body: formData });
     if (!response.ok) throw new Error(`ATS score failed: ${response.status}`);
     return await response.json();
@@ -670,6 +671,10 @@ export class ApiService {
     const response = await this.fetchWithAuth(`/ats/getexternalrelation/${id}/`, { method: 'GET' });
     const json = await response.json();
     return json.data ?? json;
+  }
+
+  static async deleteAtsResult(id: number): Promise<void> {
+    await this.fetchWithAuth(`/ats/getexternalrelation/${id}/`, { method: 'DELETE' });
   }
 
   // === EXTERNAL JOB ADS ===

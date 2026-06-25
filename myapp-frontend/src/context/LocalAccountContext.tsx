@@ -50,6 +50,12 @@ export function LocalAccountProvider({ children }: { children: ReactNode }) {
     refreshLocalAccount();
   }, [refreshLocalAccount]);
 
+  useEffect(() => {
+    const handler = () => refreshLocalAccount();
+    window.addEventListener('localAccountChanged', handler);
+    return () => window.removeEventListener('localAccountChanged', handler);
+  }, [refreshLocalAccount]);
+
   return (
     <LocalAccountContext.Provider value={{ hasLocalAccount, hasBeAccount, localRoles, allAccounts, currentAccountId, refreshLocalAccount }}>
       {children}

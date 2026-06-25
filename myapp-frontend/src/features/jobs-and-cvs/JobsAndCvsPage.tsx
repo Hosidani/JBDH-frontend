@@ -52,10 +52,11 @@ interface AtsResult {
 interface CompactRow {
   primaryLine: string;
   secondaryLine: string;
-  score: number | null;
+  atsScore: number | null;
+  atsResultId?: number;
+  aiScore: number | null;
   cvId?: string;
   jobId?: string;
-  atsResultId?: number;  // set only when a BE ATS result exists
 }
 type TabId = 'cvs-jobs' | 'jobs-cvs' | 'scores' | 'graphical';
 
@@ -145,9 +146,10 @@ const CompactTable: React.FC<{
   onAiMatch?: (cvId: string, jobId: string) => void;
   matchingPairs?: Set<string>;
   llmReady?: boolean;
+  showAts?: boolean;
   aiMatchLabel: string;
   aiMatchingLabel: string;
-}> = ({ rows, emptyLabel, sortByScore = false, onRowClick, onLocalMatchClick, onAiMatch, matchingPairs, llmReady, aiMatchLabel, aiMatchingLabel }) => {
+}> = ({ rows, emptyLabel, sortByScore = false, onRowClick, onLocalMatchClick, onAiMatch, matchingPairs, llmReady, showAts = false, aiMatchLabel, aiMatchingLabel }) => {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>(sortByScore ? 'desc' : 'asc');
 
   useEffect(() => { setSortDir(sortByScore ? 'desc' : 'asc'); }, [sortByScore]);
@@ -155,8 +157,8 @@ const CompactTable: React.FC<{
   const sorted = useMemo(() => [...rows].sort((a, b) => {
     const dir = sortDir === 'asc' ? 1 : -1;
     if (sortByScore) {
-      const sa = a.score ?? -Infinity;
-      const sb = b.score ?? -Infinity;
+      const sa = Math.max(a.atsScore ?? -Infinity, a.aiScore ?? -Infinity);
+      const sb = Math.max(b.atsScore ?? -Infinity, b.aiScore ?? -Infinity);
       return (sa - sb) * dir;
     }
     return a.primaryLine.localeCompare(b.primaryLine, 'sv') * dir;
@@ -175,68 +177,80 @@ const CompactTable: React.FC<{
             >
               {sortDir === 'asc' ? '▲' : '▼'}
             </th>
-            {!sortByScore && (
-              <th className="text-right text-slate-500 font-semibold pb-2 w-28" />
+            {showAts && (
+              <th className="text-center text-slate-500 font-semibold pb-2 w-20 text-xs">ATS</th>
             )}
+            <th className="text-center text-slate-500 font-semibold pb-2 w-24 text-xs">
+              <span className="inline-flex items-center gap-1"><AiIcon className="w-3 h-3 text-slate-400" />AI</span>
+            </th>
           </tr>
         </thead>
         <tbody>
           {sorted.map((row, i) => {
-            const hasBeResult = !!row.atsResultId && !!onRowClick && row.score != null;
-            const hasLocalResult = !row.atsResultId && row.score != null && !!row.cvId && !!row.jobId && !!onLocalMatchClick;
-            const clickable = hasBeResult || hasLocalResult;
             const pairKey = row.cvId && row.jobId ? `${row.cvId}|${row.jobId}` : undefined;
             const isMatching = pairKey ? matchingPairs?.has(pairKey) : false;
-            const handleClick = hasBeResult
-              ? () => onRowClick!(row.atsResultId!)
-              : hasLocalResult
-                ? () => onLocalMatchClick!(row.cvId!, row.jobId!)
-                : undefined;
             return (
-              <tr
-                key={i}
-                className={`border-t border-slate-100 hover:bg-blue-50 ${clickable ? 'cursor-pointer' : ''}`}
-                onClick={handleClick}
-              >
-                <td className="py-2 pr-4">
-                  <div className="flex items-center gap-2">
-                    {sortByScore && row.score != null && (
-                      <img
-                        src={scoreImage(row.score)}
-                        alt={`${Math.round(row.score)}%`}
-                        title={`${Math.round(row.score)}%`}
-                        className="h-7 w-auto object-contain flex-shrink-0"
-                      />
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-slate-700 font-medium leading-tight truncate">{row.primaryLine}</p>
-                      <p className="text-slate-400 text-xs leading-tight truncate">{row.secondaryLine}</p>
-                    </div>
+              <tr key={i} className="border-t border-slate-100">
+                <td
+                  className={[
+                    'py-2 pr-4',
+                    ((row.cvId && row.jobId) || row.atsResultId != null)
+                      ? 'cursor-pointer hover:bg-slate-50 rounded-sm transition-colors'
+                      : '',
+                  ].join(' ')}
+                  onClick={() => {
+                    if (row.cvId && row.jobId) onLocalMatchClick?.(row.cvId, row.jobId);
+                    else if (row.atsResultId != null) onRowClick?.(row.atsResultId);
+                  }}
+                >
+                  <div className="min-w-0">
+                    <p className="text-slate-700 font-medium leading-tight truncate">{row.primaryLine}</p>
+                    <p className="text-slate-400 text-xs leading-tight truncate">{row.secondaryLine}</p>
                   </div>
                 </td>
-                {!sortByScore && (
-                  <td className="py-1.5 text-right">
-                    {row.score != null ? (
-                      <img
-                        src={scoreImage(row.score)}
-                        alt={`${Math.round(row.score)}%`}
-                        title={`${Math.round(row.score)}%`}
-                        className="h-7 w-auto object-contain inline-block"
-                      />
-                    ) : row.cvId && row.jobId && llmReady && onAiMatch ? (
+
+                {/* ATS score column */}
+                {showAts && (
+                  <td className="py-1.5 text-center">
+                    {row.atsScore != null && row.atsResultId != null ? (
                       <button
-                        disabled={isMatching}
-                        onClick={(e) => { e.stopPropagation(); onAiMatch(row.cvId!, row.jobId!); }}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                        onClick={() => onRowClick?.(row.atsResultId!)}
+                        className="inline-flex flex-col items-center hover:opacity-75 transition-opacity"
+                        title={`ATS: ${Math.round(row.atsScore)}%`}
                       >
-                        <AiIcon className="w-3 h-3 text-white flex-shrink-0" />
-                        {isMatching ? aiMatchingLabel : aiMatchLabel}
+                        <img src={scoreImage(row.atsScore)} alt={`${Math.round(row.atsScore)}%`} className="h-7 w-auto object-contain" />
+                        <span className="text-[10px] text-slate-400">{Math.round(row.atsScore)}%</span>
                       </button>
                     ) : (
-                      <span className="text-slate-400 text-xs">—</span>
+                      <span className="text-slate-300 text-xs">—</span>
                     )}
                   </td>
                 )}
+
+                {/* AI score column */}
+                <td className="py-1.5 text-center">
+                  {row.aiScore != null && row.cvId && row.jobId ? (
+                    <button
+                      onClick={() => onLocalMatchClick?.(row.cvId!, row.jobId!)}
+                      className="inline-flex flex-col items-center hover:opacity-75 transition-opacity"
+                      title={`AI: ${Math.round(row.aiScore)}%`}
+                    >
+                      <img src={scoreImage(row.aiScore)} alt={`${Math.round(row.aiScore)}%`} className="h-7 w-auto object-contain" />
+                      <span className="text-[10px] text-slate-400">{Math.round(row.aiScore)}%</span>
+                    </button>
+                  ) : row.cvId && row.jobId && llmReady && onAiMatch ? (
+                    <button
+                      disabled={isMatching}
+                      onClick={() => onAiMatch(row.cvId!, row.jobId!)}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                    >
+                      <AiIcon className="w-3 h-3 text-white flex-shrink-0" />
+                      {isMatching ? aiMatchingLabel : aiMatchLabel}
+                    </button>
+                  ) : (
+                    <span className="text-slate-300 text-xs">—</span>
+                  )}
+                </td>
               </tr>
             );
           })}
@@ -346,8 +360,9 @@ const JobsAndCvsPage: React.FC = () => {
   const [detailOpen, setDetailOpen] = useState(false);
 
   // AI match state
-  const [matchingPairs, setMatchingPairs] = useState<Set<string>>(new Set());
-  const [bulkProgress,  setBulkProgress]  = useState<{ done: number; total: number } | null>(null);
+  const [matchingPairs,    setMatchingPairs]    = useState<Set<string>>(new Set());
+  const [bulkProgress,     setBulkProgress]     = useState<{ done: number; total: number } | null>(null);
+  const [bulkAtsProgress,  setBulkAtsProgress]  = useState<{ done: number; total: number } | null>(null);
 
   // Local match detail modal
   const [localDetail, setLocalDetail] = useState<{ cvId: string; jobId: string } | null>(null);
@@ -472,38 +487,35 @@ const JobsAndCvsPage: React.FC = () => {
     return parts.join(', ');
   };
 
-  const getScore = (cv: CvItem, job: JobItem): { score: number | null; atsResultId?: number } => {
-    const local = localMatchMap.get(`${cv.id}|${job.id}`);
-    if (local) return { score: local.overall_score };
-    const be = atsMap.get(`${cv.name}|||${job.displayName}`);
-    if (be) return { score: be.overall_score, atsResultId: be.id };
-    return { score: null };
+  const buildRow = (cv: CvItem, job: JobItem, primary: string, secondary: string): CompactRow => {
+    const localMatch = localMatchMap.get(`${cv.id}|${job.id}`);
+    const beMatch    = atsMap.get(`${cv.name}|||${job.displayName}`);
+    return {
+      primaryLine:  primary,
+      secondaryLine: secondary,
+      atsScore:    beMatch?.overall_score    ?? null,
+      atsResultId: beMatch?.id,
+      aiScore:     localMatch?.overall_score ?? null,
+      cvId: cv.id,
+      jobId: job.id,
+    };
   };
 
   const tableRows = useMemo((): CompactRow[] => {
     if (activeTab === 'cvs-jobs') {
       return activeCvs.flatMap(cv =>
-        activeJobs.map(job => {
-          const { score, atsResultId } = getScore(cv, job);
-          return { primaryLine: cvLabel(cv), secondaryLine: jobLabel(job), score, cvId: cv.id, jobId: job.id, atsResultId };
-        })
+        activeJobs.map(job => buildRow(cv, job, cvLabel(cv), jobLabel(job)))
       );
     }
     if (activeTab === 'jobs-cvs') {
       return activeJobs.flatMap(job =>
-        activeCvs.map(cv => {
-          const { score, atsResultId } = getScore(cv, job);
-          return { primaryLine: jobLabel(job), secondaryLine: cvLabel(cv), score, cvId: cv.id, jobId: job.id, atsResultId };
-        })
+        activeCvs.map(cv => buildRow(cv, job, jobLabel(job), cvLabel(cv)))
       );
     }
     if (activeTab === 'scores') {
       return activeCvs.flatMap(cv =>
-        activeJobs.map(job => {
-          const { score, atsResultId } = getScore(cv, job);
-          return { primaryLine: cvLabel(cv), secondaryLine: jobLabel(job), score, cvId: cv.id, jobId: job.id, atsResultId };
-        })
-      ).filter(r => r.score != null);
+        activeJobs.map(job => buildRow(cv, job, cvLabel(cv), jobLabel(job)))
+      ).filter(r => r.atsScore != null || r.aiScore != null);
     }
     return [];
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -624,6 +636,25 @@ const JobsAndCvsPage: React.FC = () => {
     setBulkProgress(null);
   };
 
+  const handleBulkAtsMatch = async () => {
+    const pairs = activeCvs.flatMap(cv =>
+      activeJobs
+        .filter(job => !atsMap.has(`${cv.name}|||${job.displayName}`))
+        .map(job => ({ cv, job }))
+    );
+    if (!pairs.length) return;
+    setBulkAtsProgress({ done: 0, total: pairs.length });
+    for (let i = 0; i < pairs.length; i++) {
+      const { cv, job } = pairs[i];
+      try {
+        await ApiService.runAtsScore(cv.text, job.text, cv.name, job.displayName);
+      } catch { /* skip failed pair */ }
+      setBulkAtsProgress({ done: i + 1, total: pairs.length });
+    }
+    setBulkAtsProgress(null);
+    refreshAtsResults();
+  };
+
   const handleDeleteCv = (id: string) => {
     const cv = cvs.find(c => c.id === id);
     if (cv) {
@@ -716,34 +747,45 @@ const JobsAndCvsPage: React.FC = () => {
               onAiMatch={handleAiMatch}
               matchingPairs={matchingPairs}
               llmReady={llmReady}
+              showAts={!!user}
               aiMatchLabel={tSync('jac_ai_match_btn')}
               aiMatchingLabel={tSync('jac_ai_matching')}
             />
           )}
 
-          {/* Bulk AI match */}
-          {llmReady && activeCvs.length > 0 && activeJobs.length > 0 && (
-            <div className="flex items-center gap-3 mt-4 pt-4 border-t border-slate-100">
-              <button
-                onClick={handleBulkAiMatch}
-                disabled={!!bulkProgress}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <AiIcon className="w-4 h-4 text-white" />
-                {bulkProgress
-                  ? tSync('jac_bulk_matching')
-                      .replace('{{done}}',  String(bulkProgress.done))
-                      .replace('{{total}}', String(bulkProgress.total))
-                  : tSync('jac_bulk_match_btn')}
-              </button>
-              {!bulkProgress && (() => {
-                const unmatched = activeCvs.flatMap(cv =>
-                  activeJobs.filter(job => !localMatchMap.has(`${cv.id}|${job.id}`))
-                ).length;
-                return unmatched > 0
-                  ? <span className="text-xs text-slate-400">{unmatched} kombinationer utan AI-matchning</span>
-                  : <span className="text-xs text-green-600">Alla kombinationer är matchade ✓</span>;
-              })()}
+          {/* Bulk match buttons */}
+          {activeCvs.length > 0 && activeJobs.length > 0 && (user || llmReady) && (
+            <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-100">
+              {/* ATS bulk — only when logged in to BE */}
+              {user && (
+                <button
+                  onClick={handleBulkAtsMatch}
+                  disabled={!!bulkAtsProgress || !!bulkProgress}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {bulkAtsProgress
+                    ? tSync('jac_bulk_ats_matching')
+                        .replace('{{done}}',  String(bulkAtsProgress.done))
+                        .replace('{{total}}', String(bulkAtsProgress.total))
+                    : tSync('jac_bulk_ats_match_btn')}
+                </button>
+              )}
+
+              {/* AI bulk — only when LLM is configured */}
+              {llmReady && (
+                <button
+                  onClick={handleBulkAiMatch}
+                  disabled={!!bulkProgress || !!bulkAtsProgress}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <AiIcon className="w-4 h-4 text-white" />
+                  {bulkProgress
+                    ? tSync('jac_bulk_matching')
+                        .replace('{{done}}',  String(bulkProgress.done))
+                        .replace('{{total}}', String(bulkProgress.total))
+                    : tSync('jac_bulk_match_btn')}
+                </button>
+              )}
             </div>
           )}
         </PageCard>

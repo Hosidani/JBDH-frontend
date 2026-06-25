@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
 import { resetDbForTesting } from './db';
@@ -327,5 +327,97 @@ describe('CV', () => {
     });
     await LocalDbService.deleteCV(cv.cv_id);
     expect(await LocalDbService.getCV(cv.cv_id)).toBeUndefined();
+  });
+});
+
+// ── syncJobsFromBackend ───────────────────────────────────────────────────────
+
+const { mockGetExternalJobAds, mockCreateExternalJobAd } = vi.hoisted(() => ({
+  mockGetExternalJobAds: vi.fn(),
+  mockCreateExternalJobAd: vi.fn(),
+}));
+
+vi.mock('../services/ApiService', () => ({
+  ApiService: {
+    getExternalJobAds: mockGetExternalJobAds,
+    createExternalJobAd: mockCreateExternalJobAd,
+  },
+}));
+
+describe('syncLocalJobsToBackend', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('POSTar lokala jobb utan backend_id och uppdaterar backend_id', async () => {
+    await LocalDbService.addJob({ job_title: 'Dev', job_description: 'text', job_channel: '', job_json: '', job_url: '' });
+    mockCreateExternalJobAd.mockResolvedValue({ id: 201, name: 'Dev', text: 'text', created_at: '' });
+
+    const result = await LocalDbService.syncLocalJobsToBackend();
+
+    expect(result.synced).toBe(1);
+    expect(mockCreateExternalJobAd).toHaveBeenCalledWith('text', 'Dev');
+    const jobs = await LocalDbService.getAllJobs();
+    expect(jobs[0].backend_id).toBe(201);
+  });
+
+  it('hoppar över jobb som redan har backend_id', async () => {
+    await LocalDbService.addJob({ backend_id: 99, job_title: 'Synkad', job_description: '', job_channel: '', job_json: '', job_url: '' });
+
+    const result = await LocalDbService.syncLocalJobsToBackend();
+
+    expect(result.synced).toBe(0);
+    expect(mockCreateExternalJobAd).not.toHaveBeenCalled();
+  });
+
+  it('returnerar synced: 0 när inga lokala jobb finns', async () => {
+    const result = await LocalDbService.syncLocalJobsToBackend();
+    expect(result.synced).toBe(0);
+  });
+});
+
+describe('syncJobsFromBackend', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('importerar nya BE-jobb som saknas lokalt', async () => {
+    mockGetExternalJobAds.mockResolvedValue([
+      { id: 101, name: 'Backend-dev', text: 'Vi söker en backend-dev...', created_at: '' },
+      { id: 102, name: 'Frontend-dev', text: 'Vi söker en frontend-dev...', created_at: '' },
+    ]);
+
+    const result = await LocalDbService.syncJobsFromBackend();
+
+    expect(result.added).toBe(2);
+    const local = await LocalDbService.getAllJobs();
+    expect(local).toHaveLength(2);
+    expect(local[0].job_title).toBe('Backend-dev');
+    expect(local[0].job_description).toBe('Vi söker en backend-dev...');
+    expect(local[0].backend_id).toBe(101);
+  });
+
+  it('hoppar över jobb som redan finns lokalt', async () => {
+    mockGetExternalJobAds.mockResolvedValue([
+      { id: 101, name: 'Backend-dev', text: 'text', created_at: '' },
+    ]);
+    await LocalDbService.syncJobsFromBackend();
+
+    // Kör igen — samma BE-id ska inte dupliceras
+    mockGetExternalJobAds.mockResolvedValue([
+      { id: 101, name: 'Backend-dev', text: 'text', created_at: '' },
+      { id: 103, name: 'DevOps', text: 'DevOps-text', created_at: '' },
+    ]);
+    const result = await LocalDbService.syncJobsFromBackend();
+
+    expect(result.added).toBe(1);
+    expect(await LocalDbService.getAllJobs()).toHaveLength(2);
+  });
+
+  it('returnerar added: 0 när BE är tomt', async () => {
+    mockGetExternalJobAds.mockResolvedValue([]);
+    const result = await LocalDbService.syncJobsFromBackend();
+    expect(result.added).toBe(0);
+    expect(await LocalDbService.getAllJobs()).toHaveLength(0);
   });
 });

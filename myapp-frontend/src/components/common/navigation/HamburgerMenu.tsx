@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useTranslation } from '../../../hooks/TranslationProvider';
 import { useRoles } from '../../../hooks/useRoles';
 import { useLocalAccountContext } from '../../../context/LocalAccountContext';
 import { Icon } from '../../ui/Icon';
+import { LocalDbService } from '../../../db/LocalDbService';
 
 interface HamburgerMenuProps {
   isOpen: boolean;
@@ -68,6 +69,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
   const { hasAnyRole, isLoggedIn } = useRoles();
   const navigate = useNavigate();
   const { hasLocalAccount, hasBeAccount, localRoles, allAccounts } = useLocalAccountContext();
+  const [nukeConfirm, setNukeConfirm] = useState(false);
 
   if (!isOpen) return null;
 
@@ -175,6 +177,28 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose, onOpenLo
               {tSync('menu_logout')} <span style={{ fontSize: 18 }}>&#8594;</span>
             </button>
           )}
+
+          {/* Ta bort all lokal data */}
+          <div className="border-t border-slate-100 pt-2 mt-1">
+            {nukeConfirm ? (
+              <button
+                className="text-left text-red-700 font-semibold hover:underline w-full"
+                onClick={async () => {
+                  await LocalDbService.nukeLocalData();
+                  window.location.reload();
+                }}
+              >
+                {tSync('menu_nuke_local_data_confirm')}
+              </button>
+            ) : (
+              <button
+                className="text-left text-red-500 hover:underline w-full"
+                onClick={() => setNukeConfirm(true)}
+              >
+                {tSync('menu_nuke_local_data')}
+              </button>
+            )}
+          </div>
 
           {MENU_ITEMS.filter(item => item.old).filter(isVisible).map(item => (
             <Link key={item.to} to={item.to} className="text-left hover:underline text-slate-400" onClick={onClose}>

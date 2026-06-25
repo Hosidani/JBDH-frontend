@@ -22,7 +22,7 @@ export function RequireLocalRole({ roles, children }: Props) {
   if (hasLocalAccount === null) return null;
   if (!hasLocalAccount) return <Navigate to="/" replace />;
 
-  const hasAccess = isLoggedIn ? hasAnyRole(roles) : localRoles.some(r => roles.includes(r));
+  const hasAccess = localRoles.some(r => roles.includes(r)) || (isLoggedIn && hasAnyRole(roles));
   if (!hasAccess) return <Navigate to="/" replace />;
 
   return <>{children}</>;
