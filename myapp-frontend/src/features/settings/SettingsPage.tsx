@@ -14,7 +14,7 @@ import { Button } from '../../components/ui/Button';
 import { CheckboxGroup } from '../../components/ui/CheckboxGroup';
 import { PageCard } from '../../components/common/PageCard';
 import { PageWrapper, PageBackground } from '../../components/common';
-import settingsBg from '../../assets/img/settings.png';
+import settingsBg from '../../assets/img/Work-life-balance.png';
 
 const AI_KEY_FIELDS: { provider: AiProvider; settingsKey: string; i18nKey: string; placeholder: string }[] = [
   { provider: 'openai',    settingsKey: 'openai_key',    i18nKey: 'ai_settings_openai_key',    placeholder: 'sk-…' },

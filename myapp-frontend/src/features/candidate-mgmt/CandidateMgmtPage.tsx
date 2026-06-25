@@ -9,7 +9,7 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 import { useLocalAccount, useLocalCandidates } from '../../db/useLocalDb';
 import { LocalDbService } from '../../db/LocalDbService';
 import { useAuth } from '../../context/AuthContext';
-import coffeBreakImg from '../../assets/img/Coffe-break.png';
+import matchCvImg from '../../assets/img/match_CV.png';
 
 const CandidateMgmtPage: React.FC = () => {
   const { tSync } = useTranslation();
@@ -75,7 +75,7 @@ const CandidateMgmtPage: React.FC = () => {
 
   return (
     <>
-      <PageBackground imageUrl={coffeBreakImg} opacity={1} blur={0} className="!z-[2]" />
+      <PageBackground imageUrl={matchCvImg} opacity={1} blur={0} className="!z-[2]" />
       <PageWrapper className="relative z-10">
         <PageCard
           title={tSync('menu_manage_candidates')}

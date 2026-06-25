@@ -11,7 +11,7 @@ import { useTranslation } from '../../hooks/TranslationProvider';
 import { parseJobName, buildJobName } from '../../utils/parseJobName';
 import type { StructuredJob } from '../../ai/ai';
 import AddJobModal from '../jobs-and-cvs/AddJobModal';
-import coffeBreakImg from '../../assets/img/Coffe-break.png';
+import laptopWorkImg from '../../assets/img/Laptop-work.png';
 
 interface JobItem {
   id: number | string;  // BE numeric ID (>0), local-only negative number, or IDB UUID string
@@ -150,7 +150,7 @@ const JobMgmtPage: React.FC = () => {
 
   return (
     <>
-      <PageBackground imageUrl={coffeBreakImg} opacity={1} blur={0} className="!z-[2]" />
+      <PageBackground imageUrl={laptopWorkImg} opacity={1} blur={0} className="!z-[2]" />
       <PageWrapper className="relative z-10">
         <PageCard
           title={tSync('mgmt_jobs_title')}

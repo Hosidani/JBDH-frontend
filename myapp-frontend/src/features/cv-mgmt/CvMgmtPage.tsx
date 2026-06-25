@@ -11,7 +11,7 @@ import { LocalDbService } from '../../db/LocalDbService';
 import { ApiService } from '../../services/ApiService';
 import type { CV } from '../../db/types';
 import AddCvForCandidateModal from '../candidate/AddCvForCandidateModal';
-import coffeBreakImg from '../../assets/img/Coffe-break.png';
+import matchCvAgainstJobImg from '../../assets/img/match_CV_against_job.png';
 
 const CvMgmtPage: React.FC = () => {
   const { tSync } = useTranslation();
@@ -91,7 +91,7 @@ const CvMgmtPage: React.FC = () => {
 
   return (
     <>
-      <PageBackground imageUrl={coffeBreakImg} opacity={1} blur={0} className="!z-[2]" />
+      <PageBackground imageUrl={matchCvAgainstJobImg} opacity={1} blur={0} className="!z-[2]" />
       <PageWrapper className="relative z-10">
         <PageCard
           title={tSync('menu_manage_candidate_cvs')}

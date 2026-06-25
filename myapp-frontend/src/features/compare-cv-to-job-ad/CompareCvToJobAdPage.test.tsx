@@ -91,6 +91,7 @@ describe('SavedTextPanel - External Job Ads', () => {
   it('fills job ad textarea on select', async () => {
     const { user } = setup();
     const select = await screen.findByRole('combobox', { name: /sparad jobbannons/i });
+    await waitFor(() => expect(select).toHaveTextContent(externalJobAds[0].text.slice(0, 60)));
     await user.selectOptions(select, String(externalJobAds[0].id));
     const textarea = await screen.findByPlaceholderText(/jobbannonsens text/i) as HTMLTextAreaElement;
     await waitFor(() => expect(textarea.value).toBe(externalJobAds[0].text));

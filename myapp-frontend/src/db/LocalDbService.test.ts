@@ -392,9 +392,10 @@ describe('syncJobsFromBackend', () => {
     expect(result.added).toBe(2);
     const local = await LocalDbService.getAllJobs();
     expect(local).toHaveLength(2);
-    expect(local[0].job_title).toBe('Backend-dev');
-    expect(local[0].job_description).toBe('Vi söker en backend-dev...');
-    expect(local[0].backend_id).toBe(101);
+    const backendJob = local.find(j => j.backend_id === 101);
+    expect(backendJob?.job_title).toBe('Backend-dev');
+    expect(backendJob?.job_description).toBe('Vi söker en backend-dev...');
+    expect(backendJob?.backend_id).toBe(101);
   });
 
   it('hoppar över jobb som redan finns lokalt', async () => {
